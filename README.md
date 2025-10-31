@@ -2,6 +2,31 @@
 
 A complete TikTok-style app backend and admin dashboard for managing users and sellers with comprehensive control features.
 
+## 🚀 Quick Deploy to Render
+
+### Backend API
+1. Create a new **Web Service** on [Render](https://render.com)
+2. Connect this GitHub repository
+3. Use these settings:
+   - **Environment**: Node
+   - **Build Command**: `cd backend && npm install`
+   - **Start Command**: `cd backend && npm start`
+   - **Auto-Deploy**: Yes
+
+### Environment Variables Required
+Add these in Render Dashboard → Environment:
+```
+NODE_ENV=production
+MONGODB_URI=mongodb+srv://your-connection-string
+JWT_SECRET=your-super-secret-key
+FRONTEND_URL=https://your-frontend-domain.com
+```
+
+### Admin Dashboard Deploy
+1. Create another **Static Site** on Render
+2. Build Command: `cd admin-dashboard && npm install && npm run build`
+3. Publish Directory: `admin-dashboard/build`
+
 ## 🚀 Features
 
 ### Backend API

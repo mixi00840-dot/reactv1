@@ -1,0 +1,18 @@
+# Render Deployment Configuration
+# This file tells Render how to deploy your application
+
+# Build Command: cd backend && npm install
+# Start Command: cd backend && npm start
+
+# Environment Variables needed:
+# - NODE_ENV=production
+# - PORT (auto-provided by Render)
+# - MONGODB_URI (your MongoDB connection string)
+# - JWT_SECRET (your JWT secret key)
+# - FRONTEND_URL (your frontend domain)
+
+# For Web Service Settings in Render Dashboard:
+# - Environment: Node
+# - Build Command: cd backend && npm install  
+# - Start Command: cd backend && npm start
+# - Auto-Deploy: Yes (on Git push)
