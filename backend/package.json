@@ -2,9 +2,10 @@
   "name": "mixillo-backend",
   "version": "1.0.0",
   "description": "Backend API for Mixillo User Management System",
-  "main": "src/server.js",
+  "main": "src/server-simple.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node src/server-simple.js",
+    "start:original": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest",
     "seed": "node src/scripts/seedDatabase.js",

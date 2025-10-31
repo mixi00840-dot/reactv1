@@ -1,21 +1,16 @@
 const http = require('http');
 const socketIO = require('socket.io');
-const app = require('./app');
-const { setupSocketHandlers } = require('./socket/events');
-const setupWebRTCHandlers = require('./socket/webrtc');
-const { initializeTrendingCron } = require('./jobs/trendingCalculation');
-const { initializeStoryCleanup } = require('./jobs/storyCleanup');
-const { scheduledContentJob, livestreamReminderJob } = require('./jobs/scheduledContentJob');
-
-const PORT = process.env.PORT || 5000;
-
-// Bind to all interfaces in production (required for Render)
-const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
 console.log('🚀 Starting Mixillo API server...');
 console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-console.log(`🔗 Port: ${PORT}, Host: ${HOST}`);
+console.log(`🔗 Port: ${process.env.PORT || 5000}`);
 console.log(`📅 MongoDB URI: ${process.env.MONGODB_URI ? 'Set' : 'Not set'}`);
+
+// Import app
+const app = require('./app');
+
+const PORT = process.env.PORT || 5000;
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -32,25 +27,35 @@ const io = socketIO(server, {
 });
 
 // Setup Socket.io event handlers
-console.log('🔌 Setting up Socket.IO handlers...');
-setupSocketHandlers(io);
-
-// Setup WebRTC socket handlers
-setupWebRTCHandlers(io);
-
-// Make io accessible to routes
-app.set('io', io);
+try {
+  console.log('🔌 Setting up Socket.IO handlers...');
+  const { setupSocketHandlers } = require('./socket/events');
+  const setupWebRTCHandlers = require('./socket/webrtc');
+  
+  setupSocketHandlers(io);
+  setupWebRTCHandlers(io);
+  
+  // Make io accessible to routes
+  app.set('io', io);
+  console.log('✅ Socket.IO handlers configured');
+} catch (error) {
+  console.error('❌ Error setting up Socket.IO:', error.message);
+}
 
 // Initialize cron jobs only in production or when explicitly enabled
 if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true') {
   console.log('⏰ Initializing cron jobs...');
   try {
+    const { initializeTrendingCron } = require('./jobs/trendingCalculation');
+    const { initializeStoryCleanup } = require('./jobs/storyCleanup');
+    const { scheduledContentJob, livestreamReminderJob } = require('./jobs/scheduledContentJob');
+    
     initializeTrendingCron();
     initializeStoryCleanup();
     
-    // Phase 15: Initialize scheduling cron jobs
     scheduledContentJob.start();
     livestreamReminderJob.start();
+    
     console.log('📅 Scheduled content processor initialized');
     console.log('🔔 Livestream reminder service initialized');
   } catch (error) {
@@ -66,7 +71,7 @@ server.listen(PORT, HOST, () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://${HOST}:${PORT}/health`);
   console.log(`⚡ WebSocket server ready`);
-  console.log(`⏰ Cron jobs initialized`);
+  console.log(`🎉 Server startup complete!`);
 }).on('error', (err) => {
   console.error('❌ Server failed to start:', err);
   process.exit(1);

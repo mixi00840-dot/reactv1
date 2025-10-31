@@ -4,7 +4,8 @@
   "description": "Mixillo TikTok-style app with backend, dashboard, and Flutter app",
   "scripts": {
     "build": "cd backend && npm install",
-    "start": "cd backend && npm start",
+    "start": "cd backend && node src/server-simple.js",
+    "start:original": "cd backend && npm start",
     "dev": "cd backend && npm run dev"
   },
   "engines": {
