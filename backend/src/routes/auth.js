@@ -7,6 +7,22 @@ const { generateToken, generateRefreshToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Auth API is working',
+    endpoints: [
+      'POST /register - Register new user',
+      'POST /login - User login',
+      'POST /logout - User logout',
+      'GET /me - Get current user (requires auth)',
+      'POST /refresh - Refresh token',
+      'POST /forgot-password - Password reset'
+    ]
+  });
+});
+
 // Validation middleware
 const registerValidation = [
   body('username')

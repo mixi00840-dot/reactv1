@@ -9,6 +9,22 @@ const { uploadMiddleware, handleUploadError } = require('../middleware/upload');
 
 const router = express.Router();
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Users API is working',
+    endpoints: [
+      'GET /profile - Get user profile (requires auth)',
+      'PUT /profile - Update user profile (requires auth)',
+      'POST /avatar - Upload avatar (requires auth)',
+      'GET /:id - Get user by ID',
+      'GET /:id/followers - Get user followers',
+      'GET /:id/following - Get user following'
+    ]
+  });
+});
+
 // @route   GET /api/users/profile
 // @desc    Get current user profile
 // @access  Private

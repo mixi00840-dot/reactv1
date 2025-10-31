@@ -8,23 +8,46 @@ require('dotenv').config();
 
 const connectDB = require('./utils/database');
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const sellerRoutes = require('./routes/sellers');
-const adminRoutes = require('./routes/admin');
+// Import routes with error handling
+let authRoutes, userRoutes, sellerRoutes, adminRoutes;
+try {
+  authRoutes = require('./routes/auth');
+  userRoutes = require('./routes/users');
+  sellerRoutes = require('./routes/sellers');
+  adminRoutes = require('./routes/admin');
+} catch (error) {
+  console.error('Error loading core routes:', error.message);
+  // Create fallback routes
+  const express = require('express');
+  const fallbackRouter = express.Router();
+  fallbackRouter.get('*', (req, res) => {
+    res.status(503).json({ success: false, message: 'Service temporarily unavailable' });
+  });
+  authRoutes = userRoutes = sellerRoutes = adminRoutes = fallbackRouter;
+}
 
-// E-commerce routes
-const productRoutes = require('./routes/products');
-const storeRoutes = require('./routes/stores');
-const categoryRoutes = require('./routes/categories');
-const cartRoutes = require('./routes/cart');
-const orderRoutes = require('./routes/orders');
-const paymentRoutes = require('./routes/payments');
-const couponRoutes = require('./routes/coupons');
-const shippingRoutes = require('./routes/shipping');
-const customerServiceRoutes = require('./routes/customerService');
-const analyticsRoutes = require('./routes/analytics');
+// E-commerce routes with error handling
+let productRoutes, storeRoutes, categoryRoutes, cartRoutes, orderRoutes, paymentRoutes, couponRoutes, shippingRoutes, customerServiceRoutes, analyticsRoutes;
+try {
+  productRoutes = require('./routes/products');
+  storeRoutes = require('./routes/stores');
+  categoryRoutes = require('./routes/categories');
+  cartRoutes = require('./routes/cart');
+  orderRoutes = require('./routes/orders');
+  paymentRoutes = require('./routes/payments');
+  couponRoutes = require('./routes/coupons');
+  shippingRoutes = require('./routes/shipping');
+  customerServiceRoutes = require('./routes/customerService');
+  analyticsRoutes = require('./routes/analytics');
+} catch (error) {
+  console.error('Error loading e-commerce routes:', error.message);
+  const express = require('express');
+  const fallbackRouter = express.Router();
+  fallbackRouter.get('*', (req, res) => {
+    res.status(503).json({ success: false, message: 'E-commerce service temporarily unavailable' });
+  });
+  productRoutes = storeRoutes = categoryRoutes = cartRoutes = orderRoutes = paymentRoutes = couponRoutes = shippingRoutes = customerServiceRoutes = analyticsRoutes = fallbackRouter;
+}
 
 // Settings & Audit routes
 const settingsRoutes = require('./routes/settings');
