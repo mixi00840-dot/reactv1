@@ -1,5 +1,14 @@
-const axios = require('axios');
-const FormData = require('form-data');
+// Safe require with fallback
+let axios, FormData;
+try {
+  axios = require('axios');
+  FormData = require('form-data');
+} catch (error) {
+  console.warn('⚠️  axios or form-data not available. SightengineService will be disabled.');
+  axios = null;
+  FormData = null;
+}
+
 const fs = require('fs').promises;
 const AIModeration = require('../models/AIModeration');
 const Content = require('../models/Content');
@@ -12,6 +21,14 @@ const Content = require('../models/Content');
 
 class SightengineService {
   constructor() {
+    // Check if dependencies are available
+    if (!axios || !FormData) {
+      console.warn('⚠️  SightengineService disabled: Missing axios or form-data dependencies');
+      this.disabled = true;
+      return;
+    }
+    
+    this.disabled = false;
     this.apiUser = process.env.SIGHTENGINE_API_USER;
     this.apiSecret = process.env.SIGHTENGINE_API_SECRET;
     this.baseURL = 'https://api.sightengine.com/1.0';
@@ -41,6 +58,11 @@ class SightengineService {
    */
   async moderateImage(imageUrl, contentId, userId) {
     try {
+      if (this.disabled) {
+        console.warn('SightengineService disabled, using fallback moderation');
+        return this._fallbackModeration('image', contentId);
+      }
+      
       if (!this.apiUser || !this.apiSecret) {
         console.warn('Sightengine credentials not configured, using basic moderation');
         return this._fallbackModeration('image', contentId);
