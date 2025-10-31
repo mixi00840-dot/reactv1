@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = process.env.API_URL || 'https://reactv1-v8sa.onrender.com/api';
 
 const testAPI = async () => {
   try {
@@ -8,7 +8,7 @@ const testAPI = async () => {
 
     // Test health check
     console.log('1. Testing health check...');
-    const healthResponse = await axios.get('http://localhost:5000/health');
+    const healthResponse = await axios.get(process.env.API_URL?.replace('/api', '') || 'https://reactv1-v8sa.onrender.com/health');
     console.log('✅ Health check:', healthResponse.data.message);
 
     // Test admin login

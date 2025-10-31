@@ -229,7 +229,7 @@ class StreamingService {
       cloudflare: `https://cdn.mixillo.com`,
       cloudfront: `https://d123456789.cloudfront.net`,
       fastly: `https://mixillo.global.ssl.fastly.net`,
-      local: `${process.env.API_URL || 'http://localhost:5000'}/uploads`
+      local: `${process.env.API_URL || 'https://reactv1-v8sa.onrender.com'}/uploads`
     };
     
     const baseUrl = cdnBaseUrls[cdnProvider] || cdnBaseUrls.local;

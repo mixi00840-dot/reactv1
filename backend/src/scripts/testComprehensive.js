@@ -3,7 +3,7 @@ const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = process.env.API_URL || 'https://reactv1-v8sa.onrender.com/api';
 let adminToken = '';
 let userToken = '';
 let testResults = {

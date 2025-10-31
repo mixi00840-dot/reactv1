@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const BASE_URL = process.env.API_URL || 'http://localhost:5000';
+const BASE_URL = process.env.API_URL || 'https://reactv1-v8sa.onrender.com';
 const API_URL = `${BASE_URL}/api`;
 
 // Test data
