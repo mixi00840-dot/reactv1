@@ -6,6 +6,7 @@ import '../models/seller_application_model.dart';
 import '../models/activity_model.dart';
 import '../models/wallet_model.dart';
 import '../models/conversation_model.dart';
+import '../models/product_model.dart';
 
 class ProfileService {
   final Dio _dio;
@@ -267,6 +268,140 @@ class ProfileService {
         '$baseUrl/wallets/transactions/$transactionId/receipt',
       );
       return response.data['receiptUrl'] ?? '';
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Product APIs
+  Future<List<dynamic>> getSellerProducts({
+    ProductStatus? status,
+    int limit = 20,
+    String? cursor,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'limit': limit,
+        if (status != null) 'status': status.name,
+        if (cursor != null) 'cursor': cursor,
+      };
+
+      final response = await _dio.get(
+        '$baseUrl/products/mine',
+        queryParameters: queryParams,
+      );
+      return response.data as List;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<dynamic> getProduct(String productId) async {
+    try {
+      final response = await _dio.get('$baseUrl/products/$productId');
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<dynamic> createProduct({
+    required String name,
+    required String description,
+    required double price,
+    required int stock,
+    required String category,
+    required List<File> images,
+    Map<String, dynamic>? specifications,
+    Map<String, dynamic>? shippingInfo,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'name': name,
+        'description': description,
+        'price': price,
+        'stock': stock,
+        'category': category,
+        if (specifications != null) 'specifications': specifications,
+        if (shippingInfo != null) 'shippingInfo': shippingInfo,
+      });
+
+      // Add image files
+      for (var i = 0; i < images.length; i++) {
+        formData.files.add(MapEntry(
+          'images',
+          await MultipartFile.fromFile(
+            images[i].path,
+            filename: images[i].path.split('/').last,
+          ),
+        ));
+      }
+
+      final response = await _dio.post(
+        '$baseUrl/products',
+        data: formData,
+      );
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<dynamic> updateProduct(
+    String productId, {
+    String? name,
+    String? description,
+    double? price,
+    int? stock,
+    String? category,
+    List<File>? images,
+    Map<String, dynamic>? specifications,
+    Map<String, dynamic>? shippingInfo,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (name != null) data['name'] = name;
+      if (description != null) data['description'] = description;
+      if (price != null) data['price'] = price;
+      if (stock != null) data['stock'] = stock;
+      if (category != null) data['category'] = category;
+      if (specifications != null) data['specifications'] = specifications;
+      if (shippingInfo != null) data['shippingInfo'] = shippingInfo;
+
+      final response = await _dio.put(
+        '$baseUrl/products/$productId',
+        data: data,
+      );
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> deleteProduct(String productId) async {
+    try {
+      await _dio.delete('$baseUrl/products/$productId');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<dynamic> updateProductStatus(String productId, ProductStatus status) async {
+    try {
+      final response = await _dio.patch(
+        '$baseUrl/products/$productId/status',
+        data: {'status': status.name},
+      );
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getProductAnalytics(String productId) async {
+    try {
+      final response = await _dio.get('$baseUrl/products/$productId/analytics');
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw _handleError(e);
     }

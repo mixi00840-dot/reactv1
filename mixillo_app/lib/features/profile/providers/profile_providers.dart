@@ -4,6 +4,7 @@ import '../models/seller_application_model.dart';
 import '../models/activity_model.dart';
 import '../models/wallet_model.dart';
 import '../models/conversation_model.dart';
+import '../models/product_model.dart';
 import '../services/profile_service.dart';
 import '../services/socket_service.dart';
 
@@ -254,4 +255,82 @@ final savedContentProvider = FutureProvider.autoDispose<List<dynamic>>((ref) asy
 final likedContentProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final service = ref.watch(profileServiceProvider);
   return service.getLikedContent();
+});
+
+// Product Providers
+final sellerProductsProvider = StateNotifierProvider<SellerProductsNotifier, AsyncValue<List<Product>>>((ref) {
+  return SellerProductsNotifier(ref.watch(profileServiceProvider));
+});
+
+class SellerProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
+  final ProfileService _service;
+
+  SellerProductsNotifier(this._service) : super(const AsyncValue.loading()) {
+    loadProducts();
+  }
+
+  Future<void> loadProducts({ProductStatus? status}) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final data = await _service.getSellerProducts(status: status);
+      return data.map((json) => Product.fromJson(json)).toList();
+    });
+  }
+
+  Future<void> createProduct({
+    required String name,
+    required String description,
+    required double price,
+    required int stock,
+    required String category,
+    required List<dynamic> images,
+    Map<String, dynamic>? specifications,
+    Map<String, dynamic>? shippingInfo,
+  }) async {
+    await _service.createProduct(
+      name: name,
+      description: description,
+      price: price,
+      stock: stock,
+      category: category,
+      images: images.cast(),
+      specifications: specifications,
+      shippingInfo: shippingInfo,
+    );
+    await loadProducts();
+  }
+
+  Future<void> updateProduct(
+    String productId, {
+    String? name,
+    String? description,
+    double? price,
+    int? stock,
+    String? category,
+  }) async {
+    await _service.updateProduct(
+      productId,
+      name: name,
+      description: description,
+      price: price,
+      stock: stock,
+      category: category,
+    );
+    await loadProducts();
+  }
+
+  Future<void> updateProductStatus(String productId, ProductStatus status) async {
+    await _service.updateProductStatus(productId, status);
+    await loadProducts();
+  }
+
+  Future<void> deleteProduct(String productId) async {
+    await _service.deleteProduct(productId);
+    await loadProducts();
+  }
+}
+
+final productAnalyticsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, productId) async {
+  final service = ref.watch(profileServiceProvider);
+  return service.getProductAnalytics(productId);
 });
