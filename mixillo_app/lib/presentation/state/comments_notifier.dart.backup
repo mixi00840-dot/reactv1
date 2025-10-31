@@ -1,0 +1,365 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/comment.dart';
+import '../../domain/usecases/comments/create_comment.dart';
+import '../../domain/usecases/comments/delete_comment.dart';
+import '../../domain/usecases/comments/get_comments.dart';
+import '../../domain/usecases/comments/like_comment.dart';
+import '../../domain/usecases/comments/unlike_comment.dart';
+import '../../domain/usecases/comments/update_comment.dart';
+import '../../domain/usecases/comments/report_comment.dart';
+import 'comments_state.dart';
+
+/// Notifier for managing comments state
+class CommentsNotifier extends StateNotifier<CommentsState> {
+  final GetComments getCommentsUseCase;
+  final CreateComment createCommentUseCase;
+  final UpdateComment updateCommentUseCase;
+  final DeleteComment deleteCommentUseCase;
+  final LikeComment likeCommentUseCase;
+  final UnlikeComment unlikeCommentUseCase;
+  final ReportComment reportCommentUseCase;
+
+  static const int _limit = 20;
+
+  CommentsNotifier({
+    required this.getCommentsUseCase,
+    required this.createCommentUseCase,
+    required this.updateCommentUseCase,
+    required this.deleteCommentUseCase,
+    required this.likeCommentUseCase,
+    required this.unlikeCommentUseCase,
+    required this.reportCommentUseCase,
+  }) : super(const CommentsState());
+
+  /// Load comments for a content item
+  Future<void> loadComments(String contentId) async {
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      currentPage: 1,
+    );
+
+    final result = await getCommentsUseCase(
+      GetCommentsParams(
+        contentId: contentId,
+        page: 1,
+        limit: _limit,
+      ),
+    );
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        error: failure.message,
+      ),
+      (comments) => state = state.copyWith(
+        isLoading: false,
+        comments: comments,
+        hasMore: comments.length >= _limit,
+        error: null,
+      ),
+    );
+  }
+
+  /// Load more comments (pagination)
+  Future<void> loadMoreComments(String contentId) async {
+    if (state.isLoadingMore || !state.hasMore) return;
+
+    state = state.copyWith(
+      isLoadingMore: true,
+      error: null,
+    );
+
+    final nextPage = state.currentPage + 1;
+    final result = await getCommentsUseCase(
+      GetCommentsParams(
+        contentId: contentId,
+        page: nextPage,
+        limit: _limit,
+      ),
+    );
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoadingMore: false,
+        error: failure.message,
+      ),
+      (newComments) => state = state.copyWith(
+        isLoadingMore: false,
+        comments: [...state.comments, ...newComments],
+        currentPage: nextPage,
+        hasMore: newComments.length >= _limit,
+        error: null,
+      ),
+    );
+  }
+
+  /// Create a new comment
+  Future<bool> createNewComment({
+    required String contentId,
+    required String text,
+    String? parentId,
+  }) async {
+    final result = await createCommentUseCase(
+      CreateCommentParams(
+        contentId: contentId,
+        text: text,
+        parentId: parentId,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(error: failure.message);
+        return false;
+      },
+      (comment) {
+        // Add new comment to the beginning of the list
+        if (parentId == null) {
+          // Top-level comment
+          state = state.copyWith(
+            comments: [comment, ...state.comments],
+            error: null,
+          );
+        } else {
+          // Reply to a comment - update the parent comment
+          final updatedComments = state.comments.map((c) {
+            if (c.id == parentId) {
+              final replies = c.replies ?? [];
+              return Comment(
+                id: c.id,
+                contentId: c.contentId,
+                userId: c.userId,
+                user: c.user,
+                text: c.text,
+                createdAt: c.createdAt,
+                updatedAt: c.updatedAt,
+                likesCount: c.likesCount,
+                repliesCount: c.repliesCount + 1,
+                isLiked: c.isLiked,
+                parentId: c.parentId,
+                replies: [comment, ...replies],
+              );
+            }
+            return c;
+          }).toList();
+
+          state = state.copyWith(
+            comments: updatedComments,
+            error: null,
+          );
+        }
+        return true;
+      },
+    );
+  }
+
+  /// Update an existing comment
+  Future<bool> updateExistingComment({
+    required String commentId,
+    required String text,
+  }) async {
+    final result = await updateCommentUseCase(
+      UpdateCommentParams(
+        commentId: commentId,
+        text: text,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(error: failure.message);
+        return false;
+      },
+      (updatedComment) {
+        // Update the comment in the list
+        final updatedComments = state.comments.map((c) {
+          if (c.id == commentId) {
+            return updatedComment;
+          }
+          // Check if it's a reply
+          if (c.replies != null) {
+            final updatedReplies = c.replies!.map((reply) {
+              if (reply.id == commentId) {
+                return updatedComment;
+              }
+              return reply;
+            }).toList();
+
+            return Comment(
+              id: c.id,
+              contentId: c.contentId,
+              userId: c.userId,
+              user: c.user,
+              text: c.text,
+              createdAt: c.createdAt,
+              updatedAt: c.updatedAt,
+              likesCount: c.likesCount,
+              repliesCount: c.repliesCount,
+              isLiked: c.isLiked,
+              parentId: c.parentId,
+              replies: updatedReplies,
+            );
+          }
+          return c;
+        }).toList();
+
+        state = state.copyWith(
+          comments: updatedComments,
+          error: null,
+        );
+        return true;
+      },
+    );
+  }
+
+  /// Delete a comment
+  Future<bool> removeComment(String commentId) async {
+    final result = await deleteCommentUseCase(
+      DeleteCommentParams(commentId: commentId),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(error: failure.message);
+        return false;
+      },
+      (_) {
+        // Remove the comment from the list
+        final updatedComments = state.comments.where((c) {
+          if (c.id == commentId) return false;
+
+          // Check replies
+          final filteredReplies =
+              c.replies.where((reply) => reply.id != commentId).toList();
+          if (filteredReplies.length != c.replies.length) {
+            // A reply was removed - this is handled by returning true
+          }
+          return true;
+        }).toList();
+
+        state = state.copyWith(
+          comments: updatedComments,
+          error: null,
+        );
+        return true;
+      },
+    );
+  }
+
+  /// Toggle like on a comment
+  Future<void> toggleLike(String commentId, bool currentlyLiked) async {
+    // Optimistic update
+    _updateCommentLike(commentId, !currentlyLiked);
+
+    final result = currentlyLiked
+        ? await unlikeCommentUseCase(UnlikeCommentParams(commentId: commentId))
+        : await likeCommentUseCase(LikeCommentParams(commentId: commentId));
+
+    result.fold(
+      (failure) {
+        // Revert optimistic update on failure
+        _updateCommentLike(commentId, currentlyLiked);
+        state = state.copyWith(error: failure.message);
+      },
+      (_) {
+        // Success - optimistic update already applied
+        state = state.copyWith(error: null);
+      },
+    );
+  }
+
+  /// Helper to update comment like status (optimistic update)
+  void _updateCommentLike(String commentId, bool isLiked) {
+    final updatedComments = state.comments.map((c) {
+      if (c.id == commentId) {
+        return Comment(
+          id: c.id,
+          contentId: c.contentId,
+          userId: c.userId,
+          user: c.user,
+          text: c.text,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+          likesCount: isLiked ? c.likesCount + 1 : c.likesCount - 1,
+          repliesCount: c.repliesCount,
+          isLiked: isLiked,
+          parentId: c.parentId,
+          replies: c.replies,
+        );
+      }
+
+      // Check replies
+      final updatedReplies = c.replies.map((reply) {
+          if (reply.id == commentId) {
+            return Comment(
+              id: reply.id,
+              contentId: reply.contentId,
+              userId: reply.userId,
+              user: reply.user,
+              text: reply.text,
+              createdAt: reply.createdAt,
+              updatedAt: reply.updatedAt,
+              likesCount: isLiked ? reply.likesCount + 1 : reply.likesCount - 1,
+              repliesCount: reply.repliesCount,
+              isLiked: isLiked,
+              parentId: reply.parentId,
+              replies: reply.replies,
+            );
+          }
+        return reply;
+      }).toList();
+
+      return Comment(
+          id: c.id,
+          contentId: c.contentId,
+          userId: c.userId,
+          user: c.user,
+          text: c.text,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+          likesCount: c.likesCount,
+          repliesCount: c.repliesCount,
+          isLiked: c.isLiked,
+          parentId: c.parentId,
+        replies: updatedReplies,
+      );
+    }).toList();
+
+    state = state.copyWith(comments: updatedComments);
+  }
+
+  /// Report a comment
+  Future<bool> reportAComment({
+    required String commentId,
+    required String reason,
+  }) async {
+    final result = await reportCommentUseCase(
+      ReportCommentParams(
+        commentId: commentId,
+        reason: reason,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(error: failure.message);
+        return false;
+      },
+      (_) {
+        state = state.copyWith(error: null);
+        return true;
+      },
+    );
+  }
+
+  /// Clear error message
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+
+  /// Reset state
+  void reset() {
+    state = const CommentsState();
+  }
+}

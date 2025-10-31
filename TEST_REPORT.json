@@ -1,0 +1,87 @@
+{
+  "passed": 13,
+  "failed": 3,
+  "total": 16,
+  "details": [
+    {
+      "test": "Health Check",
+      "status": "PASSED",
+      "message": "Server is running"
+    },
+    {
+      "test": "User Registration",
+      "status": "PASSED",
+      "message": "User created with ID: 6904bbacb7dbe26177629177"
+    },
+    {
+      "test": "Token Refresh",
+      "status": "PASSED",
+      "message": "New token generated"
+    },
+    {
+      "test": "Get Profile",
+      "status": "PASSED",
+      "message": "Profile retrieved successfully"
+    },
+    {
+      "test": "Update Profile",
+      "status": "PASSED",
+      "message": "Profile updated successfully"
+    },
+    {
+      "test": "Create Post",
+      "status": "PASSED",
+      "message": "Post created with ID: 6904bbafb7dbe26177629185"
+    },
+    {
+      "test": "Get Posts",
+      "status": "PASSED",
+      "message": "Retrieved 0 posts"
+    },
+    {
+      "test": "Like Post",
+      "status": "FAILED",
+      "message": "Failed to like content"
+    },
+    {
+      "test": "Create Comment",
+      "status": "FAILED",
+      "message": "Comment validation failed: commentId: Path `commentId` is required."
+    },
+    {
+      "test": "Get Comments",
+      "status": "FAILED",
+      "message": "Cannot read properties of undefined (reading 'comments')"
+    },
+    {
+      "test": "Get Notifications",
+      "status": "PASSED",
+      "message": "Retrieved 0 notifications"
+    },
+    {
+      "test": "Search Users",
+      "status": "PASSED",
+      "message": "Found 14 users"
+    },
+    {
+      "test": "Search Content",
+      "status": "PASSED",
+      "message": "Found 0 content items"
+    },
+    {
+      "test": "Follow User",
+      "status": "PASSED",
+      "message": "User followed successfully"
+    },
+    {
+      "test": "Get Analytics",
+      "status": "PASSED",
+      "message": "User analytics retrieved"
+    },
+    {
+      "test": "Get Wallet Balance",
+      "status": "PASSED",
+      "message": "Balance: 0"
+    }
+  ]
+}
