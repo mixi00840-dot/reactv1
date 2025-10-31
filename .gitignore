@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+build/
+dist/
+*/build/
+*/dist/
+
+# Cache files
+.cache/
+*/.cache/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Flutter specific
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+
+# Uploads
+uploads/
+*/uploads/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
