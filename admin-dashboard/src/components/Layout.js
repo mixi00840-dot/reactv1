@@ -64,6 +64,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ApiHealth from './ApiHealth';
 
 const drawerWidth = 280;
 
@@ -371,7 +372,8 @@ function Layout({ children }) {
             {menuItems.find(item => item.path === location.pathname)?.text || 'Admin Panel'}
           </Typography>
 
-          <IconButton color="inherit" sx={{ mr: 2 }}>
+          <ApiHealth />
+          <IconButton color="inherit" sx={{ mr: 2, ml: 2 }}>
             <Badge badgeContent={0} color="error">
               <Notifications />
             </Badge>

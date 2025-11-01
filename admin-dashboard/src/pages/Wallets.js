@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -53,11 +53,11 @@ const Wallets = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/wallets?limit=100`,
+      const response = await api.get(
+        `/api/wallets?limit=100`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setWallets(response.data.wallets || []);
+      setWallets(response?.wallets || response?.data?.wallets || []);
     } catch (error) {
       console.error('Error fetching wallets:', error);
     } finally {
@@ -68,11 +68,11 @@ const Wallets = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/wallets/stats`,
+      const response = await api.get(
+        `/api/wallets/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setStats(response.data || {});
+      setStats(response || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -86,8 +86,8 @@ const Wallets = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/wallets/${selectedWallet.user}/adjust`,
+      await api.post(
+        `/api/wallets/${selectedWallet.user}/adjust`,
         {
           amount: parseFloat(adjustAmount),
           type: type,

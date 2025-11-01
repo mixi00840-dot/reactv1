@@ -33,7 +33,7 @@ import {
   Edit,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 const UserStatusChip = ({ status }) => {
@@ -90,9 +90,9 @@ function Users() {
         ...filters,
       });
 
-      const response = await axios.get(`/api/admin/users?${params}`);
-      setUsers(response.data.data.users);
-      setPagination(response.data.data.pagination);
+  const response = await api.get(`/api/admin/users?${params}`);
+  setUsers(response?.data?.users || response?.users || []);
+  setPagination(response?.data?.pagination || response?.pagination || { currentPage: 1, totalPages: 1, totalUsers: 0 });
     } catch (error) {
       console.error('Fetch users error:', error);
       toast.error('Failed to fetch users');
@@ -164,7 +164,7 @@ function Users() {
           return;
       }
 
-      const response = await axios[method.toLowerCase()](endpoint, Object.keys(data).length ? data : undefined);
+  const response = await api[method.toLowerCase()](endpoint, Object.keys(data).length ? data : undefined);
       
       console.log(`✅ ${action} successful:`, response.data);
       
@@ -173,7 +173,7 @@ function Users() {
         console.log('📦 Store details:', response.data.data.store);
       }
       
-      toast.success(response.data.message || `User ${action}d successfully`);
+  toast.success(response?.message || `User ${action}d successfully`);
       fetchUsers();
     } catch (error) {
       console.error(`❌ ${action} user error:`, error);
