@@ -24,8 +24,9 @@ class CommentsRepositoryImpl implements CommentsRepository {
   @override
   Future<Either<Failure, List<Comment>>> getComments({
     required String contentId,
-    required int page,
-    required int limit,
+    int page = 1,
+    int limit = 20,
+    String? parentId,
   }) async {
     try {
       // Check connectivity
@@ -56,10 +57,10 @@ class CommentsRepositoryImpl implements CommentsRepository {
               return Right(
                   cachedComments.map((model) => model.toEntity()).toList());
             } on CacheException {
-              return Left(ServerFailure(e.message));
+              return Left(ServerFailure(message: e.message));
             }
           }
-          return Left(ServerFailure(e.message));
+          return Left(ServerFailure(message: e.message));
         }
       } else {
         // No connection - try cache (only for first page)
@@ -70,14 +71,14 @@ class CommentsRepositoryImpl implements CommentsRepository {
             return Right(
                 cachedComments.map((model) => model.toEntity()).toList());
           } on CacheException catch (e) {
-            return Left(CacheFailure(e.message));
+            return Left(CacheFailure(message: e.message));
           }
         } else {
-          return Left(NetworkFailure('No internet connection'));
+          return Left(NetworkFailure(message: 'No internet connection'));
         }
       }
     } catch (e) {
-      return Left(ServerFailure('Failed to get comments: ${e.toString()}'));
+      return Left(ServerFailure(message: 'Failed to get comments: ${e.toString()}'));
     }
   }
 
@@ -100,7 +101,7 @@ class CommentsRepositoryImpl implements CommentsRepository {
           if (cachedComment != null) {
             return Right(cachedComment.toEntity());
           }
-          return Left(ServerFailure(e.message));
+          return Left(ServerFailure(message: e.message));
         }
       } else {
         // No connection - try cache
@@ -109,10 +110,10 @@ class CommentsRepositoryImpl implements CommentsRepository {
         if (cachedComment != null) {
           return Right(cachedComment.toEntity());
         }
-        return Left(NetworkFailure('No internet connection'));
+        return Left(NetworkFailure(message: 'No internet connection'));
       }
     } catch (e) {
-      return Left(ServerFailure('Failed to get comment: ${e.toString()}'));
+      return Left(ServerFailure(message: 'Failed to get comment: ${e.toString()}'));
     }
   }
 
@@ -128,7 +129,7 @@ class CommentsRepositoryImpl implements CommentsRepository {
       final isConnected = connectivityResult != ConnectivityResult.none;
 
       if (!isConnected) {
-        return Left(NetworkFailure('No internet connection'));
+        return Left(NetworkFailure(message: 'No internet connection'));
       }
 
       final comment = await remoteDataSource.createComment(
@@ -154,9 +155,9 @@ class CommentsRepositoryImpl implements CommentsRepository {
 
       return Right(comment.toEntity());
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: e.message));
     } catch (e) {
-      return Left(ServerFailure('Failed to create comment: ${e.toString()}'));
+      return Left(ServerFailure(message: 'Failed to create comment: ${e.toString()}'));
     }
   }
 
@@ -171,7 +172,7 @@ class CommentsRepositoryImpl implements CommentsRepository {
       final isConnected = connectivityResult != ConnectivityResult.none;
 
       if (!isConnected) {
-        return Left(NetworkFailure('No internet connection'));
+        return Left(NetworkFailure(message: 'No internet connection'));
       }
 
       final comment = await remoteDataSource.updateComment(
@@ -184,9 +185,9 @@ class CommentsRepositoryImpl implements CommentsRepository {
 
       return Right(comment.toEntity());
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: e.message));
     } catch (e) {
-      return Left(ServerFailure('Failed to update comment: ${e.toString()}'));
+      return Left(ServerFailure(message: 'Failed to update comment: ${e.toString()}'));
     }
   }
 
@@ -198,7 +199,7 @@ class CommentsRepositoryImpl implements CommentsRepository {
       final isConnected = connectivityResult != ConnectivityResult.none;
 
       if (!isConnected) {
-        return Left(NetworkFailure('No internet connection'));
+        return Left(NetworkFailure(message: 'No internet connection'));
       }
 
       await remoteDataSource.deleteComment(commentId);
@@ -208,9 +209,9 @@ class CommentsRepositoryImpl implements CommentsRepository {
 
       return const Right(null);
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: e.message));
     } catch (e) {
-      return Left(ServerFailure('Failed to delete comment: ${e.toString()}'));
+      return Left(ServerFailure(message: 'Failed to delete comment: ${e.toString()}'));
     }
   }
 
@@ -222,7 +223,7 @@ class CommentsRepositoryImpl implements CommentsRepository {
       final isConnected = connectivityResult != ConnectivityResult.none;
 
       if (!isConnected) {
-        return Left(NetworkFailure('No internet connection'));
+        return Left(NetworkFailure(message: 'No internet connection'));
       }
 
       // Optimistic update: Update cache immediately
@@ -246,9 +247,9 @@ class CommentsRepositoryImpl implements CommentsRepository {
         rethrow;
       }
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: e.message));
     } catch (e) {
-      return Left(ServerFailure('Failed to like comment: ${e.toString()}'));
+      return Left(ServerFailure(message: 'Failed to like comment: ${e.toString()}'));
     }
   }
 
@@ -260,7 +261,7 @@ class CommentsRepositoryImpl implements CommentsRepository {
       final isConnected = connectivityResult != ConnectivityResult.none;
 
       if (!isConnected) {
-        return Left(NetworkFailure('No internet connection'));
+        return Left(NetworkFailure(message: 'No internet connection'));
       }
 
       // Optimistic update: Update cache immediately
@@ -284,9 +285,9 @@ class CommentsRepositoryImpl implements CommentsRepository {
         rethrow;
       }
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: e.message));
     } catch (e) {
-      return Left(ServerFailure('Failed to unlike comment: ${e.toString()}'));
+      return Left(ServerFailure(message: 'Failed to unlike comment: ${e.toString()}'));
     }
   }
 
@@ -294,6 +295,7 @@ class CommentsRepositoryImpl implements CommentsRepository {
   Future<Either<Failure, void>> reportComment({
     required String commentId,
     required String reason,
+    String? details,
   }) async {
     try {
       // Check connectivity
@@ -301,7 +303,7 @@ class CommentsRepositoryImpl implements CommentsRepository {
       final isConnected = connectivityResult != ConnectivityResult.none;
 
       if (!isConnected) {
-        return Left(NetworkFailure('No internet connection'));
+        return Left(NetworkFailure(message: 'No internet connection'));
       }
 
       await remoteDataSource.reportComment(
@@ -311,9 +313,9 @@ class CommentsRepositoryImpl implements CommentsRepository {
 
       return const Right(null);
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: e.message));
     } catch (e) {
-      return Left(ServerFailure('Failed to report comment: ${e.toString()}'));
+      return Left(ServerFailure(message: 'Failed to report comment: ${e.toString()}'));
     }
   }
 }

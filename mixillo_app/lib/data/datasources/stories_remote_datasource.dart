@@ -42,7 +42,7 @@ class StoriesRemoteDataSourceImpl implements StoriesRemoteDataSource {
         '${ApiConstants.apiVersion}${ApiConstants.storiesFeed}',
       );
 
-      final List<dynamic> data = response['data'] ?? [];
+      final List<dynamic> data = response.data['data'] ?? [];
       return data.map((json) => StoryGroupModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -56,7 +56,7 @@ class StoriesRemoteDataSourceImpl implements StoriesRemoteDataSource {
         '${ApiConstants.apiVersion}${ApiConstants.storyById(storyId)}',
       );
 
-      return StoryModel.fromJson(response['data']);
+      return StoryModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw _handleDioError(e);
     }
@@ -69,7 +69,7 @@ class StoriesRemoteDataSourceImpl implements StoriesRemoteDataSource {
         '${ApiConstants.apiVersion}${ApiConstants.userStories(userId)}',
       );
 
-      final List<dynamic> data = response['data'] ?? [];
+      final List<dynamic> data = response.data['data'] ?? [];
       return data.map((json) => StoryModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -83,7 +83,7 @@ class StoriesRemoteDataSourceImpl implements StoriesRemoteDataSource {
         '${ApiConstants.apiVersion}${ApiConstants.myStories}',
       );
 
-      final List<dynamic> data = response['data'] ?? [];
+      final List<dynamic> data = response.data['data'] ?? [];
       return data.map((json) => StoryModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -114,7 +114,7 @@ class StoriesRemoteDataSourceImpl implements StoriesRemoteDataSource {
         data: formData,
       );
 
-      return StoryModel.fromJson(response['data']);
+      return StoryModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw _handleDioError(e);
     }
@@ -149,7 +149,7 @@ class StoriesRemoteDataSourceImpl implements StoriesRemoteDataSource {
         '${ApiConstants.apiVersion}${ApiConstants.storyViewers(storyId)}',
       );
 
-      final List<dynamic> data = response['data'] ?? [];
+      final List<dynamic> data = response.data['data'] ?? [];
       return data.map((json) => StoryViewerModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -167,7 +167,7 @@ class StoriesRemoteDataSourceImpl implements StoriesRemoteDataSource {
         },
       );
 
-      final List<dynamic> data = response['data'] ?? [];
+      final List<dynamic> data = response.data['data'] ?? [];
       return data.map((json) => StoryModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw _handleDioError(e);

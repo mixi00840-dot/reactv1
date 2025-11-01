@@ -61,13 +61,13 @@ class CommentsLocalDataSourceImpl implements CommentsLocalDataSource {
         if (DateTime.now().difference(cacheTime) > _cacheDuration) {
           await _contentCommentsBox.delete(contentId);
           await _timestampBox.delete('content_$contentId');
-          throw CacheException('Cache expired');
+          throw CacheException(message: 'Cache expired');
         }
       }
 
       final cachedData = _contentCommentsBox.get(contentId);
       if (cachedData == null || cachedData.isEmpty) {
-        throw CacheException('No cached comments found');
+        throw CacheException(message: 'No cached comments found');
       }
 
       return cachedData
@@ -76,7 +76,7 @@ class CommentsLocalDataSourceImpl implements CommentsLocalDataSource {
           .toList();
     } catch (e) {
       if (e is CacheException) rethrow;
-      throw CacheException('Failed to get cached comments: ${e.toString()}');
+      throw CacheException(message: 'Failed to get cached comments: ${e.toString()}');
     }
   }
 
@@ -96,7 +96,7 @@ class CommentsLocalDataSourceImpl implements CommentsLocalDataSource {
         await cacheComment(comment);
       }
     } catch (e) {
-      throw CacheException('Failed to cache comments: ${e.toString()}');
+      throw CacheException(message: 'Failed to cache comments: ${e.toString()}');
     }
   }
 
@@ -137,7 +137,7 @@ class CommentsLocalDataSourceImpl implements CommentsLocalDataSource {
       await _timestampBox.put(
           'comment_${comment.id}', DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
-      throw CacheException('Failed to cache comment: ${e.toString()}');
+      throw CacheException(message: 'Failed to cache comment: ${e.toString()}');
     }
   }
 
@@ -149,7 +149,7 @@ class CommentsLocalDataSourceImpl implements CommentsLocalDataSource {
       await _commentsBox.delete(commentId);
       await _timestampBox.delete('comment_$commentId');
     } catch (e) {
-      throw CacheException('Failed to remove cached comment: ${e.toString()}');
+      throw CacheException(message: 'Failed to remove cached comment: ${e.toString()}');
     }
   }
 
@@ -162,7 +162,7 @@ class CommentsLocalDataSourceImpl implements CommentsLocalDataSource {
       await _contentCommentsBox.clear();
       await _timestampBox.clear();
     } catch (e) {
-      throw CacheException('Failed to clear cache: ${e.toString()}');
+      throw CacheException(message: 'Failed to clear cache: ${e.toString()}');
     }
   }
 
@@ -193,7 +193,7 @@ class CommentsLocalDataSourceImpl implements CommentsLocalDataSource {
       }
     } catch (e) {
       throw CacheException(
-          'Failed to remove expired comments: ${e.toString()}');
+          message: 'Failed to remove expired comments: ${e.toString()}');
     }
   }
 }

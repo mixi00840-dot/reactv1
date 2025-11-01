@@ -68,7 +68,7 @@ class CommentsRemoteDataSourceImpl implements CommentsRemoteDataSource {
       );
 
       if (response.data == null) {
-        throw ServerException(message: '');
+        throw ServerException(message: 'No data received from server');
       }
 
       // Handle both array and paginated response formats

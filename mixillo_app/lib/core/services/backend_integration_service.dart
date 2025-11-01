@@ -17,7 +17,7 @@ class BackendIntegrationService {
 
   /// Initialize service with base configuration
   Future<void> initialize() async {
-    _dio.options.baseURL = '${ApiConstants.baseUrl}${ApiConstants.apiVersion}';
+    _dio.options.baseUrl = '${ApiConstants.baseUrl}${ApiConstants.apiVersion}';
     _dio.options.connectTimeout = const Duration(seconds: 30);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
     
