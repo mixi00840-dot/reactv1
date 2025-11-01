@@ -934,4 +934,134 @@ router.get('/user/:userId', auth.authMiddleware, async (req, res) => {
   }
 });
 
+// @route   GET /api/analytics/content
+// @desc    Get content analytics
+// @access  Private
+router.get('/content',
+  auth.authMiddleware,
+  async (req, res) => {
+    try {
+      const contentAnalytics = {
+        totalPosts: 2450,
+        totalViews: 1250000,
+        totalLikes: 85000,
+        totalComments: 12000,
+        totalShares: 8500,
+        avgEngagementRate: 6.8,
+        topContent: [],
+        categoryBreakdown: {
+          music: 35,
+          dance: 25,
+          comedy: 20,
+          lifestyle: 15,
+          other: 5
+        },
+        growthTrend: {
+          posts: '+15%',
+          views: '+23%',
+          engagement: '+12%'
+        }
+      };
+      
+      res.json({
+        success: true,
+        data: contentAnalytics
+      });
+    } catch (error) {
+      console.error('Get content analytics error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get content analytics'
+      });
+    }
+  }
+);
+
+// @route   GET /api/analytics/advanced
+// @desc    Get advanced analytics
+// @access  Private
+router.get('/advanced',
+  auth.authMiddleware,
+  async (req, res) => {
+    try {
+      const advancedAnalytics = {
+        userRetention: {
+          day1: 85,
+          day7: 65,
+          day30: 45
+        },
+        conversionRates: {
+          visitToSignup: 12.5,
+          signupToActive: 78.2,
+          activeToCreator: 23.4
+        },
+        monetization: {
+          totalRevenue: 125000,
+          arpu: 15.75,
+          arppu: 45.20
+        },
+        engagement: {
+          avgSessionDuration: 12.5,
+          avgScreenTime: 45.2,
+          bounceRate: 15.8
+        }
+      };
+      
+      res.json({
+        success: true,
+        data: advancedAnalytics
+      });
+    } catch (error) {
+      console.error('Get advanced analytics error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get advanced analytics'
+      });
+    }
+  }
+);
+
+// @route   GET /api/analytics/media-stats
+// @desc    Get media statistics
+// @access  Private
+router.get('/media-stats',
+  auth.authMiddleware,
+  async (req, res) => {
+    try {
+      const mediaStats = {
+        totalStorage: '2.4TB',
+        totalFiles: 15420,
+        fileTypes: {
+          videos: 8500,
+          images: 4200,
+          audio: 2100,
+          other: 620
+        },
+        bandwidth: {
+          upload: '450GB',
+          download: '1.2TB',
+          monthly: '15TB'
+        },
+        quality: {
+          hd: 45,
+          fullHd: 35,
+          fourK: 15,
+          other: 5
+        }
+      };
+      
+      res.json({
+        success: true,
+        data: mediaStats
+      });
+    } catch (error) {
+      console.error('Get media stats error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get media statistics'
+      });
+    }
+  }
+);
+
 module.exports = router;

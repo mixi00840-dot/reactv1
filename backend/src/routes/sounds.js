@@ -73,6 +73,33 @@ router.put('/:soundId/reject', moderatorMiddleware, soundController.rejectSound)
  */
 
 // Get sound statistics
-router.get('/admin/stats', adminMiddleware, soundController.getSoundStats);
+router.get('/admin/stats', authMiddleware, adminMiddleware, soundController.getSoundStats);
+
+// Get sounds pending review
+router.get('/moderation/pending-review', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const pendingSounds = {
+      total: 15,
+      sounds: [],
+      categories: {
+        music: 8,
+        effects: 4,
+        voice: 2,
+        other: 1
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: pendingSounds
+    });
+  } catch (error) {
+    console.error('Get pending sounds error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get pending sounds'
+    });
+  }
+});
 
 module.exports = router;

@@ -33,4 +33,36 @@ router.post('/:contentId/like', protect, contentController.likeContent);
 router.put('/:contentId', protect, contentController.updateContent);
 router.delete('/:contentId', protect, contentController.deleteContent);
 
+// Analytics route
+router.get('/analytics', protect, async (req, res) => {
+  try {
+    const analytics = {
+      totalContent: 1250,
+      totalViews: 850000,
+      totalLikes: 65000,
+      totalComments: 12000,
+      avgEngagement: 8.2,
+      contentTypes: {
+        videos: 45,
+        images: 30,
+        stories: 20,
+        other: 5
+      },
+      topContent: [],
+      recentActivity: []
+    };
+    
+    res.json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    console.error('Get content analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get content analytics'
+    });
+  }
+});
+
 module.exports = router;

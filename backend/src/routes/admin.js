@@ -1613,4 +1613,86 @@ router.get('/transactions', async (req, res) => {
   }
 });
 
+// @route   GET /api/admin/uploads
+// @desc    Get upload statistics and management
+// @access  Admin
+router.get('/uploads', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, type, status } = req.query;
+    
+    // For now, return mock data since we don't have an uploads model
+    const uploads = {
+      total: 150,
+      totalSize: '2.4GB',
+      recentUploads: [],
+      typeBreakdown: {
+        images: 45,
+        videos: 30,
+        audio: 25,
+        documents: 20,
+        other: 30
+      },
+      statusBreakdown: {
+        pending: 15,
+        approved: 120,
+        rejected: 10,
+        processing: 5
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: uploads,
+      pagination: {
+        total: uploads.total,
+        page: parseInt(page),
+        pages: Math.ceil(uploads.total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get uploads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching uploads'
+    });
+  }
+});
+
+// @route   GET /api/admin/comments
+// @desc    Get comments for moderation
+// @access  Admin
+router.get('/comments', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, search } = req.query;
+    
+    // For now, return mock data since we don't have a comments model properly set up
+    const comments = {
+      total: 89,
+      comments: [],
+      statusBreakdown: {
+        pending: 12,
+        approved: 65,
+        rejected: 8,
+        flagged: 4
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: comments,
+      pagination: {
+        total: comments.total,
+        page: parseInt(page),
+        pages: Math.ceil(comments.total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching comments'
+    });
+  }
+});
+
 module.exports = router;
