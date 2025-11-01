@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -61,12 +61,12 @@ const Moderation = () => {
       const token = localStorage.getItem('token');
       const status = selectedTab === 0 ? 'pending' : selectedTab === 1 ? 'flagged' : 'all';
       
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/moderation/queue?status=${status}`,
+      const response = await api.get(
+        `/api/moderation/queue?status=${status}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setQueue(response.data.items || []);
+      setQueue(response?.items || response?.data?.items || []);
     } catch (error) {
       console.error('Error fetching moderation queue:', error);
     } finally {
@@ -77,11 +77,11 @@ const Moderation = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/moderation/stats`,
+      const response = await api.get(
+        `/api/moderation/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setStats(response.data || {});
+      setStats(response || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -90,8 +90,8 @@ const Moderation = () => {
   const handleApprove = async (itemId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/moderation/approve/${itemId}`,
+      await api.post(
+        `/api/moderation/approve/${itemId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -113,8 +113,8 @@ const Moderation = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/moderation/reject/${itemId}`,
+      await api.post(
+        `/api/moderation/reject/${itemId}`,
         { reason: rejectReason, action: 'takedown' },
         { headers: { Authorization: `Bearer ${token}` } }
       );

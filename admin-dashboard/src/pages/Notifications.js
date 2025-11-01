@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -61,11 +61,11 @@ const Notifications = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/notifications/history?limit=100`,
+      const response = await api.get(
+        `/api/notifications/history?limit=100`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setHistory(response.data.notifications || []);
+      setHistory(response?.notifications || response?.data?.notifications || []);
     } catch (error) {
       console.error('Error fetching history:', error);
     } finally {
@@ -76,11 +76,11 @@ const Notifications = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/notifications/stats`,
+      const response = await api.get(
+        `/api/notifications/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setStats(response.data || {});
+      setStats(response || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -94,8 +94,8 @@ const Notifications = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/notifications/send`,
+      await api.post(
+        `/api/notifications/send`,
         notificationForm,
         { headers: { Authorization: `Bearer ${token}` } }
       );
