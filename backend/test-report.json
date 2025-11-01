@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-11-01T11:48:51.403Z",
+  "summary": {
+    "total": 9,
+    "passed": 7,
+    "failed": 2,
+    "successRate": "77.78%"
+  },
+  "sections": {
+    "Dashboard": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Dashboard Stats",
+          "status": "PASS"
+        }
+      ]
+    },
+    "Users": {
+      "passed": 1,
+      "failed": 1,
+      "tests": [
+        {
+          "name": "Get Users",
+          "status": "PASS"
+        },
+        {
+          "name": "Create User",
+          "status": "FAIL",
+          "error": "Request failed with status code 400"
+        }
+      ]
+    },
+    "Seller Applications": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Get Applications",
+          "status": "PASS"
+        }
+      ]
+    },
+    "Content Manager": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Get Content",
+          "status": "PASS"
+        }
+      ]
+    },
+    "Upload Manager": {
+      "passed": 1,
+      "failed": 1,
+      "tests": [
+        {
+          "name": "Get Uploads",
+          "status": "FAIL",
+          "error": "Invalid response structure"
+        },
+        {
+          "name": "Presigned URL",
+          "status": "PASS"
+        }
+      ]
+    },
+    "Comments Management": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Get Comments",
+          "status": "PASS"
+        }
+      ]
+    }
+  }
+}

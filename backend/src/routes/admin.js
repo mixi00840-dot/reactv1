@@ -2440,4 +2440,315 @@ router.get('/content', async (req, res) => {
   }
 });
 
+// @route   POST /api/admin/coin-packages
+// @desc    Create new coin package
+// @access  Admin
+router.post('/coin-packages', async (req, res) => {
+  try {
+    const { name, coins, price, currency, description, isActive } = req.body;
+    
+    const coinPackage = new CoinPackage({
+      name,
+      coins,
+      price,
+      currency: currency || 'USD',
+      description,
+      isActive: isActive !== undefined ? isActive : true
+    });
+    
+    await coinPackage.save();
+    
+    res.json({
+      success: true,
+      message: 'Coin package created successfully',
+      data: { package: coinPackage }
+    });
+  } catch (error) {
+    console.error('Create coin package error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating coin package'
+    });
+  }
+});
+
+// @route   POST /api/admin/levels
+// @desc    Create new user level
+// @access  Admin
+router.post('/levels', async (req, res) => {
+  try {
+    const { level, name, minExperience, maxExperience, badge, benefits } = req.body;
+    
+    const userLevel = new Level({
+      level,
+      name,
+      minExperience,
+      maxExperience,
+      badge,
+      benefits: benefits || []
+    });
+    
+    await userLevel.save();
+    
+    res.json({
+      success: true,
+      message: 'Level created successfully',
+      data: { level: userLevel }
+    });
+  } catch (error) {
+    console.error('Create level error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating level'
+    });
+  }
+});
+
+// @route   POST /api/admin/tags
+// @desc    Create new tag
+// @access  Admin
+router.post('/tags', async (req, res) => {
+  try {
+    const { name, displayName, category, isActive } = req.body;
+    
+    const tag = new Tag({
+      name,
+      displayName,
+      category: category || 'general',
+      isActive: isActive !== undefined ? isActive : true,
+      usageCount: 0
+    });
+    
+    await tag.save();
+    
+    res.json({
+      success: true,
+      message: 'Tag created successfully',
+      data: { tag }
+    });
+  } catch (error) {
+    console.error('Create tag error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating tag'
+    });
+  }
+});
+
+// @route   GET /api/admin/explorer-sections
+// @desc    Get explorer sections
+// @access  Admin
+router.get('/explorer-sections', async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    
+    const sections = await ExplorerSection.find()
+      .sort('order')
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit);
+    
+    const total = await ExplorerSection.countDocuments();
+    
+    res.json({
+      success: true,
+      data: {
+        sections,
+        pagination: {
+          total,
+          page: parseInt(page),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get explorer sections error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching explorer sections'
+    });
+  }
+});
+
+// @route   POST /api/admin/explorer-sections
+// @desc    Create new explorer section
+// @access  Admin
+router.post('/explorer-sections', async (req, res) => {
+  try {
+    const { title, type, isActive, order } = req.body;
+    
+    const section = new ExplorerSection({
+      title,
+      type,
+      isActive: isActive !== undefined ? isActive : true,
+      order: order || 0,
+      contentIds: []
+    });
+    
+    await section.save();
+    
+    res.json({
+      success: true,
+      message: 'Explorer section created successfully',
+      data: { section }
+    });
+  } catch (error) {
+    console.error('Create explorer section error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating explorer section'
+    });
+  }
+});
+
+// @route   GET /api/admin/reports
+// @desc    Get moderation reports
+// @access  Admin
+router.get('/reports', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, type } = req.query;
+    
+    // Mock data for now - implement with actual Report model later
+    const reports = {
+      total: 45,
+      reports: [],
+      stats: {
+        pending: 12,
+        reviewed: 28,
+        resolved: 5
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: reports,
+      pagination: {
+        total: reports.total,
+        page: parseInt(page),
+        pages: Math.ceil(reports.total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get reports error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching reports'
+    });
+  }
+});
+
+// @route   GET /api/admin/analytics/overview
+// @desc    Get analytics overview
+// @access  Admin
+router.get('/analytics/overview', async (req, res) => {
+  try {
+    const analytics = {
+      users: {
+        total: await User.countDocuments(),
+        active: await User.countDocuments({ status: 'active' }),
+        new: await User.countDocuments({
+          createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        })
+      },
+      content: {
+        total: await Content.countDocuments(),
+        videos: await Content.countDocuments({ type: 'video' }),
+        posts: await Content.countDocuments({ type: 'post' })
+      },
+      revenue: {
+        total: 125000,
+        thisMonth: 35000,
+        lastMonth: 28000
+      },
+      engagement: {
+        views: 1250000,
+        likes: 85000,
+        comments: 12500,
+        shares: 8500
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    console.error('Get analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching analytics'
+    });
+  }
+});
+
+// @route   GET /api/admin/livestreams
+// @desc    Get livestreams
+// @access  Admin
+router.get('/livestreams', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status } = req.query;
+    
+    // Mock data for now
+    const livestreams = {
+      total: 8,
+      livestreams: [],
+      stats: {
+        live: 3,
+        scheduled: 2,
+        ended: 3
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: livestreams,
+      pagination: {
+        total: livestreams.total,
+        page: parseInt(page),
+        pages: Math.ceil(livestreams.total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get livestreams error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching livestreams'
+    });
+  }
+});
+
+// @route   GET /api/admin/wallets
+// @desc    Get all wallets
+// @access  Admin
+router.get('/wallets', async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    
+    const wallets = await Wallet.find()
+      .populate('userId', 'username email fullName')
+      .sort('-balance')
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit);
+    
+    const total = await Wallet.countDocuments();
+    
+    res.json({
+      success: true,
+      data: {
+        wallets,
+        pagination: {
+          total,
+          page: parseInt(page),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get wallets error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching wallets'
+    });
+  }
+});
+
 module.exports = router;

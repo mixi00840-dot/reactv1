@@ -283,6 +283,9 @@ app.use('/api/analytics', advancedAnalyticsRoutes);
 // Content Management API routes
 app.use('/api/content', contentRoutes);
 
+// Upload API routes
+app.use('/api/uploads', uploadRoutes);
+
 // Transcode Management API routes
 app.use('/api/transcode', transcodeRoutes);
 
