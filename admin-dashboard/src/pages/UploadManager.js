@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -103,14 +104,14 @@ const UploadManager = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/admin/uploads', {
+      const response = await api.get('/api/admin/uploads', {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           ...filters,
           type: tabs[selectedTab].value
         }
       });
-      setUploads(response.data.data.uploads || []);
+      setUploads(response?.data?.uploads || response?.uploads || []);
     } catch (error) {
       console.error('Error fetching uploads:', error);
       // Generate dummy data for demonstration
@@ -181,8 +182,8 @@ const UploadManager = () => {
     try {
       const token = localStorage.getItem('token');
       
-      // Generate presigned URL
-      const presignedResponse = await axios.post('/api/upload/presigned-url', {
+      // Generate presigned URL (server route is /api/uploads)
+      const presignedResponse = await api.post('/api/uploads/presigned-url', {
         fileName: file.name,
         fileType: file.type,
         contentType: uploadType,
@@ -191,19 +192,39 @@ const UploadManager = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      const { uploadUrl, key } = presignedResponse.data.data;
+      const { uploadUrl, key } = presignedResponse;
       
-      // Upload file directly to storage
-      await axios.put(uploadUrl, file, {
-        headers: { 'Content-Type': file.type },
-        onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          // Update progress in UI
+      // Upload file directly to storage; fallback to server proxy on CORS error
+      try {
+        await axios.put(uploadUrl, file, {
+          headers: { 'Content-Type': file.type },
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            // Update progress in UI
+            setSelectedFiles(prev => prev.map(f => 
+              f.file === file ? { ...f, progress, status: 'uploading' } : f
+            ));
+          }
+        });
+      } catch (err) {
+        console.warn('Direct-to-storage upload failed, using backend proxy...', err?.message || err);
+        const form = new FormData();
+        form.append('file', file);
+        form.append('type', uploadType);
+        const directRes = await api.post('/api/uploads/direct', form, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const url = directRes?.data?.url || directRes?.url;
+        if (url) {
+          // Short-circuit confirm if proxy used
           setSelectedFiles(prev => prev.map(f => 
-            f.file === file ? { ...f, progress, status: 'uploading' } : f
+            f.file === file ? { ...f, progress: 100, status: 'completed' } : f
           ));
+          setSnackbar({ open: true, message: `${file.name} uploaded via proxy`, severity: 'success' });
+          fetchUploads();
+          return;
         }
-      });
+      }
       
           // Confirm upload completion
           await axios.post(`/api/uploads/${key}/confirm`, {

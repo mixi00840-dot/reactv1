@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -80,12 +80,13 @@ const MediaBrowser = () => {
         ...(filters.status !== 'all' && { status: filters.status })
       });
 
-      const response = await axios.get(`/api/admin/content?${params}`, {
+      const response = await api.get(`/api/admin/content?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setMediaItems(response.data.data?.content || []);
-      setTotalPages(Math.ceil((response.data.data?.pagination?.total || 0) / filters.limit));
+      setMediaItems(response?.data?.content || response?.content || []);
+      const total = response?.data?.pagination?.total ?? response?.pagination?.total ?? 0;
+      setTotalPages(Math.ceil(total / filters.limit));
       
       // Set stats from response
       if (response.data.data?.stats) {
@@ -138,16 +139,17 @@ const MediaBrowser = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/admin/content', {
+      const response = await api.get('/api/admin/content', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (response.data.data?.stats) {
+      const s = response?.data?.stats || response?.stats;
+      if (s) {
         setStats({
-          totalMedia: response.data.data.stats.totalContent || 0,
-          videos: Math.floor(response.data.data.stats.publishedContent * 0.6) || 0,
-          images: Math.floor(response.data.data.stats.publishedContent * 0.3) || 0,
-          audio: Math.floor(response.data.data.stats.publishedContent * 0.1) || 0
+          totalMedia: s.totalContent || 0,
+          videos: Math.floor((s.publishedContent || 0) * 0.6) || 0,
+          images: Math.floor((s.publishedContent || 0) * 0.3) || 0,
+          audio: Math.floor((s.publishedContent || 0) * 0.1) || 0
         });
       }
     } catch (error) {

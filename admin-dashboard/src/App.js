@@ -6,6 +6,7 @@ import { useAuth } from './contexts/AuthContext';
 
 // Components
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
@@ -129,6 +130,7 @@ function App() {
         path="/*" 
         element={
           <ProtectedRoute>
+            <ErrorBoundary>
             <Layout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
@@ -194,6 +196,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Layout>
+            </ErrorBoundary>
           </ProtectedRoute>
         } 
       />

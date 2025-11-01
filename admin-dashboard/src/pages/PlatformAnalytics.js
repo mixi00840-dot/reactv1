@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -37,17 +37,17 @@ const PlatformAnalytics = () => {
         advancedRes,
         contentRes
       ] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL}/api/metrics/overview?timeRange=${timeRange}`, { headers }),
-        axios.get(`${process.env.REACT_APP_API_URL}/api/trending/analytics`, { headers }),
-        axios.get(`${process.env.REACT_APP_API_URL}/api/analytics/advanced?period=${timeRange}`, { headers }),
-        axios.get(`${process.env.REACT_APP_API_URL}/api/content/analytics`, { headers })
+        api.get(`/api/metrics/overview?timeRange=${timeRange}`, { headers }),
+        api.get(`/api/trending/analytics`, { headers }),
+        api.get(`/api/analytics/advanced?period=${timeRange}`, { headers }),
+        api.get(`/api/content/analytics`, { headers })
       ]);
 
       // Many backend routes wrap payloads in { success, data }, normalize here
-      const metricsPayload = metricsRes.data?.data || metricsRes.data;
-      const advancedPayload = advancedRes.data?.data || advancedRes.data;
-      const contentPayload = contentRes.data?.data || contentRes.data;
-      const trendingPayload = trendingRes.data?.data || trendingRes.data;
+  const metricsPayload = metricsRes;
+  const advancedPayload = advancedRes;
+  const contentPayload = contentRes;
+  const trendingPayload = trendingRes;
 
       setMetrics(metricsPayload || {});
       setTrendingData(trendingPayload?.byType || []);
