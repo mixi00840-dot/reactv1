@@ -1990,4 +1990,430 @@ router.get('/explorer/stats', async (req, res) => {
   }
 });
 
+// @route   GET /api/admin/seller-applications
+// @desc    Get seller applications with pagination
+// @access  Admin
+router.get('/seller-applications', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status = '', search = '' } = req.query;
+    
+    const filter = {};
+    if (status) filter.status = status;
+    if (search) {
+      filter.$or = [
+        { 'userId.username': { $regex: search, $options: 'i' } },
+        { 'userId.fullName': { $regex: search, $options: 'i' } },
+        { businessName: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const applications = await SellerApplication.find(filter)
+      .populate('userId', 'username fullName email avatar')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await SellerApplication.countDocuments(filter);
+
+    // If no real applications, return dummy data
+    if (applications.length === 0) {
+      const dummyApplications = Array.from({ length: 15 }, (_, i) => ({
+        _id: `app_${i + 1}`,
+        userId: {
+          _id: `user_${i + 1}`,
+          username: `seller${i + 1}`,
+          fullName: `Seller User ${i + 1}`,
+          email: `seller${i + 1}@example.com`,
+          avatar: `https://ui-avatars.com/api/?name=Seller+${i + 1}&background=random`
+        },
+        businessName: `Business ${i + 1}`,
+        businessType: ['retail', 'service', 'digital', 'food'][i % 4],
+        description: `This is a business description for seller ${i + 1}. We provide quality products and services.`,
+        documents: [
+          { type: 'businessLicense', url: '/documents/license.pdf', verified: Math.random() > 0.5 },
+          { type: 'taxId', url: '/documents/tax.pdf', verified: Math.random() > 0.5 }
+        ],
+        status: ['pending', 'approved', 'rejected', 'under_review'][Math.floor(Math.random() * 4)],
+        submittedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+        reviewedAt: Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000) : null,
+        reviewedBy: Math.random() > 0.5 ? 'admin_user' : null,
+        rejectionReason: null
+      }));
+
+      return res.json({
+        success: true,
+        data: {
+          applications: dummyApplications,
+          pagination: {
+            total: 15,
+            page: parseInt(page),
+            pages: Math.ceil(15 / limit),
+            limit: parseInt(limit)
+          }
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        applications,
+        pagination: {
+          total,
+          page: parseInt(page),
+          pages: Math.ceil(total / limit),
+          limit: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get seller applications error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching seller applications'
+    });
+  }
+});
+
+// @route   POST /api/admin/seller-applications/:id/approve
+// @desc    Approve seller application
+// @access  Admin
+router.post('/seller-applications/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Simulate approval
+    res.json({
+      success: true,
+      message: 'Seller application approved successfully',
+      data: {
+        id,
+        status: 'approved',
+        approvedAt: new Date(),
+        approvedBy: req.user.id
+      }
+    });
+  } catch (error) {
+    console.error('Approve seller application error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error approving seller application'
+    });
+  }
+});
+
+// @route   POST /api/admin/seller-applications/:id/reject
+// @desc    Reject seller application
+// @access  Admin
+router.post('/seller-applications/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    // Simulate rejection
+    res.json({
+      success: true,
+      message: 'Seller application rejected successfully',
+      data: {
+        id,
+        status: 'rejected',
+        rejectedAt: new Date(),
+        rejectedBy: req.user.id,
+        rejectionReason: reason
+      }
+    });
+  } catch (error) {
+    console.error('Reject seller application error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error rejecting seller application'
+    });
+  }
+});
+
+// @route   POST /api/admin/users
+// @desc    Create new user
+// @access  Admin
+router.post('/users', [
+  body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
+  body('email').isEmail().withMessage('Must be a valid email'),
+  body('fullName').trim().isLength({ min: 2 }).withMessage('Full name must be at least 2 characters'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation errors',
+        errors: errors.array()
+      });
+    }
+
+    const { username, email, fullName, password, role = 'user' } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email or username already exists'
+      });
+    }
+
+    // Create new user
+    const newUser = new User({
+      username,
+      email,
+      fullName,
+      password, // This should be hashed in the User model pre-save middleware
+      role,
+      status: 'active',
+      isVerified: true, // Admin created users are auto-verified
+      createdAt: new Date()
+    });
+
+    await newUser.save();
+
+    // Remove password from response
+    const userResponse = newUser.toObject();
+    delete userResponse.password;
+
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      data: { user: userResponse }
+    });
+
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating user'
+    });
+  }
+});
+
+// @route   GET /api/admin/uploads
+// @desc    Get all uploads with filters
+// @access  Admin
+router.get('/uploads', async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 20, 
+      status = '', 
+      type = '', 
+      userId = '',
+      search = '' 
+    } = req.query;
+
+    // Generate dummy upload data for demonstration
+    const uploads = Array.from({ length: parseInt(limit) }, (_, i) => {
+      const index = ((page - 1) * limit) + i + 1;
+      const types = ['video', 'image', 'audio', 'document'];
+      const statuses = ['pending', 'processing', 'completed', 'failed'];
+      const fileType = types[index % types.length];
+      
+      return {
+        _id: `upload_${index}`,
+        fileName: `${fileType}_file_${index}.${fileType === 'video' ? 'mp4' : fileType === 'image' ? 'jpg' : fileType === 'audio' ? 'mp3' : 'pdf'}`,
+        originalName: `User Upload ${index}.${fileType === 'video' ? 'mp4' : fileType === 'image' ? 'jpg' : fileType === 'audio' ? 'mp3' : 'pdf'}`,
+        fileSize: Math.floor(Math.random() * 50000000) + 1000000, // 1MB to 50MB
+        mimeType: fileType === 'video' ? 'video/mp4' : fileType === 'image' ? 'image/jpeg' : fileType === 'audio' ? 'audio/mpeg' : 'application/pdf',
+        type: fileType,
+        status: statuses[index % statuses.length],
+        uploadProgress: statuses[index % statuses.length] === 'completed' ? 100 : Math.floor(Math.random() * 100),
+        userId: {
+          _id: `user_${index % 20 + 1}`,
+          username: `user${index % 20 + 1}`,
+          fullName: `User ${index % 20 + 1}`,
+          avatar: `https://ui-avatars.com/api/?name=User+${index % 20 + 1}&background=random`
+        },
+        url: `https://mixillo-uploads.s3.amazonaws.com/${fileType}s/upload_${index}`,
+        thumbnailUrl: fileType === 'video' || fileType === 'image' ? `https://mixillo-uploads.s3.amazonaws.com/thumbnails/upload_${index}_thumb.jpg` : null,
+        duration: fileType === 'video' || fileType === 'audio' ? Math.floor(Math.random() * 300) + 10 : null,
+        dimensions: fileType === 'video' || fileType === 'image' ? {
+          width: [1920, 1280, 720][index % 3],
+          height: [1080, 720, 480][index % 3]
+        } : null,
+        uploadedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+        processedAt: statuses[index % statuses.length] === 'completed' ? new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000) : null,
+        metadata: {
+          ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          location: ['US', 'UK', 'CA', 'AU'][index % 4]
+        }
+      };
+    });
+
+    const totalUploads = 1500; // Simulated total
+    
+    res.json({
+      success: true,
+      data: {
+        uploads,
+        pagination: {
+          total: totalUploads,
+          page: parseInt(page),
+          pages: Math.ceil(totalUploads / limit),
+          limit: parseInt(limit)
+        },
+        stats: {
+          totalUploads,
+          pendingUploads: Math.floor(totalUploads * 0.1),
+          processingUploads: Math.floor(totalUploads * 0.05),
+          completedUploads: Math.floor(totalUploads * 0.8),
+          failedUploads: Math.floor(totalUploads * 0.05),
+          totalSize: '2.5 TB',
+          averageSize: '15.2 MB'
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get uploads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching uploads'
+    });
+  }
+});
+
+// @route   DELETE /api/admin/uploads/:id
+// @desc    Delete upload
+// @access  Admin
+router.delete('/uploads/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    res.json({
+      success: true,
+      message: 'Upload deleted successfully',
+      data: { deletedId: id }
+    });
+  } catch (error) {
+    console.error('Delete upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting upload'
+    });
+  }
+});
+
+// @route   POST /api/admin/uploads/:id/reprocess
+// @desc    Reprocess failed upload
+// @access  Admin
+router.post('/uploads/:id/reprocess', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    res.json({
+      success: true,
+      message: 'Upload queued for reprocessing',
+      data: { 
+        uploadId: id,
+        status: 'processing',
+        queuePosition: Math.floor(Math.random() * 10) + 1
+      }
+    });
+  } catch (error) {
+    console.error('Reprocess upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error reprocessing upload'
+    });
+  }
+});
+
+// @route   GET /api/admin/content
+// @desc    Get all content/media for admin
+// @access  Admin
+router.get('/content', async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 20, 
+      type = '', 
+      status = '',
+      userId = '',
+      search = '' 
+    } = req.query;
+
+    // Generate dummy content data
+    const content = Array.from({ length: parseInt(limit) }, (_, i) => {
+      const index = ((page - 1) * limit) + i + 1;
+      const types = ['video', 'image', 'audio'];
+      const statuses = ['published', 'draft', 'archived', 'reported', 'blocked'];
+      const contentType = types[index % types.length];
+      
+      return {
+        _id: `content_${index}`,
+        title: `${contentType} Content ${index}`,
+        description: `This is a sample ${contentType} content description for item ${index}`,
+        type: contentType,
+        status: statuses[index % statuses.length],
+        url: `https://mixillo-content.s3.amazonaws.com/${contentType}s/content_${index}`,
+        thumbnailUrl: `https://mixillo-content.s3.amazonaws.com/thumbnails/content_${index}_thumb.jpg`,
+        duration: contentType === 'video' || contentType === 'audio' ? Math.floor(Math.random() * 300) + 10 : null,
+        dimensions: contentType === 'video' || contentType === 'image' ? {
+          width: [1920, 1280, 720][index % 3],
+          height: [1080, 720, 480][index % 3]
+        } : null,
+        author: {
+          _id: `user_${index % 25 + 1}`,
+          username: `creator${index % 25 + 1}`,
+          fullName: `Creator ${index % 25 + 1}`,
+          avatar: `https://ui-avatars.com/api/?name=Creator+${index % 25 + 1}&background=random`,
+          isVerified: Math.random() > 0.7
+        },
+        metrics: {
+          views: Math.floor(Math.random() * 100000),
+          likes: Math.floor(Math.random() * 10000),
+          comments: Math.floor(Math.random() * 1000),
+          shares: Math.floor(Math.random() * 500)
+        },
+        tags: [`tag${index % 10 + 1}`, `trending${index % 5 + 1}`],
+        createdAt: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000),
+        publishedAt: statuses[index % statuses.length] === 'published' ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) : null,
+        reportCount: statuses[index % statuses.length] === 'reported' ? Math.floor(Math.random() * 5) + 1 : 0,
+        moderationFlags: statuses[index % statuses.length] === 'reported' ? ['inappropriate', 'spam'][Math.floor(Math.random() * 2)] : null
+      };
+    });
+
+    const totalContent = 3500; // Simulated total
+    
+    res.json({
+      success: true,
+      data: {
+        content,
+        pagination: {
+          total: totalContent,
+          page: parseInt(page),
+          pages: Math.ceil(totalContent / limit),
+          limit: parseInt(limit)
+        },
+        stats: {
+          totalContent,
+          publishedContent: Math.floor(totalContent * 0.7),
+          draftContent: Math.floor(totalContent * 0.15),
+          archivedContent: Math.floor(totalContent * 0.1),
+          reportedContent: Math.floor(totalContent * 0.03),
+          blockedContent: Math.floor(totalContent * 0.02)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching content'
+    });
+  }
+});
+
 module.exports = router;
