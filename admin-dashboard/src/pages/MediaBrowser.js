@@ -70,8 +70,6 @@ const MediaBrowser = () => {
   const fetchMediaItems = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       const params = new URLSearchParams({
         page: filters.page,
         limit: filters.limit,
@@ -80,21 +78,21 @@ const MediaBrowser = () => {
         ...(filters.status !== 'all' && { status: filters.status })
       });
 
-      const response = await api.get(`/api/admin/content?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // api client returns unwrapped payload (data.data || data)
+      const payload = await api.get(`/api/admin/content?${params}`);
 
-      setMediaItems(response?.data?.content || response?.content || []);
-      const total = response?.data?.pagination?.total ?? response?.pagination?.total ?? 0;
+      setMediaItems(payload?.content || payload?.data?.content || []);
+      const total = payload?.pagination?.total ?? payload?.data?.pagination?.total ?? 0;
       setTotalPages(Math.ceil(total / filters.limit));
       
       // Set stats from response
-      if (response.data.data?.stats) {
+      if (payload?.stats || payload?.data?.stats || payload?.data?.data?.stats) {
+        const statsData = payload?.stats || payload?.data?.stats || payload?.data?.data?.stats;
         setStats({
-          totalMedia: response.data.data.stats.totalContent || 0,
-          videos: Math.floor(response.data.data.stats.publishedContent * 0.6) || 0,
-          images: Math.floor(response.data.data.stats.publishedContent * 0.3) || 0,
-          audio: Math.floor(response.data.data.stats.publishedContent * 0.1) || 0
+          totalMedia: statsData.totalContent || 0,
+          videos: Math.floor((statsData.publishedContent || 0) * 0.6) || 0,
+          images: Math.floor((statsData.publishedContent || 0) * 0.3) || 0,
+          audio: Math.floor((statsData.publishedContent || 0) * 0.1) || 0
         });
       }
     } catch (error) {
@@ -138,12 +136,8 @@ const MediaBrowser = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get('/api/admin/content', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const s = response?.data?.stats || response?.stats;
+      const payload = await api.get('/api/admin/content');
+      const s = payload?.stats || payload?.data?.stats;
       if (s) {
         setStats({
           totalMedia: s.totalContent || 0,
@@ -167,13 +161,9 @@ const MediaBrowser = () => {
     if (!window.confirm('Are you sure you want to delete this media?')) return;
 
     try {
-      const token = localStorage.getItem('token');
       const endpoint = selectedTab === 0 ? 'content' : selectedTab === 1 ? 'stories' : 'sounds';
-      
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/${endpoint}/${itemId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+
+      await api.delete(`/api/${endpoint}/${itemId}`);
 
       fetchMediaItems();
       alert('Media deleted successfully');
@@ -185,12 +175,7 @@ const MediaBrowser = () => {
 
   const handleFeature = async (itemId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/trending/feature/${itemId}`,
-        { featured: true },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/trending/feature/${itemId}`, { featured: true });
       fetchMediaItems();
       alert('Media featured successfully');
     } catch (error) {
