@@ -110,6 +110,24 @@ function Dashboard() {
     } catch (error) {
       console.error('Dashboard data fetch error:', error);
       toast.error('Failed to load dashboard data');
+      // Set default empty structure to prevent undefined errors
+      setStats({
+        overview: {
+          totalUsers: 0,
+          activeUsers: 0,
+          bannedUsers: 0,
+          suspendedUsers: 0,
+          verifiedUsers: 0,
+          featuredUsers: 0,
+          pendingSellerApps: 0,
+          approvedSellers: 0,
+          totalStrikes: 0,
+          activeStrikes: 0
+        },
+        topEarners: [],
+        recentUsers: [],
+        monthlyRegistrations: []
+      });
     } finally {
       setLoading(false);
     }
@@ -133,11 +151,26 @@ function Dashboard() {
     );
   }
 
-  const { overview, topEarners, recentUsers, monthlyRegistrations } = stats;
+  const { overview = {}, topEarners = [], recentUsers = [], monthlyRegistrations = [] } = stats;
+
+  // Ensure overview has all required properties with defaults
+  const safeOverview = {
+    totalUsers: 0,
+    activeUsers: 0,
+    bannedUsers: 0,
+    suspendedUsers: 0,
+    verifiedUsers: 0,
+    featuredUsers: 0,
+    pendingSellerApps: 0,
+    approvedSellers: 0,
+    totalStrikes: 0,
+    activeStrikes: 0,
+    ...overview
+  };
 
   // Chart data for user registrations
   const registrationChartData = {
-    labels: monthlyRegistrations.map(item => 
+    labels: (monthlyRegistrations || []).map(item => 
       new Date(item._id.year, item._id.month - 1).toLocaleDateString('en-US', { 
         month: 'short', 
         year: 'numeric' 
@@ -146,7 +179,7 @@ function Dashboard() {
     datasets: [
       {
         label: 'New Users',
-        data: monthlyRegistrations.map(item => item.count),
+        data: (monthlyRegistrations || []).map(item => item.count || 0),
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         tension: 0.4,
@@ -159,7 +192,7 @@ function Dashboard() {
     labels: ['Active', 'Suspended', 'Banned'],
     datasets: [
       {
-        data: [overview.activeUsers, overview.suspendedUsers, overview.bannedUsers],
+        data: [safeOverview.activeUsers, safeOverview.suspendedUsers, safeOverview.bannedUsers],
         backgroundColor: [
           'rgba(75, 192, 192, 0.8)',
           'rgba(255, 206, 86, 0.8)',
@@ -195,7 +228,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Total Users"
-            value={overview.totalUsers.toLocaleString()}
+            value={(safeOverview.totalUsers || 0).toLocaleString()}
             icon={<People sx={{ fontSize: 40 }} />}
             color="primary"
           />
@@ -203,7 +236,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Active Users"
-            value={overview.activeUsers.toLocaleString()}
+            value={(safeOverview.activeUsers || 0).toLocaleString()}
             icon={<VerifiedUser sx={{ fontSize: 40 }} />}
             color="success"
           />
@@ -211,7 +244,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Verified Users"
-            value={overview.verifiedUsers.toLocaleString()}
+            value={(safeOverview.verifiedUsers || 0).toLocaleString()}
             icon={<Star sx={{ fontSize: 40 }} />}
             color="warning"
           />
@@ -219,7 +252,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Approved Sellers"
-            value={overview.approvedSellers.toLocaleString()}
+            value={(safeOverview.approvedSellers || 0).toLocaleString()}
             icon={<Business sx={{ fontSize: 40 }} />}
             color="info"
           />
@@ -231,7 +264,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Pending Applications"
-            value={overview.pendingSellerApps.toLocaleString()}
+            value={(safeOverview.pendingSellerApps || 0).toLocaleString()}
             icon={<Business sx={{ fontSize: 40 }} />}
             color="warning"
           />
@@ -239,7 +272,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Active Strikes"
-            value={overview.activeStrikes.toLocaleString()}
+            value={(safeOverview.activeStrikes || 0).toLocaleString()}
             icon={<Warning sx={{ fontSize: 40 }} />}
             color="error"
           />
@@ -247,7 +280,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Suspended Users"
-            value={overview.suspendedUsers.toLocaleString()}
+            value={(safeOverview.suspendedUsers || 0).toLocaleString()}
             icon={<Pause sx={{ fontSize: 40 }} />}
             color="warning"
           />
@@ -255,7 +288,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Banned Users"
-            value={overview.bannedUsers.toLocaleString()}
+            value={(safeOverview.bannedUsers || 0).toLocaleString()}
             icon={<Block sx={{ fontSize: 40 }} />}
             color="error"
           />

@@ -140,10 +140,11 @@ const CommentsManagement = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedComments.length === comments.length) {
+    const commentsArray = Array.isArray(comments) ? comments : [];
+    if (selectedComments.length === commentsArray.length && commentsArray.length > 0) {
       setSelectedComments([]);
     } else {
-      setSelectedComments(comments.map(comment => comment._id));
+      setSelectedComments(commentsArray.map(comment => comment._id));
     }
   };
 
@@ -315,8 +316,8 @@ const CommentsManagement = () => {
               <TableRow>
                 <TableCell padding="checkbox">
                   <Checkbox
-                    checked={selectedComments.length === comments.length && comments.length > 0}
-                    indeterminate={selectedComments.length > 0 && selectedComments.length < comments.length}
+                    checked={(Array.isArray(comments) ? comments : []).length === selectedComments.length && selectedComments.length > 0}
+                    indeterminate={selectedComments.length > 0 && selectedComments.length < (Array.isArray(comments) ? comments : []).length}
                     onChange={handleSelectAll}
                   />
                 </TableCell>
@@ -336,7 +337,7 @@ const CommentsManagement = () => {
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : comments.length === 0 ? (
+              ) : !Array.isArray(comments) || comments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} sx={{ textAlign: 'center', py: 4 }}>
                     No comments found
@@ -465,7 +466,7 @@ const CommentsManagement = () => {
 
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
           <Pagination
-            count={Math.ceil(comments.length / filters.limit)}
+            count={Math.ceil((Array.isArray(comments) ? comments.length : 0) / filters.limit)}
             page={filters.page}
             onChange={(e, page) => setFilters({ ...filters, page })}
             color="primary"
