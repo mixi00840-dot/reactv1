@@ -14,6 +14,24 @@ const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 
 class AnalyticsController {
+  constructor() {
+    // Bind public route handlers to preserve 'this' when Express invokes them
+    this.getOverviewDashboard = this.getOverviewDashboard.bind(this);
+    this.getSalesAnalytics = this.getSalesAnalytics.bind(this);
+    this.getCustomerAnalytics = this.getCustomerAnalytics.bind(this);
+    this.getProductAnalytics = this.getProductAnalytics.bind(this);
+    this.getFinancialAnalytics = this.getFinancialAnalytics.bind(this);
+    this.getMarketingAnalytics = this.getMarketingAnalytics.bind(this);
+    this.getOperationalAnalytics = this.getOperationalAnalytics.bind(this);
+    this.getRealTimeMetrics = this.getRealTimeMetrics.bind(this);
+
+    // KPI & reports
+    this.getKPIs = this.getKPIs.bind(this);
+    this.createKPI = this.createKPI.bind(this);
+    this.updateKPIValue = this.updateKPIValue.bind(this);
+    this.generateReport = this.generateReport.bind(this);
+    this.exportData = this.exportData.bind(this);
+  }
   // Dashboard Analytics
 
   // Get overview dashboard
