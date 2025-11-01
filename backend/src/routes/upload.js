@@ -102,7 +102,7 @@ router.get('/health', async (req, res) => {
  * Usage: POST /api/uploads/direct with form-data field "file"
  * Returns a local URL that is immediately usable by the dashboard.
  */
-router.post('/direct', authMiddleware, uploadMiddleware.any(), handleUploadError, async (req, res) => {
+router.post('/direct', authMiddleware, uploadMiddleware.any, handleUploadError, async (req, res) => {
   try {
     ensureUploadDirs();
     const file = (req.files && req.files[0]) || req.file;
