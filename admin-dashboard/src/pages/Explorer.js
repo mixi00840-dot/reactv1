@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -64,16 +64,13 @@ const Explorer = () => {
   const fetchSections = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      let endpoint = `${process.env.REACT_APP_API_URL}/api/admin/explorer/sections`;
+      let endpoint = `/api/admin/explorer/sections`;
       
       if (tab === 1) endpoint += '?filter=active';
       if (tab === 2) endpoint += '?filter=categories';
 
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSections(response.data.sections || []);
+      const payload = await api.get(endpoint);
+      setSections(payload?.sections || payload || []);
     } catch (error) {
       console.error('Error fetching sections:', error);
     } finally {
@@ -83,12 +80,8 @@ const Explorer = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/explorer/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data || {});
+      const payload = await api.get('/api/admin/explorer/stats');
+      setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -96,21 +89,12 @@ const Explorer = () => {
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token');
       
       if (selectedSection) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/admin/explorer/sections/${selectedSection._id}`,
-          form,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/admin/explorer/sections/${selectedSection._id}`, form);
         alert('Section updated successfully');
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/admin/explorer/sections`,
-          form,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post('/api/admin/explorer/sections', form);
         alert('Section created successfully');
       }
 
@@ -136,11 +120,7 @@ const Explorer = () => {
     if (!window.confirm('Are you sure you want to delete this section?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/admin/explorer/sections/${sectionId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/admin/explorer/sections/${sectionId}`);
       alert('Section deleted successfully');
       fetchSections();
       fetchStats();
@@ -152,12 +132,7 @@ const Explorer = () => {
 
   const toggleActive = async (sectionId, currentStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/admin/explorer/sections/${sectionId}/toggle`,
-        { isActive: !currentStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.patch(`/api/admin/explorer/sections/${sectionId}/toggle`, { isActive: !currentStatus });
       fetchSections();
     } catch (error) {
       console.error('Error toggling section:', error);
@@ -166,12 +141,7 @@ const Explorer = () => {
 
   const reorderSection = async (sectionId, direction) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/admin/explorer/sections/${sectionId}/reorder`,
-        { direction },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.patch(`/api/admin/explorer/sections/${sectionId}/reorder`, { direction });
       fetchSections();
     } catch (error) {
       console.error('Error reordering section:', error);

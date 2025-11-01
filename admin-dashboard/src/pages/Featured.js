@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -71,18 +71,14 @@ const Featured = () => {
   const fetchFeatured = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       let type = '';
       if (tab === 0) type = 'content';
       if (tab === 1) type = 'user';
       if (tab === 2) type = 'shop';
       if (tab === 3) type = 'expired';
 
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/featured?type=${type}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setFeatured(response.data.featured || []);
+      const payload = await api.get(`/api/admin/featured?type=${type}`);
+      setFeatured(payload?.featured || payload?.data?.featured || []);
     } catch (error) {
       console.error('Error fetching featured:', error);
     } finally {
@@ -92,12 +88,8 @@ const Featured = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/featured/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data || {});
+      const payload = await api.get('/api/admin/featured/stats');
+      setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -110,16 +102,12 @@ const Featured = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
       const endpoint = form.type === 'user' ? 'users' : 
                       form.type === 'shop' ? 'stores' : 
                       'content';
-      
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/search/${endpoint}?q=${query}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSearchResults(response.data.results || []);
+
+      const payload = await api.get(`/api/admin/search/${endpoint}?q=${query}`);
+      setSearchResults(payload?.results || []);
     } catch (error) {
       console.error('Error searching:', error);
     }
@@ -132,12 +120,7 @@ const Featured = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/admin/featured`,
-        form,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post('/api/admin/featured', form);
       alert('Item featured successfully');
       setDialog(false);
       setForm({
@@ -161,11 +144,7 @@ const Featured = () => {
     if (!window.confirm('Remove from featured?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/admin/featured/${featuredId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/admin/featured/${featuredId}`);
       alert('Removed from featured');
       fetchFeatured();
       fetchStats();
@@ -177,12 +156,7 @@ const Featured = () => {
 
   const changePriority = async (featuredId, direction) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/admin/featured/${featuredId}/priority`,
-        { direction },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.patch(`/api/admin/featured/${featuredId}/priority`, { direction });
       fetchFeatured();
     } catch (error) {
       console.error('Error changing priority:', error);
