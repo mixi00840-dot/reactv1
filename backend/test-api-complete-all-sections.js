@@ -646,20 +646,36 @@ async function testWallets() {
     sectionResults.tests.push({ name: 'Get Wallets Admin', status: 'FAIL', error: error.message });
   }
   
-  // Test 2: Public Wallets Endpoint
+  // Test 2: Get User's Own Wallet
   try {
-    const response = await apiRequest('GET', '/api/wallets?page=1&limit=10');
-    if (response.data.success) {
-      logTest('Get Wallets (Public)', 'PASS');
+    const response = await apiRequest('GET', '/api/wallets');
+    if (response.data.success && response.data.data.wallet) {
+      logTest('Get User Wallet', 'PASS');
       sectionResults.passed++;
-      sectionResults.tests.push({ name: 'Get Wallets Public', status: 'PASS' });
+      sectionResults.tests.push({ name: 'Get User Wallet', status: 'PASS' });
     } else {
       throw new Error('Invalid response structure');
     }
   } catch (error) {
-    logTest('Get Wallets (Public)', 'FAIL', error.message);
+    logTest('Get User Wallet', 'FAIL', error.message);
     sectionResults.failed++;
-    sectionResults.tests.push({ name: 'Get Wallets Public', status: 'FAIL', error: error.message });
+    sectionResults.tests.push({ name: 'Get User Wallet', status: 'FAIL', error: error.message });
+  }
+  
+  // Test 3: Get Wallet Balance
+  try {
+    const response = await apiRequest('GET', '/api/wallets/balance');
+    if (response.data.success && response.data.data.balance !== undefined) {
+      logTest('Get Wallet Balance', 'PASS');
+      sectionResults.passed++;
+      sectionResults.tests.push({ name: 'Get Balance', status: 'PASS' });
+    } else {
+      throw new Error('Invalid response structure');
+    }
+  } catch (error) {
+    logTest('Get Wallet Balance', 'FAIL', error.message);
+    sectionResults.failed++;
+    sectionResults.tests.push({ name: 'Get Balance', status: 'FAIL', error: error.message });
   }
   
   testResults.sections['Wallets'] = sectionResults;

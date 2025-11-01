@@ -4,6 +4,38 @@ const { Wallet, WalletTransaction } = require('../models/Wallet');
 const { Transaction } = require('../models/Transaction');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
+// @route   GET /api/wallets
+// @desc    Get current user's wallet info
+// @access  Private
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    let wallet = await Wallet.findOne({ userId: req.user._id });
+
+    if (!wallet) {
+      // Create wallet if it doesn't exist
+      wallet = new Wallet({ 
+        userId: req.user._id,
+        balance: 0,
+        currency: 'USD'
+      });
+      await wallet.save();
+    }
+
+    res.json({
+      success: true,
+      data: {
+        wallet
+      }
+    });
+  } catch (error) {
+    console.error('Get wallet error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching wallet'
+    });
+  }
+});
+
 // @route   GET /api/wallets/balance
 // @desc    Get current user's wallet balance
 // @access  Private

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-01T12:32:06.979Z",
+  "timestamp": "2025-11-01T12:39:02.326Z",
   "summary": {
     "total": null,
     "passed": 0,
@@ -28,7 +28,7 @@
         {
           "name": "Create User",
           "status": "PASS",
-          "userId": "6905fdcbcbe81ca1c9505bfe"
+          "userId": "6905ff6ba5e4b47df23b6532"
         }
       ]
     },
@@ -105,8 +105,8 @@
       ]
     },
     "Levels": {
-      "passed": 1,
-      "failed": 1,
+      "passed": 2,
+      "failed": 0,
       "tests": [
         {
           "name": "Get Levels",
@@ -114,8 +114,7 @@
         },
         {
           "name": "Create Level",
-          "status": "FAIL",
-          "error": "Error creating level"
+          "status": "PASS"
         }
       ]
     },
@@ -134,8 +133,8 @@
       ]
     },
     "Explorer": {
-      "passed": 1,
-      "failed": 1,
+      "passed": 2,
+      "failed": 0,
       "tests": [
         {
           "name": "Get Sections",
@@ -143,8 +142,7 @@
         },
         {
           "name": "Create Section",
-          "status": "FAIL",
-          "error": "Error creating explorer section"
+          "status": "PASS"
         }
       ]
     },
