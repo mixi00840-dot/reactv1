@@ -39,6 +39,7 @@ import {
   Store as StoreIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 function Stores() {
@@ -86,13 +87,12 @@ function Stores() {
         ...(verificationFilter !== 'all' && { verified: verificationFilter === 'verified' }),
       });
 
-      const response = await axios.get(`/api/stores?${params}`);
-      
-      if (response.data.success) {
-        setStores(response.data.data.stores);
-        setTotalPages(response.data.data.pagination.totalPages);
-        setTotalItems(response.data.data.pagination.totalItems);
-      }
+      const response = await api.get(`/api/stores?${params}`);
+      const list = response?.data?.stores || response?.stores || (Array.isArray(response) ? response : []);
+      const pagination = response?.data?.pagination || response?.pagination || {};
+      setStores(Array.isArray(list) ? list : []);
+      setTotalPages(pagination.totalPages || 0);
+      setTotalItems(pagination.totalItems || pagination.total || 0);
     } catch (error) {
       console.error('Error fetching stores:', error);
       toast.error('Failed to fetch stores');
@@ -104,7 +104,7 @@ function Stores() {
   const handleVerificationToggle = async (storeId, currentStatus) => {
     try {
       const endpoint = currentStatus ? `/api/stores/${storeId}/unverify` : `/api/stores/${storeId}/verify`;
-      await axios.patch(endpoint);
+      await api.patch(endpoint);
       toast.success(`Store ${currentStatus ? 'unverified' : 'verified'} successfully`);
       fetchStores();
     } catch (error) {
@@ -115,7 +115,7 @@ function Stores() {
 
   const handleStatusChange = async (storeId, newStatus) => {
     try {
-      await axios.patch(`/api/stores/${storeId}/status`, { status: newStatus });
+      await api.patch(`/api/stores/${storeId}/status`, { status: newStatus });
       toast.success('Store status updated successfully');
       fetchStores();
     } catch (error) {
@@ -126,16 +126,14 @@ function Stores() {
 
   const handleCreateStore = async () => {
     try {
-      const response = await axios.post('/api/stores', formData);
-      if (response.data.success) {
-        toast.success('Store created successfully');
-        setDialogOpen(false);
-        fetchStores();
-        resetForm();
-      }
+      const response = await api.post('/api/stores', formData);
+      toast.success(response?.message || 'Store created successfully');
+      setDialogOpen(false);
+      fetchStores();
+      resetForm();
     } catch (error) {
       console.error('Error creating store:', error);
-      toast.error(error.response?.data?.message || 'Failed to create store');
+      toast.error(error.message || error.response?.data?.message || 'Failed to create store');
     }
   };
 

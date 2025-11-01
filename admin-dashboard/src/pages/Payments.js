@@ -26,6 +26,7 @@ import {
   CreditCard as CreditCardIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 function Payments() {
@@ -57,13 +58,11 @@ function Payments() {
         ...(statusFilter !== 'all' && { status: statusFilter }),
       });
 
-      const response = await axios.get(`/api/payments?${params}`);
-      
-      if (response.data.success) {
-        const paymentsData = response.data.data?.payments || response.data.data?.transactions || response.data.data;
-        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
-        setTotalPages(response.data.data?.pagination?.totalPages || response.data.pagination?.totalPages || 0);
-      }
+      const response = await api.get(`/api/payments?${params}`);
+      const paymentsData = response?.data?.payments || response?.payments || response?.data?.transactions || response?.transactions || (Array.isArray(response) ? response : []);
+      setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+      const pagination = response?.data?.pagination || response?.pagination || {};
+      setTotalPages(pagination.totalPages || 0);
     } catch (error) {
       console.error('Error fetching payments:', error);
       setPayments([]); // Ensure it's always an array
@@ -75,10 +74,8 @@ function Payments() {
 
   const fetchPaymentStats = async () => {
     try {
-      const response = await axios.get('/api/payments/analytics');
-      if (response.data.success) {
-        setStats(response.data.data || {});
-      }
+      const response = await api.get('/api/payments/analytics');
+      setStats(response?.data || response || {});
     } catch (error) {
       console.error('Error fetching payment stats:', error);
       setStats({}); // Ensure it's always an object

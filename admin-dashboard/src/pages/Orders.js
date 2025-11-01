@@ -38,6 +38,7 @@ import {
   Receipt as ReceiptIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 function Orders() {
@@ -67,13 +68,12 @@ function Orders() {
         ...(paymentStatusFilter !== 'all' && { paymentStatus: paymentStatusFilter }),
       });
 
-      const response = await axios.get(`/api/orders?${params}`);
-      
-      if (response.data.success) {
-        setOrders(response.data.data.orders);
-        setTotalPages(response.data.data.pagination.totalPages);
-        setTotalItems(response.data.data.pagination.totalItems);
-      }
+      const response = await api.get(`/api/orders?${params}`);
+      const list = response?.data?.orders || response?.orders || (Array.isArray(response) ? response : []);
+      const pagination = response?.data?.pagination || response?.pagination || {};
+      setOrders(Array.isArray(list) ? list : []);
+      setTotalPages(pagination.totalPages || 0);
+      setTotalItems(pagination.totalItems || pagination.total || 0);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error('Failed to fetch orders');
@@ -84,7 +84,7 @@ function Orders() {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      await axios.patch(`/api/orders/${orderId}/status`, { 
+      await api.patch(`/api/orders/${orderId}/status`, { 
         status: newStatus,
         notes: `Status updated by admin to ${newStatus}`
       });
