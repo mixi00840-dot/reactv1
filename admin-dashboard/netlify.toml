@@ -1,11 +1,12 @@
 # Netlify Configuration
 [build]
   publish = "build"
-  command = "npm run build"
+  command = "CI=false npm run build"
 
 [build.environment]
   REACT_APP_API_URL = "https://reactv1-v8sa.onrender.com"
   REACT_APP_NODE_ENV = "production"
+  CI = "false"
 
 # Redirect all requests to index.html for React Router
 [[redirects]]
