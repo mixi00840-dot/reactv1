@@ -80,4 +80,19 @@ router.post('/download-url', authMiddleware, uploadController.generateDownloadUr
 // Get upload configuration
 router.get('/config', authMiddleware, uploadController.getConfig);
 
+// Health check endpoint (no auth required)
+router.get('/health', async (req, res) => {
+  res.json({
+    success: true,
+    message: 'Upload service is operational',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      presignedUrl: 'POST /api/upload/presigned-url',
+      multipart: 'POST /api/upload/multipart',
+      confirm: 'POST /api/upload/:contentId/confirm',
+      status: 'GET /api/upload/:contentId/status'
+    }
+  });
+});
+
 module.exports = router;

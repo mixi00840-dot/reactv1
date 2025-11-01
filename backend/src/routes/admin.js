@@ -9,7 +9,31 @@ const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Apply auth and admin middleware to all routes
+// Health check endpoint (no auth required) - MUST be before middleware
+router.get('/health', async (req, res) => {
+  res.json({
+    success: true,
+    message: 'Admin API is operational',
+    timestamp: new Date().toISOString(),
+    availableEndpoints: [
+      'GET /api/admin/dashboard',
+      'GET /api/admin/users',
+      'POST /api/admin/users',
+      'GET /api/admin/seller-applications',
+      'GET /api/admin/uploads',
+      'GET /api/admin/content',
+      'GET /api/admin/comments',
+      'GET /api/admin/analytics',
+      'GET /api/admin/gifts/stats',
+      'GET /api/admin/coin-packages',
+      'GET /api/admin/levels',
+      'GET /api/admin/tags',
+      'GET /api/admin/explorer/sections'
+    ]
+  });
+});
+
+// Apply auth and admin middleware to all routes AFTER health check
 router.use(authMiddleware);
 router.use(adminMiddleware);
 
