@@ -142,6 +142,9 @@ const exportValidation = [
   ...periodValidation
 ];
 
+// Helper to ensure controller 'this' context is preserved
+const bind = (fn) => fn.bind(analyticsController);
+
 // Dashboard Analytics Routes
 
 // Get overview dashboard
@@ -149,7 +152,7 @@ router.get('/dashboard/overview',
   auth.authenticate,
   rateLimitMiddleware('analytics_overview', 100, 60000),
   periodValidation,
-  analyticsController.getOverviewDashboard
+  bind(analyticsController.getOverviewDashboard)
 );
 
 // Get sales analytics
@@ -167,7 +170,7 @@ router.get('/sales',
       .isMongoId()
       .withMessage('Invalid category ID')
   ],
-  analyticsController.getSalesAnalytics
+  bind(analyticsController.getSalesAnalytics)
 );
 
 // Get customer analytics
@@ -175,7 +178,7 @@ router.get('/customers',
   auth.authenticate,
   rateLimitMiddleware('customer_analytics', 100, 60000),
   periodValidation,
-  analyticsController.getCustomerAnalytics
+  bind(analyticsController.getCustomerAnalytics)
 );
 
 // Get product analytics
@@ -193,7 +196,7 @@ router.get('/products',
       .isInt({ min: 1, max: 100 })
       .withMessage('Limit must be between 1 and 100')
   ],
-  analyticsController.getProductAnalytics
+  bind(analyticsController.getProductAnalytics)
 );
 
 // Get financial analytics
@@ -202,7 +205,7 @@ router.get('/financial',
   auth.adminOrSupportMiddleware,
   rateLimitMiddleware('financial_analytics', 50, 60000),
   periodValidation,
-  analyticsController.getFinancialAnalytics
+  bind(analyticsController.getFinancialAnalytics)
 );
 
 // Get marketing analytics
@@ -216,7 +219,7 @@ router.get('/marketing',
       .isMongoId()
       .withMessage('Invalid campaign ID')
   ],
-  analyticsController.getMarketingAnalytics
+  bind(analyticsController.getMarketingAnalytics)
 );
 
 // Get operational analytics
@@ -225,7 +228,7 @@ router.get('/operational',
   auth.adminOrSupportMiddleware,
   rateLimitMiddleware('operational_analytics', 50, 60000),
   periodValidation,
-  analyticsController.getOperationalAnalytics
+  bind(analyticsController.getOperationalAnalytics)
 );
 
 // Get real-time metrics
@@ -236,7 +239,7 @@ router.get('/realtime',
     .optional()
     .isMongoId()
     .withMessage('Invalid store ID'),
-  analyticsController.getRealTimeMetrics
+  bind(analyticsController.getRealTimeMetrics)
 );
 
 // KPI Management Routes
@@ -255,7 +258,7 @@ router.get('/kpis',
       .isLength({ max: 50 })
       .withMessage('Category cannot exceed 50 characters')
   ],
-  analyticsController.getKPIs
+  bind(analyticsController.getKPIs)
 );
 
 // Create KPI
