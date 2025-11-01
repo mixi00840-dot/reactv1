@@ -16,7 +16,7 @@ import {
   Star as StarIcon, Upload as UploadIcon, History as ActivityIcon
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -52,12 +52,10 @@ function UserDetails() {
 
   const fetchUserDetails = async () => {
     try {
-      const token = localStorage.getItem('token'); // Fixed: use 'token' not 'adminToken'
-      const response = await axios.get(`/api/admin/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUser(response.data.data.user);
-      setEditedUser(response.data.data.user);
+      const payload = await api.get(`/api/admin/users/${id}`);
+      const userData = payload?.user || payload;
+      setUser(userData);
+      setEditedUser(userData);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -99,12 +97,8 @@ function UserDetails() {
 
   const fetchUserStats = async () => {
     try {
-      const token = localStorage.getItem('token'); // Fixed: use 'token' not 'adminToken'
-      const response = await axios.get(`/api/admin/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const userData = response.data.data.user;
+      const payload = await api.get(`/api/admin/users/${id}`);
+      const userData = payload?.user || payload;
       
       // Use actual data where available, fallback to mock data for demo
       setUserStats({
@@ -161,10 +155,7 @@ function UserDetails() {
 
   const handleEditUser = async () => {
     try {
-      const token = localStorage.getItem('token'); // Fixed: use 'token' not 'adminToken'
-      await axios.put(`/api/admin/users/${id}`, editedUser, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/api/admin/users/${id}`, editedUser);
       setUser(editedUser);
       setEditDialog(false);
       alert('User updated successfully!');
@@ -178,28 +169,22 @@ function UserDetails() {
     console.log(`🔵 User action triggered: ${action} for user:`, id);
     
     try {
-      const token = localStorage.getItem('token'); // Fixed: use 'token' not 'adminToken'
       const endpoint = `/api/admin/users/${id}/${action}`;
-      
       console.log(`📞 Calling endpoint: ${endpoint}`);
+      const response = await api.put(endpoint, {});
       
-      const response = await axios.put(endpoint, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      console.log(`✅ ${action} successful:`, response);
       
-      console.log(`✅ ${action} successful:`, response.data);
-      
-      if (action === 'make-seller' && response.data.data) {
-        console.log('🏪 Store created:', response.data.data.storeCreated);
-        console.log('📦 Store details:', response.data.data.store);
+      if (action === 'make-seller' && response?.data) {
+        console.log('🏪 Store created:', response.data.storeCreated);
+        console.log('📦 Store details:', response.data.store);
       }
       
       fetchUserDetails();
-      alert(response.data.message || `User ${action} successfully!`);
+      alert(response?.message || `User ${action} successfully!`);
     } catch (error) {
       console.error(`❌ Error ${action} user:`, error);
-      console.error('Error response:', error.response?.data);
-      alert(error.response?.data?.message || `Error ${action} user`);
+      alert(error?.message || `Error ${action} user`);
     }
   };
 

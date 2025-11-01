@@ -16,7 +16,7 @@ import {
   Switch
 } from '@mui/material';
 import { Save, Person, Email, Lock, Badge } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -105,9 +105,10 @@ function CreateUser() {
         status: formData.status
       };
 
-      const response = await axios.post('/api/admin/users', userData);
+      const response = await api.post('/api/admin/users', userData);
       
-      if (response.data.success) {
+      const success = response?.data?.success ?? response?.success ?? true;
+      if (success) {
         toast.success('User created successfully!');
         navigate('/users', { 
           state: { 

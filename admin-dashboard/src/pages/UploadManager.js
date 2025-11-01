@@ -192,7 +192,7 @@ const UploadManager = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      const { uploadUrl, key, uploadId } = presignedResponse;
+  const { uploadUrl, key, uploadId } = presignedResponse;
       
       // Upload file directly to storage; fallback to server proxy on CORS error
       try {
@@ -227,7 +227,7 @@ const UploadManager = () => {
       }
       
           // Confirm upload completion (use uploadId, not key)
-          await axios.post(`/api/uploads/${uploadId || key}/confirm`, {
+          await api.post(`/api/uploads/${uploadId || key}/confirm`, {
         metadata
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -292,7 +292,7 @@ const UploadManager = () => {
   const handleCancelUpload = async (uploadId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/upload/${uploadId}`, {
+      await api.delete(`/api/upload/${uploadId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

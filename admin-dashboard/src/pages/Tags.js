@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -64,17 +64,14 @@ const Tags = () => {
   const fetchTags = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      let endpoint = `${process.env.REACT_APP_API_URL}/api/admin/tags`;
+      let endpoint = `/api/admin/tags`;
       
       if (tab === 1) endpoint += '?filter=trending';
       if (tab === 2) endpoint += '?filter=featured';
       if (tab === 3) endpoint += '?filter=flagged';
 
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setTags(response.data.tags || []);
+      const payload = await api.get(endpoint);
+      setTags(payload?.tags || []);
     } catch (error) {
       console.error('Error fetching tags:', error);
     } finally {
@@ -84,12 +81,8 @@ const Tags = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/tags/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data || {});
+      const payload = await api.get('/api/admin/tags/stats');
+      setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -97,21 +90,12 @@ const Tags = () => {
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token');
       
       if (selectedTag) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/admin/tags/${selectedTag._id}`,
-          form,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/admin/tags/${selectedTag._id}`, form);
         alert('Tag updated successfully');
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/admin/tags`,
-          form,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post('/api/admin/tags', form);
         alert('Tag created successfully');
       }
 
@@ -136,11 +120,7 @@ const Tags = () => {
     if (!window.confirm('Are you sure you want to delete this tag?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/admin/tags/${tagId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/admin/tags/${tagId}`);
       alert('Tag deleted successfully');
       fetchTags();
       fetchStats();
@@ -152,12 +132,7 @@ const Tags = () => {
 
   const toggleFeature = async (tagId, currentStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/admin/tags/${tagId}/feature`,
-        { isFeatured: !currentStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.patch(`/api/admin/tags/${tagId}/feature`, { isFeatured: !currentStatus });
       fetchTags();
       fetchStats();
     } catch (error) {
@@ -169,12 +144,7 @@ const Tags = () => {
     if (!window.confirm(`Are you sure you want to ${currentStatus ? 'unban' : 'ban'} this tag?`)) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/admin/tags/${tagId}/ban`,
-        { isBanned: !currentStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.patch(`/api/admin/tags/${tagId}/ban`, { isBanned: !currentStatus });
       fetchTags();
       fetchStats();
     } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -59,12 +59,8 @@ const Coins = () => {
   const fetchPackages = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/coin-packages`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setPackages(response.data.packages || []);
+      const payload = await api.get('/api/admin/coin-packages');
+      setPackages(payload?.packages || []);
     } catch (error) {
       console.error('Error fetching packages:', error);
     } finally {
@@ -74,12 +70,8 @@ const Coins = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/coin-packages/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data || {});
+      const payload = await api.get('/api/admin/coin-packages/stats');
+      setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -87,21 +79,12 @@ const Coins = () => {
 
   const handleSavePackage = async () => {
     try {
-      const token = localStorage.getItem('token');
       
       if (selectedPackage) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/admin/coin-packages/${selectedPackage._id}`,
-          packageForm,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/admin/coin-packages/${selectedPackage._id}`, packageForm);
         alert('Package updated successfully');
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/admin/coin-packages`,
-          packageForm,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post('/api/admin/coin-packages', packageForm);
         alert('Package created successfully');
       }
 
@@ -127,11 +110,7 @@ const Coins = () => {
     if (!window.confirm('Are you sure you want to delete this package?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/admin/coin-packages/${packageId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/admin/coin-packages/${packageId}`);
       alert('Package deleted successfully');
       fetchPackages();
       fetchStats();

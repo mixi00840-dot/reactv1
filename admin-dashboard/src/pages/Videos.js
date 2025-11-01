@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -54,13 +54,9 @@ const Videos = () => {
   const fetchVideos = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const statusFilter = tabValue === 0 ? 'all' : tabValue === 1 ? 'active' : 'pending';
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/content?type=video&status=${statusFilter}&limit=100`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setVideos(response.data.content || []);
+      const payload = await api.get(`/api/content?type=video&status=${statusFilter}&limit=100`);
+      setVideos(payload?.content || []);
     } catch (error) {
       console.error('Error fetching videos:', error);
     } finally {
@@ -70,12 +66,8 @@ const Videos = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/content/stats?type=video`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data || {});
+      const payload = await api.get('/api/content/stats?type=video');
+      setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -83,12 +75,7 @@ const Videos = () => {
 
   const handleApprove = async (videoId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/content/${videoId}/approve`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/content/${videoId}/approve`, {});
       alert('Video approved successfully');
       fetchVideos();
       fetchStats();
@@ -102,11 +89,7 @@ const Videos = () => {
     if (!window.confirm('Are you sure you want to delete this video?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/content/${videoId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/content/${videoId}`);
       alert('Video deleted successfully');
       fetchVideos();
       fetchStats();

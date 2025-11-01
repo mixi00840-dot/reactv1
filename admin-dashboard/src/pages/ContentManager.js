@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import './ContentManager.css';
 
 const ContentManager = () => {
@@ -33,7 +33,6 @@ const ContentManager = () => {
   const fetchContent = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -41,14 +40,9 @@ const ContentManager = () => {
           params.append(key, value);
         }
       });
-      
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/moderation/queue?${params}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      setContent(response.data.items || []);
-      setStats(prev => ({ ...prev, total: response.data.total || 0 }));
+      const payload = await api.get(`/api/moderation/queue?${params}`);
+      setContent(payload?.items || []);
+      setStats(prev => ({ ...prev, total: payload?.total || 0 }));
       
     } catch (error) {
       console.error('Error fetching content:', error);
@@ -60,13 +54,8 @@ const ContentManager = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/analytics/content`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      setStats(response.data);
+      const payload = await api.get('/api/analytics/content');
+      setStats(payload);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -74,12 +63,7 @@ const ContentManager = () => {
 
   const handleApprove = async (contentId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/moderation/approve/${contentId}`,
-        { notes: 'Approved via bulk action' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/moderation/approve/${contentId}`, { notes: 'Approved via bulk action' });
       
       fetchContent();
       alert('Content approved');
@@ -94,15 +78,10 @@ const ContentManager = () => {
     if (!rejectReason) return;
     
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/moderation/reject/${contentId}`,
-        { 
-          reason: rejectReason,
-          action: 'takedown'
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/moderation/reject/${contentId}`, { 
+        reason: rejectReason,
+        action: 'takedown'
+      });
       
       fetchContent();
       alert('Content rejected');
@@ -114,12 +93,7 @@ const ContentManager = () => {
 
   const handleFeature = async (contentId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/trending/feature/${contentId}`,
-        { featured: true, priority: 5 },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/trending/feature/${contentId}`, { featured: true, priority: 5 });
       
       fetchContent();
       alert('Content featured');
@@ -131,12 +105,7 @@ const ContentManager = () => {
 
   const handlePin = async (contentId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/trending/pin/${contentId}`,
-        { pinned: true, position: 1 },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/trending/pin/${contentId}`, { pinned: true, position: 1 });
       
       fetchContent();
       alert('Content pinned');

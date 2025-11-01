@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -97,13 +97,11 @@ const Settings = () => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/settings`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (response.data.settings) {
-        setSettings(response.data.settings);
+      const payload = await api.get('/api/settings');
+      if (payload?.settings) {
+        setSettings(payload.settings);
+      } else if (payload) {
+        setSettings(payload);
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -115,12 +113,7 @@ const Settings = () => {
   const handleSave = async (section) => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/settings/${section}`,
-        { settings: settings[section] },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/api/settings/${section}`, { settings: settings[section] });
       setSuccessMessage(`${section.charAt(0).toUpperCase() + section.slice(1)} settings saved successfully!`);
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {

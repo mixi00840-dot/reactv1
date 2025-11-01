@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -67,17 +67,19 @@ const Levels = () => {
     try {
       const token = localStorage.getItem('token');
       if (tabValue === 0) {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/admin/levels`,
+        const response = await api.get(
+          `/api/admin/levels`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setLevels(response.data.levels || []);
+        const data = response?.data?.levels || response?.levels || response?.data || response;
+        setLevels(Array.isArray(data) ? data : []);
       } else {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/admin/badges`,
+        const response = await api.get(
+          `/api/admin/badges`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setBadges(response.data.badges || []);
+        const data = response?.data?.badges || response?.badges || response?.data || response;
+        setBadges(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -89,11 +91,11 @@ const Levels = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/levels/stats`,
+      const response = await api.get(
+        `/api/admin/levels/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setStats(response.data || {});
+      setStats(response?.data || response || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -105,15 +107,15 @@ const Levels = () => {
       const endpoint = tabValue === 0 ? 'levels' : 'badges';
       
       if (selectedItem) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/admin/${endpoint}/${selectedItem._id}`,
+        await api.put(
+          `/api/admin/${endpoint}/${selectedItem._id}`,
           form,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         alert(`${tabValue === 0 ? 'Level' : 'Badge'} updated successfully`);
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/admin/${endpoint}`,
+        await api.post(
+          `/api/admin/${endpoint}`,
           form,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -144,8 +146,8 @@ const Levels = () => {
     try {
       const token = localStorage.getItem('token');
       const endpoint = tabValue === 0 ? 'levels' : 'badges';
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/admin/${endpoint}/${id}`,
+      await api.delete(
+        `/api/admin/${endpoint}/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert('Deleted successfully');

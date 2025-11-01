@@ -40,7 +40,7 @@ import {
   Percent as PercentIcon,
   AttachMoney as MoneyIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 function Coupons() {
@@ -93,12 +93,14 @@ function Coupons() {
         ...(statusFilter !== 'all' && { status: statusFilter }),
       });
 
-      const response = await axios.get(`/api/coupons?${params}`);
+      const response = await api.get(`/api/coupons?${params}`);
       
-      if (response.data.success) {
-        const couponsData = response.data.data?.coupons || response.data.data;
+      const success = response?.data?.success ?? response?.success ?? true;
+      if (success) {
+        const couponsData = response?.data?.data?.coupons || response?.data?.coupons || response?.coupons || response?.data || response;
         setCoupons(Array.isArray(couponsData) ? couponsData : []);
-        setTotalPages(response.data.data?.pagination?.totalPages || 0);
+        const pagination = response?.data?.data?.pagination || response?.data?.pagination || response?.pagination || {};
+        setTotalPages(pagination?.totalPages || 0);
       }
     } catch (error) {
       console.error('Error fetching coupons:', error);
@@ -111,9 +113,10 @@ function Coupons() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await axios.get('/api/coupons/analytics');
-      if (response.data.success) {
-        setAnalytics(response.data.data || {});
+      const response = await api.get('/api/coupons/analytics');
+      const success = response?.data?.success ?? response?.success ?? true;
+      if (success) {
+        setAnalytics(response?.data?.data || response?.data || response || {});
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
@@ -123,8 +126,9 @@ function Coupons() {
 
   const handleCreateCoupon = async () => {
     try {
-      const response = await axios.post('/api/coupons', formData);
-      if (response.data.success) {
+      const response = await api.post('/api/coupons', formData);
+      const success = response?.data?.success ?? response?.success ?? true;
+      if (success) {
         toast.success('Coupon created successfully');
         setDialogOpen(false);
         fetchCoupons();
@@ -139,8 +143,9 @@ function Coupons() {
 
   const handleUpdateCoupon = async () => {
     try {
-      const response = await axios.put(`/api/coupons/${selectedCoupon._id}`, formData);
-      if (response.data.success) {
+      const response = await api.put(`/api/coupons/${selectedCoupon._id}`, formData);
+      const success = response?.data?.success ?? response?.success ?? true;
+      if (success) {
         toast.success('Coupon updated successfully');
         setDialogOpen(false);
         fetchCoupons();
@@ -154,7 +159,7 @@ function Coupons() {
 
   const handleDeleteCoupon = async () => {
     try {
-      await axios.delete(`/api/coupons/${selectedCoupon._id}`);
+  await api.delete(`/api/coupons/${selectedCoupon._id}`);
       toast.success('Coupon deleted successfully');
       setDialogOpen(false);
       fetchCoupons();

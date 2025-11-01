@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -63,12 +63,8 @@ const Banners = () => {
   const fetchBanners = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/banners`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setBanners(response.data.banners || []);
+      const payload = await api.get('/api/admin/banners');
+      setBanners(payload?.banners || []);
     } catch (error) {
       console.error('Error fetching banners:', error);
     } finally {
@@ -78,12 +74,8 @@ const Banners = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/banners/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data || {});
+      const payload = await api.get('/api/admin/banners/stats');
+      setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -91,21 +83,11 @@ const Banners = () => {
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
       if (selectedBanner) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/admin/banners/${selectedBanner._id}`,
-          form,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/admin/banners/${selectedBanner._id}`, form);
         alert('Banner updated successfully');
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/admin/banners`,
-          form,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post('/api/admin/banners', form);
         alert('Banner created successfully');
       }
 
@@ -134,11 +116,7 @@ const Banners = () => {
     if (!window.confirm('Are you sure you want to delete this banner?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/admin/banners/${bannerId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/admin/banners/${bannerId}`);
       alert('Banner deleted successfully');
       fetchBanners();
       fetchStats();
@@ -150,12 +128,7 @@ const Banners = () => {
 
   const toggleActive = async (bannerId, currentStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/admin/banners/${bannerId}/toggle`,
-        { isActive: !currentStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.patch(`/api/admin/banners/${bannerId}/toggle`, { isActive: !currentStatus });
       fetchBanners();
     } catch (error) {
       console.error('Error toggling banner:', error);

@@ -36,7 +36,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 ChartJS.register(
@@ -105,8 +105,8 @@ function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get('/api/admin/dashboard');
-      setStats(response.data.data.stats);
+      const payload = await api.get('/api/admin/dashboard');
+      setStats(payload?.stats || payload);
     } catch (error) {
       console.error('Dashboard data fetch error:', error);
       toast.error('Failed to load dashboard data');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -100,13 +100,9 @@ const APISettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/settings/api-keys`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (response.data.settings) {
-        setSettings({ ...settings, ...response.data.settings });
+      const payload = await api.get('/api/settings/api-keys');
+      if (payload?.settings) {
+        setSettings({ ...settings, ...payload.settings });
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -116,12 +112,7 @@ const APISettings = () => {
   const handleSave = async (section) => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/settings/api-keys/${section}`,
-        { settings: settings[section] },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/api/settings/api-keys/${section}`, { settings: settings[section] });
       setMessage('Settings saved successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {

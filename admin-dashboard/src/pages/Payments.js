@@ -25,7 +25,6 @@ import {
   AccountBalance as AccountBalanceIcon,
   CreditCard as CreditCardIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 

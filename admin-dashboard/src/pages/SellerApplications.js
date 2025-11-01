@@ -40,7 +40,7 @@ import {
   Search,
   FilterList
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 function SellerApplications() {
@@ -72,17 +72,18 @@ function SellerApplications() {
         ...(filters.search && { search: filters.search })
       });
 
-      const response = await axios.get(`/api/admin/seller-applications?${params}`);
-      setApplications(response.data.data.applications || []);
+  const response = await api.get(`/api/admin/seller-applications?${params}`);
+  const list = response?.data?.data?.applications || response?.data?.applications || response?.applications || response?.data || response;
+  setApplications(Array.isArray(list) ? list : []);
       
       // Calculate stats from applications
-      const statusCounts = (response.data.data.applications || []).reduce((acc, app) => {
+      const statusCounts = (Array.isArray(list) ? list : []).reduce((acc, app) => {
         acc[app.status] = (acc[app.status] || 0) + 1;
         return acc;
       }, {});
       
       setStats({
-        total: response.data.data.applications?.length || 0,
+        total: (Array.isArray(list) ? list.length : 0) || 0,
         pending: statusCounts.pending || 0,
         approved: statusCounts.approved || 0,
         rejected: statusCounts.rejected || 0,
@@ -98,7 +99,7 @@ function SellerApplications() {
 
   const handleApprove = async (appId) => {
     try {
-      await axios.post(`/api/admin/seller-applications/${appId}/approve`);
+  await api.post(`/api/admin/seller-applications/${appId}/approve`);
       toast.success('Application approved successfully');
       fetchApplications();
       setActionDialog({ open: false, type: '', app: null });
@@ -115,7 +116,7 @@ function SellerApplications() {
     }
 
     try {
-      await axios.post(`/api/admin/seller-applications/${appId}/reject`, {
+      await api.post(`/api/admin/seller-applications/${appId}/reject`, {
         reason: rejectionReason
       });
       toast.success('Application rejected successfully');

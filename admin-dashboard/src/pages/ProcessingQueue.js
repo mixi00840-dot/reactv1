@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -61,12 +61,8 @@ const ProcessingQueue = () => {
 
   const fetchQueue = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/transcode/queue`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setQueue(response.data.jobs || []);
+      const payload = await api.get('/api/transcode/queue');
+      setQueue(payload?.jobs || []);
     } catch (error) {
       console.error('Error fetching queue:', error);
     }
@@ -75,12 +71,8 @@ const ProcessingQueue = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/transcode/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data.stats || {});
+      const payload = await api.get('/api/transcode/stats');
+      setStats(payload?.stats || payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -92,12 +84,7 @@ const ProcessingQueue = () => {
     if (!window.confirm('Cancel this processing job?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/transcode/${jobId}/cancel`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/transcode/${jobId}/cancel`, {});
       fetchQueue();
       fetchStats();
     } catch (error) {
@@ -108,12 +95,7 @@ const ProcessingQueue = () => {
 
   const handleRetryJob = async (jobId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/transcode/${jobId}/retry`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/transcode/${jobId}/retry`, {});
       fetchQueue();
       fetchStats();
       alert('Job queued for retry');

@@ -39,7 +39,7 @@ import {
   LocationOn as LocationIcon,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 function TabPanel({ children, value, index, ...other }) {
@@ -111,8 +111,8 @@ function Shipping() {
     try {
       setLoading(true);
       const [methodsRes, zonesRes] = await Promise.all([
-        axios.get('/api/shipping/methods'),
-        axios.get('/api/shipping/zones')
+        api.get('/api/shipping/methods'),
+        api.get('/api/shipping/zones')
       ]);
 
       if (methodsRes.data.success) {
@@ -135,7 +135,7 @@ function Shipping() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await axios.get('/api/shipping/analytics');
+  const response = await api.get('/api/shipping/analytics');
       if (response.data.success) {
         setAnalytics(response.data.data);
       }
@@ -146,7 +146,7 @@ function Shipping() {
 
   const handleCreateMethod = async () => {
     try {
-      const response = await axios.post('/api/shipping/methods', methodFormData);
+  const response = await api.post('/api/shipping/methods', methodFormData);
       if (response.data.success) {
         toast.success('Shipping method created successfully');
         setDialogOpen(false);
@@ -162,7 +162,7 @@ function Shipping() {
 
   const handleCreateZone = async () => {
     try {
-      const response = await axios.post('/api/shipping/zones', zoneFormData);
+  const response = await api.post('/api/shipping/zones', zoneFormData);
       if (response.data.success) {
         toast.success('Shipping zone created successfully');
         setDialogOpen(false);

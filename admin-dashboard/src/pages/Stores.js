@@ -38,7 +38,6 @@ import {
   Verified as VerifiedIcon,
   Store as StoreIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 

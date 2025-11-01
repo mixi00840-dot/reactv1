@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -69,13 +69,9 @@ const Posts = () => {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const statusFilter = tabValue === 0 ? 'all' : tabValue === 1 ? 'active' : 'scheduled';
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/content?type=post&status=${statusFilter}&limit=100`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setPosts(response.data.content || []);
+      const payload = await api.get(`/api/content?type=post&status=${statusFilter}&limit=100`);
+      setPosts(payload?.content || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -85,12 +81,8 @@ const Posts = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/content/stats?type=post`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data || {});
+      const payload = await api.get('/api/content/stats?type=post');
+      setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -98,7 +90,6 @@ const Posts = () => {
 
   const handleSavePost = async () => {
     try {
-      const token = localStorage.getItem('token');
       const postData = {
         ...postForm,
         tags: postForm.tags.split(',').map(t => t.trim()),
@@ -106,18 +97,10 @@ const Posts = () => {
       };
 
       if (selectedPost) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/content/${selectedPost._id}`,
-          postData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/content/${selectedPost._id}`, postData);
         alert('Post updated successfully');
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/content`,
-          postData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post('/api/content', postData);
         alert('Post created successfully');
       }
 
@@ -144,11 +127,7 @@ const Posts = () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/content/${postId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/content/${postId}`);
       alert('Post deleted successfully');
       fetchPosts();
       fetchStats();

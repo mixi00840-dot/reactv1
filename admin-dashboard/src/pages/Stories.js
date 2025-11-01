@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -52,13 +52,9 @@ const Stories = () => {
   const fetchStories = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const statusFilter = tabValue === 0 ? 'all' : tabValue === 1 ? 'active' : 'expired';
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/stories?status=${statusFilter}&limit=100`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStories(response.data.stories || []);
+      const payload = await api.get(`/api/stories?status=${statusFilter}&limit=100`);
+      setStories(payload?.stories || []);
     } catch (error) {
       console.error('Error fetching stories:', error);
     } finally {
@@ -68,12 +64,8 @@ const Stories = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/stories/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data || {});
+      const payload = await api.get('/api/stories/stats');
+      setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -83,11 +75,7 @@ const Stories = () => {
     if (!window.confirm('Are you sure you want to delete this story?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/stories/${storyId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/api/stories/${storyId}`);
       alert('Story deleted successfully');
       fetchStories();
       fetchStats();

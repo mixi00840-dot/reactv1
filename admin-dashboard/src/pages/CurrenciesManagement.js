@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -88,11 +88,12 @@ const CurrenciesManagement = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/admin/currencies', {
+      const response = await api.get('/api/admin/currencies', {
         headers: { Authorization: `Bearer ${token}` },
         params: filters
       });
-      setCurrencies(response.data.data.currencies || []);
+      const list = response?.data?.data?.currencies || response?.data?.currencies || response?.currencies || response?.data || response;
+      setCurrencies(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error('Error fetching currencies:', error);
       // Generate dummy data since backend API doesn't exist yet
@@ -217,11 +218,11 @@ const CurrenciesManagement = () => {
       const { currency, mode } = currencyDialog;
       
       if (mode === 'create') {
-        await axios.post('/api/admin/currencies', currency, {
+        await api.post('/api/admin/currencies', currency, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.put(`/api/admin/currencies/${currency._id}`, currency, {
+        await api.put(`/api/admin/currencies/${currency._id}`, currency, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -247,7 +248,7 @@ const CurrenciesManagement = () => {
   const handleDeleteCurrency = async (currencyId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/admin/currencies/${currencyId}`, {
+      await api.delete(`/api/admin/currencies/${currencyId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -271,7 +272,7 @@ const CurrenciesManagement = () => {
   const handleToggleStatus = async (currencyId, field, value) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`/api/admin/currencies/${currencyId}`, {
+      await api.patch(`/api/admin/currencies/${currencyId}`, {
         [field]: value
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -299,7 +300,7 @@ const CurrenciesManagement = () => {
   const handleSetDefault = async (currencyId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`/api/admin/currencies/${currencyId}/set-default`, {}, {
+      await api.patch(`/api/admin/currencies/${currencyId}/set-default`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -326,7 +327,7 @@ const CurrenciesManagement = () => {
   const handleUpdateExchangeRates = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/admin/currencies/update-rates', {}, {
+      await api.post('/api/admin/currencies/update-rates', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

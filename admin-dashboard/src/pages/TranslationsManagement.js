@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -117,14 +117,15 @@ const TranslationsManagement = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/translations', {
+      const response = await api.get('/api/translations', {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           ...filters,
           language: tabs[selectedTab].value
         }
       });
-      setTranslations(response.data.data.translations || []);
+      const list = response?.data?.data?.translations || response?.data?.translations || response?.translations || response?.data || response;
+      setTranslations(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error('Error fetching translations:', error);
       // Generate dummy data for demonstration
@@ -208,10 +209,10 @@ const TranslationsManagement = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/translations/stats', {
+      const response = await api.get('/api/translations/stats', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setStats(response.data.data || {});
+      setStats(response?.data?.data || response?.data || response || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
       setStats({
@@ -254,11 +255,11 @@ const TranslationsManagement = () => {
       const { translation, mode } = translationDialog;
       
       if (mode === 'create') {
-        await axios.post('/api/translations', translation, {
+        await api.post('/api/translations', translation, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.put(`/api/translations/${translation.key}`, translation, {
+        await api.put(`/api/translations/${translation.key}`, translation, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -284,7 +285,7 @@ const TranslationsManagement = () => {
   const handleDeleteTranslation = async (key) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/translations/${key}`, {
+      await api.delete(`/api/translations/${key}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -308,7 +309,7 @@ const TranslationsManagement = () => {
   const handleAutoTranslate = async (fromLang, toLang) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/translations/auto-translate', {
+      await api.post('/api/translations/auto-translate', {
         fromLanguage: fromLang,
         toLanguage: toLang
       }, {
@@ -336,7 +337,7 @@ const TranslationsManagement = () => {
   const handleExportTranslations = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/translations/export', {
+      const response = await api.get('/api/translations/export', {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'
       });

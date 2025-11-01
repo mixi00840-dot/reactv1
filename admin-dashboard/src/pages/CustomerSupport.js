@@ -42,7 +42,7 @@ import {
   AccessTime as PriorityIcon,
   Assignment as TicketIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 function TabPanel({ children, value, index, ...other }) {
@@ -109,8 +109,8 @@ function CustomerSupport() {
     try {
       setLoading(true);
       const [ticketsRes, faqsRes] = await Promise.all([
-        axios.get('/api/support/tickets'),
-        axios.get('/api/support/faq')
+        api.get('/api/support/tickets'),
+        api.get('/api/support/faq')
       ]);
 
       if (ticketsRes.data.success) {
@@ -133,7 +133,7 @@ function CustomerSupport() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await axios.get('/api/support/analytics');
+  const response = await api.get('/api/support/analytics');
       if (response.data.success) {
         setAnalytics(response.data.data || {});
       }
@@ -145,7 +145,7 @@ function CustomerSupport() {
 
   const handleCreateTicket = async () => {
     try {
-      const response = await axios.post('/api/support/tickets', ticketFormData);
+  const response = await api.post('/api/support/tickets', ticketFormData);
       if (response.data.success) {
         toast.success('Ticket created successfully');
         setDialogOpen(false);
@@ -161,7 +161,7 @@ function CustomerSupport() {
 
   const handleCreateFAQ = async () => {
     try {
-      const response = await axios.post('/api/support/faq', faqFormData);
+  const response = await api.post('/api/support/faq', faqFormData);
       if (response.data.success) {
         toast.success('FAQ created successfully');
         setDialogOpen(false);
@@ -176,7 +176,7 @@ function CustomerSupport() {
 
   const handleReplyToTicket = async () => {
     try {
-      const response = await axios.post(`/api/support/tickets/${selectedItem._id}/reply`, replyFormData);
+  const response = await api.post(`/api/support/tickets/${selectedItem._id}/reply`, replyFormData);
       if (response.data.success) {
         toast.success('Reply sent successfully');
         setDialogOpen(false);
@@ -191,7 +191,7 @@ function CustomerSupport() {
 
   const handleCloseTicket = async (ticketId) => {
     try {
-      await axios.patch(`/api/support/tickets/${ticketId}/close`);
+  await api.patch(`/api/support/tickets/${ticketId}/close`);
       toast.success('Ticket closed successfully');
       fetchSupportData();
       fetchAnalytics();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -40,12 +40,8 @@ const StorageStats = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/analytics/storage`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data);
+      const payload = await api.get('/api/analytics/storage');
+      setStats(payload);
     } catch (error) {
       console.error('Error fetching storage stats:', error);
     } finally {
@@ -55,12 +51,8 @@ const StorageStats = () => {
 
   const fetchCleanupStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/stories/admin/cleanup/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setCleanupStats(response.data.stats);
+      const payload = await api.get('/api/stories/admin/cleanup/stats');
+      setCleanupStats(payload?.stats || payload);
     } catch (error) {
       console.error('Error fetching cleanup stats:', error);
     }
@@ -70,12 +62,7 @@ const StorageStats = () => {
     if (!window.confirm('Trigger manual story cleanup now?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/stories/admin/cleanup/trigger`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post('/api/stories/admin/cleanup/trigger', {});
       alert('Cleanup triggered successfully');
       fetchCleanupStats();
     } catch (error) {

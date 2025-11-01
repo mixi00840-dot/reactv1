@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -62,11 +62,12 @@ const Gifts = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/gifts`,
+      const response = await api.get(
+        `/api/admin/gifts`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setGifts(response.data.gifts || []);
+      const data = response?.data?.gifts || response?.gifts || response?.data || response;
+      setGifts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching gifts:', error);
     } finally {
@@ -77,11 +78,11 @@ const Gifts = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/admin/gifts/stats`,
+      const response = await api.get(
+        `/api/admin/gifts/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setStats(response.data || {});
+      setStats(response?.data || response || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -92,15 +93,15 @@ const Gifts = () => {
       const token = localStorage.getItem('token');
       
       if (editingGift) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/admin/gifts/${editingGift._id}`,
+        await api.put(
+          `/api/admin/gifts/${editingGift._id}`,
           giftForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         alert('Gift updated successfully');
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/admin/gifts`,
+        await api.post(
+          `/api/admin/gifts`,
           giftForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -145,8 +146,8 @@ const Gifts = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/admin/gifts/${giftId}`,
+      await api.delete(
+        `/api/admin/gifts/${giftId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert('Gift deleted successfully');

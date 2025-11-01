@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -58,13 +58,10 @@ const TrendingControls = () => {
   const fetchConfig = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/trending/config`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setConfig(response.data.config);
-      setOriginalConfig(response.data.config);
+      const payload = await api.get('/api/trending/config');
+      const configData = payload?.config || payload;
+      setConfig(configData);
+      setOriginalConfig(configData);
     } catch (error) {
       console.error('Error fetching config:', error);
     } finally {
@@ -74,12 +71,8 @@ const TrendingControls = () => {
 
   const fetchHistory = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/trending/config/history?limit=10`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setHistory(response.data.history || []);
+      const payload = await api.get('/api/trending/config/history?limit=10');
+      setHistory(payload?.history || []);
     } catch (error) {
       console.error('Error fetching history:', error);
     }
@@ -115,12 +108,7 @@ const TrendingControls = () => {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/trending/config/weights`,
-        { weights: config.weights },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put('/api/trending/config/weights', { weights: config.weights });
       setSuccessMessage('Weights updated successfully!');
       fetchConfig();
       fetchHistory();
@@ -136,12 +124,7 @@ const TrendingControls = () => {
   const handleSaveThresholds = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/trending/config/thresholds`,
-        { thresholds: config.thresholds },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put('/api/trending/config/thresholds', { thresholds: config.thresholds });
       setSuccessMessage('Thresholds updated successfully!');
       fetchConfig();
       fetchHistory();
@@ -161,13 +144,7 @@ const TrendingControls = () => {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      // Trigger manual trending calculation via story cleanup endpoint (similar pattern)
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/trending/recalculate`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post('/api/trending/recalculate', {});
       alert('Trending calculation started. This will complete in the background.');
     } catch (error) {
       console.error('Error triggering recalculation:', error);

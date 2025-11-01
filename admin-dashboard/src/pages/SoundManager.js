@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -69,7 +69,6 @@ const SoundManager = () => {
   const fetchSounds = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       let endpoint = '';
       
       if (selectedTab === 0) {
@@ -87,13 +86,9 @@ const SoundManager = () => {
         }
       });
 
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}${endpoint}?${params}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setSounds(response.data.sounds || []);
-      setTotalPages(Math.ceil((response.data.total || 0) / filters.limit));
+      const payload = await api.get(`${endpoint}?${params}`);
+      setSounds(payload?.sounds || []);
+      setTotalPages(Math.ceil((payload?.total || 0) / filters.limit));
     } catch (error) {
       console.error('Error fetching sounds:', error);
     } finally {
@@ -103,12 +98,8 @@ const SoundManager = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/sounds/admin/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data);
+      const payload = await api.get('/api/sounds/admin/stats');
+      setStats(payload);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -116,11 +107,8 @@ const SoundManager = () => {
 
   const handleApprove = async (soundId, featured = false) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/sounds/moderation/approve/${soundId}`,
-        { featured },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.post(`/api/sounds/moderation/approve/${soundId}`,
+        { featured }
       );
       fetchSounds();
       fetchStats();
@@ -136,11 +124,8 @@ const SoundManager = () => {
     if (!reason) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/sounds/moderation/reject/${soundId}`,
-        { reason },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.post(`/api/sounds/moderation/reject/${soundId}`,
+        { reason }
       );
       fetchSounds();
       fetchStats();
@@ -153,12 +138,8 @@ const SoundManager = () => {
 
   const handleViewDetails = async (soundId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/sounds/${soundId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSelectedSound(response.data.sound);
+      const payload = await api.get(`/api/sounds/${soundId}`);
+      setSelectedSound(payload?.sound || payload);
       setDetailsOpen(true);
     } catch (error) {
       console.error('Error fetching sound details:', error);

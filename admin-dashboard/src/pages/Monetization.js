@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -47,11 +47,11 @@ const Monetization = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/monetization/stats`,
+      const response = await api.get(
+        `/api/monetization/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setStats(response.data || {});
+      setStats(response?.data || response || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -61,11 +61,12 @@ const Monetization = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/monetization/transactions?limit=50`,
+      const response = await api.get(
+        `/api/monetization/transactions?limit=50`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setTransactions(response.data.transactions || []);
+      const data = response?.data?.transactions || response?.transactions || response?.data || response;
+      setTransactions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching transactions:', error);
     } finally {
@@ -76,11 +77,12 @@ const Monetization = () => {
   const fetchRevenueChart = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/monetization/revenue-chart?days=30`,
+      const response = await api.get(
+        `/api/monetization/revenue-chart?days=30`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setRevenueChart(response.data.data || []);
+      const chart = response?.data?.data || response?.data || response;
+      setRevenueChart(Array.isArray(chart) ? chart : []);
     } catch (error) {
       console.error('Error fetching revenue chart:', error);
     }

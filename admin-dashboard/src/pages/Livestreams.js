@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -69,15 +69,9 @@ const Livestreams = () => {
   const fetchStreams = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const status = selectedTab === 0 ? 'live' : selectedTab === 1 ? 'ended' : 'all';
-      
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/livestreams?status=${status}&limit=50`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      setStreams(response.data.streams || []);
+      const payload = await api.get(`/api/livestreams?status=${status}&limit=50`);
+      setStreams(payload?.streams || []);
     } catch (error) {
       console.error('Error fetching streams:', error);
     } finally {
@@ -87,12 +81,8 @@ const Livestreams = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/livestreams/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response.data.stats || {});
+      const payload = await api.get('/api/livestreams/stats');
+      setStats(payload?.stats || payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -102,12 +92,7 @@ const Livestreams = () => {
     if (!window.confirm('End this livestream?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/livestreams/${streamId}/end`,
-        { reason: 'Admin ended stream' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/livestreams/${streamId}/end`, { reason: 'Admin ended stream' });
       fetchStreams();
       fetchStats();
       alert('Stream ended successfully');
@@ -119,12 +104,7 @@ const Livestreams = () => {
 
   const handleFeatureStream = async (streamId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/livestreams/${streamId}/feature`,
-        { featured: true },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/livestreams/${streamId}/feature`, { featured: true });
       fetchStreams();
       alert('Stream featured successfully');
     } catch (error) {

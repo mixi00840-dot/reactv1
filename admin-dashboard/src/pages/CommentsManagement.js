@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   Box,
   Paper,
@@ -88,14 +88,15 @@ const CommentsManagement = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/admin/comments', {
+      const response = await api.get('/api/admin/comments', {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           ...filters,
           status: tabs[selectedTab].value
         }
       });
-      setComments(response.data.data.comments || []);
+      const list = response?.data?.data?.comments || response?.data?.comments || response?.comments || response?.data || response;
+      setComments(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error('Error fetching comments:', error);
       // Generate dummy data for demonstration
@@ -155,7 +156,7 @@ const CommentsManagement = () => {
       const token = localStorage.getItem('token');
       
       for (const id of commentsToUpdate) {
-        await axios.patch(`/api/admin/comments/${id}`, 
+        await api.patch(`/api/admin/comments/${id}`, 
           { action },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -182,7 +183,7 @@ const CommentsManagement = () => {
   const handleBulkDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete('/api/admin/comments/bulk', {
+      await api.delete('/api/admin/comments/bulk', {
         headers: { Authorization: `Bearer ${token}` },
         data: { commentIds: selectedComments }
       });

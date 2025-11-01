@@ -1,17 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
-
-// Configure axios base URL with robust production fallback
-const runtimeBase =
-  process.env.REACT_APP_API_URL ||
-  (typeof window !== 'undefined' && window.__API_BASE_URL__) ||
-  'https://reactv1-v8sa.onrender.com';
-axios.defaults.baseURL = runtimeBase;
-axios.defaults.withCredentials = false;
-// Helpful during deployments to verify which API the UI is hitting
-// eslint-disable-next-line no-console
-console.info('[Dashboard] API base URL:', axios.defaults.baseURL);
 
 const AuthContext = createContext();
 
@@ -71,9 +60,9 @@ export function AuthProvider({ children }) {
   // Configure axios defaults
   useEffect(() => {
     if (state.token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;
+      // token is read in api client interceptor; nothing else needed here
     } else {
-      delete axios.defaults.headers.common['Authorization'];
+      // noop - api client removes header when token is absent
     }
   }, [state.token]);
 
@@ -89,8 +78,9 @@ export function AuthProvider({ children }) {
 
   const loadUser = async () => {
     try {
-      const response = await axios.get('/api/users/profile');
-      dispatch({ type: 'LOAD_USER', payload: response.data.data.user });
+      const payload = await api.get('/api/users/profile');
+      // payload normalized via api client
+      dispatch({ type: 'LOAD_USER', payload: payload?.user });
     } catch (error) {
       console.error('Load user error:', error);
       dispatch({ type: 'AUTH_ERROR' });
@@ -100,9 +90,7 @@ export function AuthProvider({ children }) {
   const login = async (loginData) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await axios.post('/api/auth/login', loginData);
-      
-      const { user, token } = response.data.data;
+      const { user, token } = await api.post('/api/auth/login', loginData);
       
       // Check if user is admin
       if (user.role !== 'admin') {
