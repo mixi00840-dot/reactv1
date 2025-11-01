@@ -42,19 +42,25 @@ const PlatformAnalytics = () => {
         axios.get(`${process.env.REACT_APP_API_URL}/api/analytics/advanced?period=${timeRange}`, { headers }),
         axios.get(`${process.env.REACT_APP_API_URL}/api/content/analytics`, { headers })
       ]);
-      
-      setMetrics(metricsRes.data);
-      setTrendingData(trendingRes.data.byType || []);
-      
+
+      // Many backend routes wrap payloads in { success, data }, normalize here
+      const metricsPayload = metricsRes.data?.data || metricsRes.data;
+      const advancedPayload = advancedRes.data?.data || advancedRes.data;
+      const contentPayload = contentRes.data?.data || contentRes.data;
+      const trendingPayload = trendingRes.data?.data || trendingRes.data;
+
+      setMetrics(metricsPayload || {});
+      setTrendingData(trendingPayload?.byType || []);
+
       // Process advanced analytics
-      if (advancedRes.data) {
-        setCategoryData(advancedRes.data.categoryBreakdown || []);
-        setUserGrowth(advancedRes.data.userGrowth || []);
+      if (advancedPayload) {
+        setCategoryData(advancedPayload.categoryBreakdown || []);
+        setUserGrowth(advancedPayload.userGrowth || []);
       }
-      
+
       // Process content performance
-      setContentPerformance(contentRes.data.topContent || []);
-      setCreatorInsights(contentRes.data.topCreators || []);
+      setContentPerformance(contentPayload?.topContent || []);
+      setCreatorInsights(contentPayload?.topCreators || []);
       
     } catch (error) {
       console.error('Error fetching analytics:', error);

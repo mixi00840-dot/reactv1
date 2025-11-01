@@ -205,8 +205,8 @@ const UploadManager = () => {
         }
       });
       
-      // Confirm upload completion
-      await axios.post(`/api/upload/${key}/confirm`, {
+          // Confirm upload completion
+          await axios.post(`/api/uploads/${key}/confirm`, {
         metadata
       }, {
         headers: { Authorization: `Bearer ${token}` }

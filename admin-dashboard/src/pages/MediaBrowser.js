@@ -73,7 +73,7 @@ const MediaBrowser = () => {
       const token = localStorage.getItem('token');
       
       const params = new URLSearchParams({
-        page: currentPage,
+        page: filters.page,
         limit: filters.limit,
         ...(filters.search && { search: filters.search }),
         ...(filters.type !== 'all' && { type: filters.type }),
