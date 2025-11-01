@@ -2484,15 +2484,15 @@ router.post('/coin-packages', async (req, res) => {
 // @access  Admin
 router.post('/levels', async (req, res) => {
   try {
-    const { level, name, minExperience, maxExperience, badge, benefits } = req.body;
+    const { level, name, minXP, maxXP, description, badge } = req.body;
     
     const userLevel = new Level({
       level,
       name,
-      minExperience,
-      maxExperience,
-      badge,
-      benefits: benefits || []
+      minXP,
+      maxXP,
+      description,
+      badge
     });
     
     await userLevel.save();
@@ -2581,14 +2581,13 @@ router.get('/explorer-sections', async (req, res) => {
 // @access  Admin
 router.post('/explorer-sections', async (req, res) => {
   try {
-    const { title, type, isActive, order } = req.body;
+    const { name, displayName, type, description } = req.body;
     
     const section = new ExplorerSection({
-      title,
+      name,
+      displayName,
       type,
-      isActive: isActive !== undefined ? isActive : true,
-      order: order || 0,
-      contentIds: []
+      description
     });
     
     await section.save();

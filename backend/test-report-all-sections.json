@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-01T12:04:29.814Z",
+  "timestamp": "2025-11-01T12:32:06.979Z",
   "summary": {
     "total": null,
     "passed": 0,
@@ -28,7 +28,7 @@
         {
           "name": "Create User",
           "status": "PASS",
-          "userId": "6905f752d60558ec0798720b"
+          "userId": "6905fdcbcbe81ca1c9505bfe"
         }
       ]
     },
@@ -53,8 +53,8 @@
       ]
     },
     "Upload Manager": {
-      "passed": 1,
-      "failed": 1,
+      "passed": 2,
+      "failed": 0,
       "tests": [
         {
           "name": "Get Uploads",
@@ -62,8 +62,7 @@
         },
         {
           "name": "Presigned URL",
-          "status": "FAIL",
-          "error": "Request failed with status code 404"
+          "status": "PASS"
         }
       ]
     },
@@ -78,8 +77,8 @@
       ]
     },
     "Gifts": {
-      "passed": 1,
-      "failed": 1,
+      "passed": 2,
+      "failed": 0,
       "tests": [
         {
           "name": "Get Gifts",
@@ -87,14 +86,13 @@
         },
         {
           "name": "Create Gift",
-          "status": "FAIL",
-          "error": "Error creating gift"
+          "status": "PASS"
         }
       ]
     },
     "Coins": {
-      "passed": 1,
-      "failed": 1,
+      "passed": 2,
+      "failed": 0,
       "tests": [
         {
           "name": "Get Packages",
@@ -102,8 +100,7 @@
         },
         {
           "name": "Create Package",
-          "status": "FAIL",
-          "error": "API endpoint not found"
+          "status": "PASS"
         }
       ]
     },
@@ -118,13 +115,13 @@
         {
           "name": "Create Level",
           "status": "FAIL",
-          "error": "API endpoint not found"
+          "error": "Error creating level"
         }
       ]
     },
     "Tags": {
-      "passed": 1,
-      "failed": 1,
+      "passed": 2,
+      "failed": 0,
       "tests": [
         {
           "name": "Get Tags",
@@ -132,57 +129,52 @@
         },
         {
           "name": "Create Tag",
-          "status": "FAIL",
-          "error": "API endpoint not found"
+          "status": "PASS"
         }
       ]
     },
     "Explorer": {
-      "passed": 0,
-      "failed": 2,
-      "tests": [
-        {
-          "name": "Get Sections",
-          "status": "FAIL",
-          "error": "Request failed with status code 404"
-        },
-        {
-          "name": "Create Section",
-          "status": "FAIL",
-          "error": "API endpoint not found"
-        }
-      ]
-    },
-    "Moderation": {
-      "passed": 0,
-      "failed": 1,
-      "tests": [
-        {
-          "name": "Get Reports",
-          "status": "FAIL",
-          "error": "Request failed with status code 404"
-        }
-      ]
-    },
-    "Analytics": {
-      "passed": 0,
-      "failed": 1,
-      "tests": [
-        {
-          "name": "Analytics Overview",
-          "status": "FAIL",
-          "error": "Request failed with status code 404"
-        }
-      ]
-    },
-    "Livestreams": {
       "passed": 1,
       "failed": 1,
       "tests": [
         {
-          "name": "Get Livestreams Admin",
+          "name": "Get Sections",
+          "status": "PASS"
+        },
+        {
+          "name": "Create Section",
           "status": "FAIL",
-          "error": "Request failed with status code 404"
+          "error": "Error creating explorer section"
+        }
+      ]
+    },
+    "Moderation": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Get Reports",
+          "status": "PASS"
+        }
+      ]
+    },
+    "Analytics": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Analytics Overview",
+          "status": "PASS"
+        }
+      ]
+    },
+    "Livestreams": {
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Get Livestreams Admin",
+          "status": "PASS"
         },
         {
           "name": "Get Livestreams Public",
@@ -191,13 +183,12 @@
       ]
     },
     "Wallets": {
-      "passed": 0,
-      "failed": 2,
+      "passed": 1,
+      "failed": 1,
       "tests": [
         {
           "name": "Get Wallets Admin",
-          "status": "FAIL",
-          "error": "Request failed with status code 404"
+          "status": "PASS"
         },
         {
           "name": "Get Wallets Public",

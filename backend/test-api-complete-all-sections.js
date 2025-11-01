@@ -300,12 +300,14 @@ async function testGifts() {
   // Test 2: Create Gift
   try {
     const testGift = {
-      name: `Test Gift ${Date.now()}`,
+      name: `testgift${Date.now()}`,
+      displayName: `Test Gift ${Date.now()}`,
       description: 'Test gift description',
-      coinCost: 100,
-      iconUrl: 'https://example.com/icon.png',
-      category: 'standard',
-      isActive: true
+      price: 100,
+      category: 'emoji',
+      media: {
+        icon: 'https://example.com/icon.png'
+      }
     };
     
     const response = await apiRequest('POST', '/api/gifts', testGift);
@@ -317,9 +319,10 @@ async function testGifts() {
       throw new Error('Invalid response structure');
     }
   } catch (error) {
-    logTest('Create Gift', 'FAIL', error.response?.data?.message || error.message);
+    const errorDetail = error.response?.data?.message || error.response?.data?.errors || error.message;
+    logTest('Create Gift', 'FAIL', JSON.stringify(errorDetail));
     sectionResults.failed++;
-    sectionResults.tests.push({ name: 'Create Gift', status: 'FAIL', error: error.response?.data?.message || error.message });
+    sectionResults.tests.push({ name: 'Create Gift', status: 'FAIL', error: errorDetail });
   }
   
   testResults.sections['Gifts'] = sectionResults;
@@ -402,12 +405,12 @@ async function testLevels() {
   // Test 2: Create Level
   try {
     const testLevel = {
-      level: 999,
+      level: Math.floor(Math.random() * 900) + 100,
       name: `Test Level ${Date.now()}`,
-      minExperience: 10000,
-      maxExperience: 20000,
-      badge: 'https://example.com/badge.png',
-      benefits: ['Test benefit 1', 'Test benefit 2']
+      minXP: 10000,
+      maxXP: 20000,
+      description: 'Test level description',
+      badge: 'https://example.com/badge.png'
     };
     
     const response = await apiRequest('POST', '/api/admin/levels', testLevel);
@@ -419,9 +422,10 @@ async function testLevels() {
       throw new Error('Invalid response structure');
     }
   } catch (error) {
-    logTest('Create Level', 'FAIL', error.response?.data?.message || error.message);
+    const errorDetail = error.response?.data?.message || error.response?.data?.errors || error.message;
+    logTest('Create Level', 'FAIL', JSON.stringify(errorDetail));
     sectionResults.failed++;
-    sectionResults.tests.push({ name: 'Create Level', status: 'FAIL', error: error.response?.data?.message || error.message });
+    sectionResults.tests.push({ name: 'Create Level', status: 'FAIL', error: errorDetail });
   }
   
   testResults.sections['Levels'] = sectionResults;
@@ -455,8 +459,8 @@ async function testTags() {
     const testTag = {
       name: `testtag${Date.now()}`,
       displayName: `Test Tag ${Date.now()}`,
-      category: 'general',
-      isActive: true
+      category: 'entertainment',
+      description: 'Test tag description'
     };
     
     const response = await apiRequest('POST', '/api/admin/tags', testTag);
@@ -468,9 +472,10 @@ async function testTags() {
       throw new Error('Invalid response structure');
     }
   } catch (error) {
-    logTest('Create Tag', 'FAIL', error.response?.data?.message || error.message);
+    const errorDetail = error.response?.data?.message || error.response?.data?.errors || error.message;
+    logTest('Create Tag', 'FAIL', JSON.stringify(errorDetail));
     sectionResults.failed++;
-    sectionResults.tests.push({ name: 'Create Tag', status: 'FAIL', error: error.response?.data?.message || error.message });
+    sectionResults.tests.push({ name: 'Create Tag', status: 'FAIL', error: errorDetail });
   }
   
   testResults.sections['Tags'] = sectionResults;
@@ -502,10 +507,10 @@ async function testExplorer() {
   // Test 2: Create Explorer Section
   try {
     const testSection = {
-      title: `Test Section ${Date.now()}`,
+      name: `testsection${Date.now()}`,
+      displayName: `Test Section ${Date.now()}`,
       type: 'trending',
-      isActive: true,
-      order: 1
+      description: 'Test explorer section'
     };
     
     const response = await apiRequest('POST', '/api/admin/explorer-sections', testSection);
@@ -517,9 +522,10 @@ async function testExplorer() {
       throw new Error('Invalid response structure');
     }
   } catch (error) {
-    logTest('Create Explorer Section', 'FAIL', error.response?.data?.message || error.message);
+    const errorDetail = error.response?.data?.message || error.response?.data?.errors || error.message;
+    logTest('Create Explorer Section', 'FAIL', JSON.stringify(errorDetail));
     sectionResults.failed++;
-    sectionResults.tests.push({ name: 'Create Section', status: 'FAIL', error: error.response?.data?.message || error.message });
+    sectionResults.tests.push({ name: 'Create Section', status: 'FAIL', error: errorDetail });
   }
   
   testResults.sections['Explorer'] = sectionResults;
