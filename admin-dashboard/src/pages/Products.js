@@ -209,6 +209,7 @@ function Products() {
 
           const uploadUrl = presigned?.uploadUrl || presigned?.presignedUrl;
           const key = presigned?.key;
+          const uploadId = presigned?.uploadId;
 
           if (!uploadUrl || !key) throw new Error('Invalid presigned response');
 
@@ -221,8 +222,8 @@ function Products() {
           const idx = uploadUrl.indexOf('?');
           finalUrl = idx >= 0 ? uploadUrl.substring(0, idx) : uploadUrl;
 
-          // Confirm upload
-          await api.post(`/api/uploads/${key}/confirm`, { metadata: { scope: 'product-image' } }, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+          // Confirm upload using uploadId (no slashes) falling back to key
+          await api.post(`/api/uploads/${uploadId || key}/confirm`, { metadata: { scope: 'product-image' } }, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
         } catch (err) {
           // Fallback to server proxy
           try {

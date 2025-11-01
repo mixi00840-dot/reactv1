@@ -192,7 +192,7 @@ const UploadManager = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      const { uploadUrl, key } = presignedResponse;
+      const { uploadUrl, key, uploadId } = presignedResponse;
       
       // Upload file directly to storage; fallback to server proxy on CORS error
       try {
@@ -226,8 +226,8 @@ const UploadManager = () => {
         }
       }
       
-          // Confirm upload completion
-          await axios.post(`/api/uploads/${key}/confirm`, {
+          // Confirm upload completion (use uploadId, not key)
+          await axios.post(`/api/uploads/${uploadId || key}/confirm`, {
         metadata
       }, {
         headers: { Authorization: `Bearer ${token}` }
