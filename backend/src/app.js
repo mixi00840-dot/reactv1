@@ -283,9 +283,6 @@ app.use('/api/analytics', advancedAnalyticsRoutes);
 // Content Management API routes
 app.use('/api/content', contentRoutes);
 
-// Upload API routes
-app.use('/api/uploads', uploadRoutes);
-
 // Transcode Management API routes
 app.use('/api/transcode', transcodeRoutes);
 
@@ -328,7 +325,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/monetization', monetizationRoutes);
 
 // Phase 14: Camera & Media Management API routes
-app.use('/api/upload', uploadRoutes);
+app.use('/api/uploads', uploadRoutes);
 app.use('/api/sounds', soundsRoutes);
 app.use('/api/gifts', giftsRoutes);
 app.use('/api/wallets', walletsRoutes);

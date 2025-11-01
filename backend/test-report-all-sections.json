@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-01T12:39:02.326Z",
+  "timestamp": "2025-11-01T12:48:58.753Z",
   "summary": {
     "total": null,
     "passed": 0,
@@ -28,7 +28,7 @@
         {
           "name": "Create User",
           "status": "PASS",
-          "userId": "6905ff6ba5e4b47df23b6532"
+          "userId": "690601bfd0ab68701e52f527"
         }
       ]
     },
@@ -181,17 +181,20 @@
       ]
     },
     "Wallets": {
-      "passed": 1,
-      "failed": 1,
+      "passed": 3,
+      "failed": 0,
       "tests": [
         {
           "name": "Get Wallets Admin",
           "status": "PASS"
         },
         {
-          "name": "Get Wallets Public",
-          "status": "FAIL",
-          "error": "Request failed with status code 404"
+          "name": "Get User Wallet",
+          "status": "PASS"
+        },
+        {
+          "name": "Get Balance",
+          "status": "PASS"
         }
       ]
     }
