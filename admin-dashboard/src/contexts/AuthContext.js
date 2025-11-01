@@ -2,8 +2,16 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Configure axios base URL
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Configure axios base URL with robust production fallback
+const runtimeBase =
+  process.env.REACT_APP_API_URL ||
+  (typeof window !== 'undefined' && window.__API_BASE_URL__) ||
+  'https://reactv1-v8sa.onrender.com';
+axios.defaults.baseURL = runtimeBase;
+axios.defaults.withCredentials = false;
+// Helpful during deployments to verify which API the UI is hitting
+// eslint-disable-next-line no-console
+console.info('[Dashboard] API base URL:', axios.defaults.baseURL);
 
 const AuthContext = createContext();
 

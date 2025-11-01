@@ -2,7 +2,10 @@ import axios from 'axios';
 
 // Centralized API client with sane defaults and consistent response shape
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '',
+  baseURL:
+    process.env.REACT_APP_API_URL ||
+    (typeof window !== 'undefined' && window.__API_BASE_URL__) ||
+    'https://reactv1-v8sa.onrender.com',
   withCredentials: false
 });
 
