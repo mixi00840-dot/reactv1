@@ -1221,6 +1221,129 @@ class AnalyticsController {
     return [headers, ...rows].join('\n');
   }
 
+  // ===== Derived analytics helpers (safe defaults) =====
+
+  async getSalesFunnel(matchQuery) {
+    // Purchased = completed/shipped/delivered in matchQuery from caller
+    const purchasedAgg = await Order.aggregate([
+      { $match: matchQuery },
+      { $group: { _id: null, purchased: { $sum: 1 } } }
+    ]);
+    const purchased = (purchasedAgg[0]?.purchased) || 0;
+
+    // Without full tracking data, return conservative zeros for earlier stages
+    return {
+      visitors: 0,
+      addedToCart: 0,
+      checkout: 0,
+      purchased
+    };
+  }
+
+  async getRevenueMetrics(matchQuery) {
+    const agg = await Order.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$totalAmount' },
+          orderCount: { $sum: 1 },
+          avgOrderValue: { $avg: '$totalAmount' },
+          refunds: { $sum: { $cond: [{ $eq: ['$status', 'refunded'] }, '$totalAmount', 0] } }
+        }
+      }
+    ]);
+    const a = agg[0] || { totalRevenue: 0, orderCount: 0, avgOrderValue: 0, refunds: 0 };
+    return {
+      totalRevenue: a.totalRevenue || 0,
+      orderCount: a.orderCount || 0,
+      averageOrderValue: a.avgOrderValue || 0,
+      refunds: a.refunds || 0,
+      grossMargin: 0
+    };
+  }
+
+  async getCustomerSegments(matchQuery) {
+    // New customers: created in period
+    const createdAt = matchQuery.createdAt || {};
+    const newCustomers = await User.countDocuments({
+      role: 'customer',
+      createdAt
+    });
+
+    // Returning customers: >= 2 orders in period
+    const returning = await Order.aggregate([
+      { $match: matchQuery },
+      { $group: { _id: '$customer', orders: { $sum: 1 } } },
+      { $match: { orders: { $gte: 2 } } },
+      { $count: 'count' }
+    ]);
+
+    // VIP customers: totalSpent > threshold in period
+    const vip = await Order.aggregate([
+      { $match: matchQuery },
+      { $group: { _id: '$customer', spent: { $sum: '$totalAmount' } } },
+      { $match: { spent: { $gt: 1000 } } },
+      { $count: 'count' }
+    ]);
+
+    return {
+      new: newCustomers || 0,
+      returning: (returning[0]?.count) || 0,
+      vip: (vip[0]?.count) || 0
+    };
+  }
+
+  async getCustomerRetention(matchQuery) {
+    // Placeholder retention curve (no events tracking yet)
+    return {
+      periods: [],
+      rates: []
+    };
+  }
+
+  async getCustomerDemographics() {
+    // No PII analytics stored yet; return placeholders
+    return {
+      ageGroups: [],
+      locations: [],
+      genders: []
+    };
+  }
+
+  async getProductPerformance(matchQuery) {
+    // Basic performance from orders (sales-based)
+    const agg = await Order.aggregate([
+      { $match: matchQuery },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.product',
+          unitsSold: { $sum: '$items.quantity' },
+          revenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } }
+        }
+      },
+      { $sort: { revenue: -1 } },
+      { $limit: 20 }
+    ]);
+    return agg;
+  }
+
+  async getInventoryAnalytics(matchQuery) {
+    const lowStockThreshold = 10;
+    const [totalProducts, outOfStock, lowStock] = await Promise.all([
+      Product.countDocuments({}),
+      Product.countDocuments({ stock: { $lte: 0 } }),
+      Product.countDocuments({ stock: { $gt: 0, $lt: lowStockThreshold } })
+    ]);
+    return { totalProducts, outOfStock, lowStock, lowStockThreshold };
+  }
+
+  async getProductConversionRates(matchQuery) {
+    // Without view/cart events, return empty list
+    return [];
+  }
+
   // Additional helper methods would be implemented here for:
   // - getSalesFunnel()
   // - getRevenueMetrics()
