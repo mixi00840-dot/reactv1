@@ -9,8 +9,8 @@ const { scheduledContentJob, livestreamReminderJob } = require('./jobs/scheduled
 
 const PORT = process.env.PORT || 5000;
 
-// Bind to all interfaces in production (required for Render)
-const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+// Bind host: allow override via HOST env, default to 0.0.0.0 in production
+const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
 
 console.log('🚀 Starting Mixillo API server...');
 console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -41,9 +41,10 @@ setupWebRTCHandlers(io);
 // Make io accessible to routes
 app.set('io', io);
 
-// Initialize cron jobs only in production or when explicitly enabled
-if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true') {
-  console.log('⏰ Initializing cron jobs...');
+// Initialize cron jobs only when explicitly enabled via env
+const cronEnabled = process.env.ENABLE_CRON === 'true' || process.env.CRON_ENABLED === 'true';
+if (cronEnabled) {
+  console.log('⏰ Initializing cron jobs (ENABLE_CRON=true)...');
   try {
     initializeTrendingCron();
     initializeStoryCleanup();
@@ -57,7 +58,7 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true')
     console.error('❌ Error initializing cron jobs:', error.message);
   }
 } else {
-  console.log('⏰ Cron jobs disabled in development mode');
+  console.log('⏰ Cron jobs disabled (set ENABLE_CRON=true to enable)');
 }
 
 // Start server

@@ -186,6 +186,8 @@ const UploadManager = () => {
       const presignedResponse = await api.post('/api/uploads/presigned-url', {
         fileName: file.name,
         fileType: file.type,
+        mimeType: file.type, // for controller-based presign
+        fileSize: file.size, // for controller-based presign
         contentType: uploadType,
         metadata
       }, {

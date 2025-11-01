@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
+    if (!process.env.MONGODB_URI) {
+      console.warn('⚠️  MONGODB_URI is not set; starting without a database connection');
+      return; // Allow app to start for health checks and basic routes
+    }
+
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true
@@ -27,7 +32,8 @@ const connectDB = async () => {
     
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
-    process.exit(1);
+    // Do not hard-exit here; let caller decide. AppRunner can pass health checks and logs can be inspected.
+    throw error;
   }
 };
 

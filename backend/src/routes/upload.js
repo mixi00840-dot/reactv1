@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const uploadController = require('../controllers/uploadController');
+const uploadService = require('../services/uploadService');
 const { authMiddleware } = require('../middleware/auth');
 const { uploadMiddleware, handleUploadError, ensureUploadDirs } = require('../middleware/upload');
 const path = require('path');
@@ -10,29 +11,37 @@ const path = require('path');
  * All routes require authentication
  */
 
-// Simple upload endpoint for admin dashboard (override the controller one)
+// Presigned URL endpoint with smart fallback:
+// - If AWS/R2 is configured, delegate to controller (creates Content record + real signed URL)
+// - Otherwise, return a safe stub URL so clients can fall back to /direct
 router.post('/presigned-url', authMiddleware, async (req, res) => {
+  const { s3Configured } = uploadService.getConfig();
+  if (s3Configured) {
+    // Hand off to the real implementation
+    return uploadController.generatePresignedUrl(req, res);
+  }
+
   try {
     // Accept both naming conventions from different frontends
-    const { 
-      fileName, 
-      fileSize, 
-      mimeType, 
-      fileType, 
+    const {
+      fileName,
+      fileSize,
+      mimeType,
+      fileType,
       contentType,
-      metadata 
+      metadata
     } = req.body;
-    
+
     // Use fileType if mimeType not provided
     const actualMimeType = mimeType || fileType || 'application/octet-stream';
-    
-    // Generate a simple presigned URL response
+
+    // Generate a simple presigned URL response (stub)
     const uploadId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const key = `${contentType || 'uploads'}/${uploadId}`;
-    
-    // Generate presigned URL for direct upload
+
+    // Simple fake presigned URL for environments without S3/R2
     const uploadUrl = `https://mixillo-uploads.s3.amazonaws.com/${key}?presigned=true`;
-    
+
     res.json({
       success: true,
       data: {
@@ -48,11 +57,12 @@ router.post('/presigned-url', authMiddleware, async (req, res) => {
           key,
           'Content-Type': actualMimeType,
           bucket: 'mixillo-uploads'
-        }
+        },
+        note: 'Stub presign in effect (no S3 credentials); use /api/uploads/direct as fallback'
       }
     });
   } catch (error) {
-    console.error('Upload presigned URL error:', error);
+    console.error('Upload presigned URL error (stub):', error);
     res.status(500).json({
       success: false,
       message: 'Error generating upload URL',
