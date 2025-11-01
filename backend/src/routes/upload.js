@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const uploadController = require('../controllers/uploadController');
 const { authMiddleware } = require('../middleware/auth');
+const { uploadMiddleware, handleUploadError, ensureUploadDirs } = require('../middleware/upload');
+const path = require('path');
 
 /**
  * Upload Routes - Presigned URLs for Direct Client Uploads
@@ -93,6 +95,39 @@ router.get('/health', async (req, res) => {
       status: 'GET /api/upload/:contentId/status'
     }
   });
+});
+
+/**
+ * Direct upload proxy (fallback when S3 CORS blocks PUT from browser)
+ * Usage: POST /api/uploads/direct with form-data field "file"
+ * Returns a local URL that is immediately usable by the dashboard.
+ */
+router.post('/direct', authMiddleware, uploadMiddleware.any(), handleUploadError, async (req, res) => {
+  try {
+    ensureUploadDirs();
+    const file = (req.files && req.files[0]) || req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    // Build public URL served by express static '/uploads'
+    const relativePath = path.normalize(file.path).replace(/\\/g, '/');
+    const publicUrl = `/${relativePath.startsWith('uploads') ? relativePath : `uploads/${relativePath}`}`;
+
+    return res.json({
+      success: true,
+      data: {
+        fileName: file.originalname,
+        storedName: path.basename(file.path),
+        size: file.size,
+        mimeType: file.mimetype,
+        url: publicUrl
+      }
+    });
+  } catch (error) {
+    console.error('Direct upload error:', error);
+    res.status(500).json({ success: false, message: 'Direct upload failed', error: error.message });
+  }
 });
 
 module.exports = router;

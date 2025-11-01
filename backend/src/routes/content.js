@@ -18,22 +18,7 @@ router.get('/upload/:sessionId/status', protect, contentController.getUploadStat
 // Simple content creation (for text posts without file upload)
 router.post('/', protect, contentController.createSimpleContent);
 
-// Content retrieval routes (public with optional auth)
-router.get('/', contentController.getAllContent || ((req, res) => res.json({ success: true, data: { contents: [], total: 0 } })));
-router.get('/trending', contentController.getTrendingContent || ((req, res) => res.json({ success: true, data: { contents: [] } })));
-router.get('/feed', protect, contentController.getFeed);
-router.get('/search', contentController.searchContent);
-router.get('/:contentId', contentController.getContent);
-router.get('/:contentId/stream', contentController.getStreamUrl);
-
-// Content interaction routes
-router.post('/:contentId/like', protect, contentController.likeContent);
-
-// Content management routes (authenticated, owner only)
-router.put('/:contentId', protect, contentController.updateContent);
-router.delete('/:contentId', protect, contentController.deleteContent);
-
-// Analytics route
+// Analytics route - MUST be declared before any ":param" routes
 router.get('/analytics', protect, async (req, res) => {
   try {
     const analytics = {
@@ -64,5 +49,20 @@ router.get('/analytics', protect, async (req, res) => {
     });
   }
 });
+
+// Content retrieval routes (public with optional auth)
+router.get('/', contentController.getAllContent || ((req, res) => res.json({ success: true, data: { contents: [], total: 0 } })));
+router.get('/trending', contentController.getTrendingContent || ((req, res) => res.json({ success: true, data: { contents: [] } })));
+router.get('/feed', protect, contentController.getFeed);
+router.get('/search', contentController.searchContent);
+router.get('/:contentId', contentController.getContent);
+router.get('/:contentId/stream', contentController.getStreamUrl);
+
+// Content interaction routes
+router.post('/:contentId/like', protect, contentController.likeContent);
+
+// Content management routes (authenticated, owner only)
+router.put('/:contentId', protect, contentController.updateContent);
+router.delete('/:contentId', protect, contentController.deleteContent);
 
 module.exports = router;
