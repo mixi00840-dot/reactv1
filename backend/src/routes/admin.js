@@ -1695,4 +1695,299 @@ router.get('/comments', async (req, res) => {
   }
 });
 
+// @route   GET /api/admin/gifts/stats
+// @desc    Get gifts statistics
+// @access  Admin
+router.get('/gifts/stats', async (req, res) => {
+  try {
+    const giftsStats = {
+      totalGifts: 150,
+      totalValue: 125000,
+      activeGifts: 120,
+      pendingGifts: 15,
+      categories: {
+        hearts: 45,
+        diamonds: 25,
+        roses: 30,
+        cars: 20,
+        other: 30
+      },
+      topGifts: [],
+      recentActivity: []
+    };
+    
+    res.json({
+      success: true,
+      data: giftsStats
+    });
+  } catch (error) {
+    console.error('Get gifts stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching gifts statistics'
+    });
+  }
+});
+
+// @route   GET /api/admin/coin-packages
+// @desc    Get coin packages management
+// @access  Admin
+router.get('/coin-packages', async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    
+    const coinPackages = {
+      total: 12,
+      packages: [
+        { id: 1, name: '100 Coins', price: 0.99, coins: 100, isActive: true },
+        { id: 2, name: '500 Coins', price: 4.99, coins: 500, isActive: true },
+        { id: 3, name: '1000 Coins', price: 9.99, coins: 1000, isActive: true },
+        { id: 4, name: '5000 Coins', price: 49.99, coins: 5000, isActive: true }
+      ],
+      stats: {
+        totalSales: 15000,
+        totalRevenue: 75000,
+        averagePackageValue: 12.50
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: coinPackages,
+      pagination: {
+        total: coinPackages.total,
+        page: parseInt(page),
+        pages: Math.ceil(coinPackages.total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get coin packages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching coin packages'
+    });
+  }
+});
+
+// @route   GET /api/admin/coin-packages/stats
+// @desc    Get coin packages statistics
+// @access  Admin
+router.get('/coin-packages/stats', async (req, res) => {
+  try {
+    const stats = {
+      totalPackages: 12,
+      totalSales: 15000,
+      totalRevenue: 75000,
+      conversionRate: 12.5,
+      topPackages: [],
+      salesTrend: []
+    };
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Get coin packages stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching coin packages statistics'
+    });
+  }
+});
+
+// @route   GET /api/admin/levels
+// @desc    Get user levels management
+// @access  Admin
+router.get('/levels', async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    
+    const levels = {
+      total: 50,
+      levels: [
+        { id: 1, level: 1, name: 'Newbie', minXP: 0, maxXP: 100, users: 1250 },
+        { id: 2, level: 2, name: 'Rising Star', minXP: 100, maxXP: 500, users: 850 },
+        { id: 3, level: 3, name: 'Creator', minXP: 500, maxXP: 1000, users: 450 },
+        { id: 4, level: 4, name: 'Influencer', minXP: 1000, maxXP: 5000, users: 200 }
+      ],
+      totalUsers: 2750
+    };
+    
+    res.json({
+      success: true,
+      data: levels,
+      pagination: {
+        total: levels.total,
+        page: parseInt(page),
+        pages: Math.ceil(levels.total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get levels error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching levels'
+    });
+  }
+});
+
+// @route   GET /api/admin/levels/stats
+// @desc    Get levels statistics
+// @access  Admin
+router.get('/levels/stats', async (req, res) => {
+  try {
+    const stats = {
+      totalLevels: 50,
+      totalUsers: 2750,
+      averageLevel: 2.8,
+      levelDistribution: {
+        1: 45,
+        2: 30,
+        3: 16,
+        4: 7,
+        5: 2
+      },
+      progressionRate: 85.5
+    };
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Get levels stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching levels statistics'
+    });
+  }
+});
+
+// @route   GET /api/admin/tags
+// @desc    Get tags management
+// @access  Admin
+router.get('/tags', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search } = req.query;
+    
+    const tags = {
+      total: 150,
+      tags: [
+        { id: 1, name: 'dance', usageCount: 5500, isActive: true, isTrending: true },
+        { id: 2, name: 'music', usageCount: 4200, isActive: true, isTrending: true },
+        { id: 3, name: 'comedy', usageCount: 3800, isActive: true, isTrending: false },
+        { id: 4, name: 'lifestyle', usageCount: 2100, isActive: true, isTrending: false }
+      ],
+      categories: {
+        entertainment: 45,
+        music: 30,
+        lifestyle: 25,
+        education: 15,
+        other: 35
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: tags,
+      pagination: {
+        total: tags.total,
+        page: parseInt(page),
+        pages: Math.ceil(tags.total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get tags error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching tags'
+    });
+  }
+});
+
+// @route   GET /api/admin/tags/stats
+// @desc    Get tags statistics
+// @access  Admin
+router.get('/tags/stats', async (req, res) => {
+  try {
+    const stats = {
+      totalTags: 150,
+      trendingTags: 15,
+      totalUsage: 45000,
+      averageUsage: 300,
+      topTags: [],
+      newTagsThisWeek: 8,
+      tagGrowthRate: 12.5
+    };
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Get tags stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching tags statistics'
+    });
+  }
+});
+
+// @route   GET /api/admin/explorer/sections
+// @desc    Get explorer sections management
+// @access  Admin
+router.get('/explorer/sections', async (req, res) => {
+  try {
+    const sections = {
+      total: 8,
+      sections: [
+        { id: 1, name: 'Trending', isActive: true, contentCount: 250, order: 1 },
+        { id: 2, name: 'Music', isActive: true, contentCount: 180, order: 2 },
+        { id: 3, name: 'Dance', isActive: true, contentCount: 320, order: 3 },
+        { id: 4, name: 'Comedy', isActive: true, contentCount: 150, order: 4 }
+      ],
+      totalContent: 900
+    };
+    
+    res.json({
+      success: true,
+      data: sections
+    });
+  } catch (error) {
+    console.error('Get explorer sections error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching explorer sections'
+    });
+  }
+});
+
+// @route   GET /api/admin/explorer/stats
+// @desc    Get explorer statistics
+// @access  Admin
+router.get('/explorer/stats', async (req, res) => {
+  try {
+    const stats = {
+      totalSections: 8,
+      totalContent: 900,
+      totalViews: 1250000,
+      avgEngagement: 8.5,
+      topSections: [],
+      recentActivity: []
+    };
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Get explorer stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching explorer statistics'
+    });
+  }
+});
+
 module.exports = router;
