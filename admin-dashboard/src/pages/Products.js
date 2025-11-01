@@ -54,6 +54,7 @@ import {
   Star as StarIcon
 } from '@mui/icons-material';
 import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 // TabPanel Component
@@ -146,12 +147,10 @@ function Products() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/products');
-      if (response.data.success) {
-        // API returns {success: true, data: {products: [], pagination: {}}}
-        const productsData = response.data.data?.products || response.data.data;
-        setProducts(Array.isArray(productsData) ? productsData : []);
-      }
+      const response = await api.get('/api/products');
+      // Unwrapped client may return either {products, pagination} or array
+      const productsData = response?.data?.products || response?.products || (Array.isArray(response) ? response : []);
+      setProducts(Array.isArray(productsData) ? productsData : []);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast.error('Failed to fetch products');
@@ -163,10 +162,9 @@ function Products() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('/api/categories');
-      if (response.data.success) {
-        setCategories(Array.isArray(response.data.data) ? response.data.data : []);
-      }
+      const response = await api.get('/api/categories');
+      const categoriesData = response?.data || response;
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setCategories([]); // Ensure categories is always an array
@@ -175,12 +173,10 @@ function Products() {
 
   const fetchStores = async () => {
     try {
-      const response = await axios.get('/api/stores');
-      if (response.data.success) {
-        // API returns {success: true, data: {stores: [], pagination: {}}}
-        const storesData = response.data.data?.stores || response.data.data;
-        setStores(Array.isArray(storesData) ? storesData : []);
-      }
+      const response = await api.get('/api/stores');
+      // API may return {stores, pagination} or array
+      const storesData = response?.data?.stores || response?.stores || (Array.isArray(response) ? response : []);
+      setStores(Array.isArray(storesData) ? storesData : []);
     } catch (error) {
       console.error('Error fetching stores:', error);
       setStores([]); // Ensure stores is always an array
@@ -191,29 +187,74 @@ function Products() {
     if (!files || files.length === 0) return;
 
     setUploadingImages(true);
-    const formDataUpload = new FormData();
-    
-    Array.from(files).forEach((file) => {
-      formDataUpload.append('images', file);
-    });
-
     try {
-      const response = await axios.post('/api/upload/product-images', formDataUpload, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const selectedFiles = Array.from(files);
 
-      if (response.data.success) {
-        const newImages = response.data.data.map((url, index) => ({
-          url,
-          alt: `Product image ${formData.images.length + index + 1}`,
-          isPrimary: formData.images.length === 0 && index === 0
-        }));
+      const uploadedImages = [];
 
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        let finalUrl = '';
+        let usedProxy = false;
+
+        try {
+          // Request presigned URL
+          const presigned = await api.post('/api/uploads/presigned-url', {
+            fileName: file.name,
+            fileType: file.type,
+            contentType: 'products',
+            metadata: { scope: 'product-image' }
+          }, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+
+          const uploadUrl = presigned?.uploadUrl || presigned?.presignedUrl;
+          const key = presigned?.key;
+
+          if (!uploadUrl || !key) throw new Error('Invalid presigned response');
+
+          // Try direct-to-storage upload
+          await axios.put(uploadUrl, file, {
+            headers: { 'Content-Type': file.type }
+          });
+
+          // Derive final URL (strip query params)
+          const idx = uploadUrl.indexOf('?');
+          finalUrl = idx >= 0 ? uploadUrl.substring(0, idx) : uploadUrl;
+
+          // Confirm upload
+          await api.post(`/api/uploads/${key}/confirm`, { metadata: { scope: 'product-image' } }, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+        } catch (err) {
+          // Fallback to server proxy
+          try {
+            const form = new FormData();
+            form.append('file', file);
+            form.append('type', 'product-image');
+            const direct = await api.post('/api/uploads/direct', form, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+            finalUrl = direct?.data?.url || direct?.url || '';
+            usedProxy = true;
+          } catch (proxyErr) {
+            console.error('Proxy upload failed:', proxyErr);
+            throw proxyErr;
+          }
+        }
+
+        if (finalUrl) {
+          uploadedImages.push({
+            url: finalUrl,
+            alt: `Product image ${formData.images.length + uploadedImages.length + 1}`,
+            isPrimary: formData.images.length === 0 && uploadedImages.length === 0
+          });
+        }
+
+        if (usedProxy) {
+          toast.success(`${file.name} uploaded via proxy`);
+        }
+      }
+
+      if (uploadedImages.length > 0) {
         setFormData({
           ...formData,
-          images: [...formData.images, ...newImages]
+          images: [...formData.images, ...uploadedImages]
         });
         toast.success('Images uploaded successfully');
       }
@@ -246,37 +287,33 @@ function Products() {
 
   const handleCreateProduct = async () => {
     try {
-      const response = await axios.post('/api/products', formData);
-      if (response.data.success) {
-        toast.success('Product created successfully');
-        setDialogOpen(false);
-        fetchProducts();
-        resetForm();
-      }
+      const response = await api.post('/api/products', formData);
+      toast.success(response?.message || 'Product created successfully');
+      setDialogOpen(false);
+      fetchProducts();
+      resetForm();
     } catch (error) {
       console.error('Error creating product:', error);
-      toast.error(error.response?.data?.message || 'Failed to create product');
+      toast.error(error.message || error.response?.data?.message || 'Failed to create product');
     }
   };
 
   const handleUpdateProduct = async () => {
     try {
-      const response = await axios.put(`/api/products/${selectedProduct._id}`, formData);
-      if (response.data.success) {
-        toast.success('Product updated successfully');
-        setDialogOpen(false);
-        fetchProducts();
-        resetForm();
-      }
+      const response = await api.put(`/api/products/${selectedProduct._id}`, formData);
+      toast.success(response?.message || 'Product updated successfully');
+      setDialogOpen(false);
+      fetchProducts();
+      resetForm();
     } catch (error) {
       console.error('Error updating product:', error);
-      toast.error(error.response?.data?.message || 'Failed to update product');
+      toast.error(error.message || error.response?.data?.message || 'Failed to update product');
     }
   };
 
   const handleDeleteProduct = async () => {
     try {
-      await axios.delete(`/api/products/${selectedProduct._id}`);
+      await api.delete(`/api/products/${selectedProduct._id}`);
       toast.success('Product deleted successfully');
       setDialogOpen(false);
       fetchProducts();
