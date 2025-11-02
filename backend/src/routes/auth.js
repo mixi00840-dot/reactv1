@@ -164,8 +164,22 @@ router.post('/login', loginValidation, async (req, res) => {
 
     const { login, password } = req.body;
 
-    // Find user by email or username
-    const user = await User.findByLogin(login);
+    // Find user by email or username (defensive against driver errors)
+    let user = null;
+    try {
+      // Prefer direct query here to eliminate any potential issues with statics binding
+      user = await User.findOne({
+        $or: [{ email: login }, { username: login }]
+      });
+    } catch (dbErr) {
+      console.error('Login DB lookup error:', dbErr?.message || dbErr);
+      return res.status(500).json({
+        success: false,
+        // Keep message generic but add a short machine-readable code for triage
+        message: 'Server error during login',
+        code: 'DB_LOOKUP_ERROR'
+      });
+    }
 
     if (!user) {
       return res.status(401).json({
@@ -187,10 +201,11 @@ router.post('/login', loginValidation, async (req, res) => {
     try {
       isMatch = await user.comparePassword(password);
     } catch (cmpErr) {
-      console.error('Password compare error:', cmpErr.message);
+      console.error('Password compare error:', cmpErr?.message || cmpErr);
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid credentials',
+        code: 'COMPARE_ERROR'
       });
     }
 
@@ -238,7 +253,7 @@ router.post('/login', loginValidation, async (req, res) => {
         console.warn('Login warning: JWT_REFRESH_SECRET not set; proceeding without refresh token');
       }
     } catch (e) {
-      console.error('Login error creating refresh token:', e.message);
+      console.error('Login error creating refresh token:', e?.message || e);
       // Proceed without refresh token
     }
 
