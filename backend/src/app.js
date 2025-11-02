@@ -159,7 +159,14 @@ const allowedOrigins = [
   // Allow any Vercel domain
   /^https:\/\/.*\.vercel\.app$/,
   // Allow any GitHub Pages domain
-  /^https:\/\/.*\.github\.io$/
+  /^https:\/\/.*\.github\.io$/,
+  // Allow any AWS Amplify Hosting domain
+  /^https:\/\/.*\.amplifyapp\.com$/,
+  // Allow any CloudFront distribution domain
+  /^https:\/\/.*\.cloudfront\.net$/,
+  // Allow S3 static website endpoints (regional variants)
+  /^http:\/\/.*\.s3-website[.-].*\.amazonaws\.com$/,
+  /^https:\/\/.*\.s3-website[.-].*\.amazonaws\.com$/
 ].filter(Boolean);
 
 app.use(cors({
