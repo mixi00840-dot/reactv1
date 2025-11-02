@@ -9,7 +9,13 @@ const connectDB = async () => {
 
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000, // 10 seconds timeout for server selection
+      connectTimeoutMS: 10000, // 10 seconds timeout for initial connection
+      socketTimeoutMS: 45000, // 45 seconds timeout for socket inactivity
+      maxPoolSize: 10, // Maximum number of connections in the connection pool
+      retryWrites: true,
+      w: 'majority'
     });
     
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
