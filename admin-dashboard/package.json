@@ -2,7 +2,7 @@
   "name": "mixillo-admin-dashboard",
   "version": "1.0.0",
   "description": "Admin Dashboard for Mixillo User Management System",
-  "homepage": ".",
+  
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",
