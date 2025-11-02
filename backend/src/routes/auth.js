@@ -202,9 +202,28 @@ router.post('/login', loginValidation, async (req, res) => {
     // Update last login
     await user.updateLastLogin();
 
-    // Generate tokens
+    // Generate tokens (gracefully handle missing refresh secret)
+    if (!process.env.JWT_SECRET) {
+      console.error('Login error: JWT_SECRET is not configured');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error: JWT secret not set'
+      });
+    }
+
     const token = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+
+    let refreshToken = null;
+    try {
+      if (process.env.JWT_REFRESH_SECRET) {
+        refreshToken = generateRefreshToken(user._id);
+      } else {
+        console.warn('Login warning: JWT_REFRESH_SECRET not set; proceeding without refresh token');
+      }
+    } catch (e) {
+      console.error('Login error creating refresh token:', e.message);
+      // Proceed without refresh token
+    }
 
     // Remove password from response
     const userResponse = user.toObject();
