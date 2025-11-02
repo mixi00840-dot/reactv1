@@ -174,8 +174,25 @@ router.post('/login', loginValidation, async (req, res) => {
       });
     }
 
-    // Check password
-    const isMatch = await user.comparePassword(password);
+    // Check password with guard against missing/invalid hash
+    if (!user.password || typeof user.password !== 'string' || user.password.length < 20) {
+      // bcrypt hash is typically > 20 chars; treat missing/short as invalid
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    let isMatch = false;
+    try {
+      isMatch = await user.comparePassword(password);
+    } catch (cmpErr) {
+      console.error('Password compare error:', cmpErr.message);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
 
     if (!isMatch) {
       return res.status(401).json({
