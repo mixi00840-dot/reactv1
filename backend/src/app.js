@@ -49,84 +49,82 @@ try {
   productRoutes = storeRoutes = categoryRoutes = cartRoutes = orderRoutes = paymentRoutes = couponRoutes = shippingRoutes = customerServiceRoutes = analyticsRoutes = fallbackRouter;
 }
 
-// Settings & Audit routes
-const settingsRoutes = require('./routes/settings');
-const auditLogsRoutes = require('./routes/auditLogs');
+// Settings & Audit routes (wrapped in try-catch for Firestore migration)
+let settingsRoutes, auditLogsRoutes, languageRoutes, translationRoutes;
+let streamProviderRoutes, livestreamRoutes, cmsRoutes, bannersRoutes;
+let supportersRoutes, advancedAnalyticsRoutes, contentRoutes, transcodeRoutes;
+let metricsRoutes, moderationRoutes, rightsRoutes, recommendationRoutes;
+let feedRoutes, trendingRoutes, playerRoutes;
 
-// i18n routes
-const languageRoutes = require('./routes/languages');
-const translationRoutes = require('./routes/translations');
+try {
+  settingsRoutes = require('./routes/settings');
+  auditLogsRoutes = require('./routes/auditLogs');
+  languageRoutes = require('./routes/languages');
+  translationRoutes = require('./routes/translations');
+  streamProviderRoutes = require('./routes/streamProviders');
+  livestreamRoutes = require('./routes/livestreams');
+  cmsRoutes = require('./routes/cms');
+  bannersRoutes = require('./routes/banners');
+  supportersRoutes = require('./routes/supporters');
+  advancedAnalyticsRoutes = require('./routes/advancedAnalytics');
+  contentRoutes = require('./routes/content');
+  transcodeRoutes = require('./routes/transcode');
+  metricsRoutes = require('./routes/metrics');
+  moderationRoutes = require('./routes/moderation');
+  rightsRoutes = require('./routes/rights');
+  recommendationRoutes = require('./routes/recommendations');
+  feedRoutes = require('./routes/feed');
+  trendingRoutes = require('./routes/trending');
+  playerRoutes = require('./routes/player');
+} catch (error) {
+  console.error('⚠️  Some routes use MongoDB models (not yet migrated to Firestore):', error.message);
+  const express = require('express');
+  const fallbackRouter = express.Router();
+  fallbackRouter.all('*', (req, res) => {
+    res.status(503).json({ success: false, message: 'This feature is being migrated to Firestore. Authentication endpoints are available.' });
+  });
+  settingsRoutes = auditLogsRoutes = languageRoutes = translationRoutes = fallbackRouter;
+  streamProviderRoutes = livestreamRoutes = cmsRoutes = bannersRoutes = fallbackRouter;
+  supportersRoutes = advancedAnalyticsRoutes = contentRoutes = transcodeRoutes = fallbackRouter;
+  metricsRoutes = moderationRoutes = rightsRoutes = recommendationRoutes = fallbackRouter;
+  feedRoutes = trendingRoutes = playerRoutes = fallbackRouter;
+}
 
-// Streaming routes
-const streamProviderRoutes = require('./routes/streamProviders');
-const livestreamRoutes = require('./routes/livestreams');
+// Phase 11-15 routes (wrapped for Firestore migration)
+let messagingRoutes, storiesRoutes, commentsRoutes, notificationsRoutes;
+let pkBattlesRoutes, multiHostRoutes, liveShoppingRoutes, streamFiltersRoutes, webrtcRoutes;
+let aiRoutes, monetizationRoutes, uploadRoutes, soundsRoutes, giftsRoutes, walletsRoutes;
+let activityRoutes;
 
-// CMS routes
-const cmsRoutes = require('./routes/cms');
-const bannersRoutes = require('./routes/banners');
-
-// Supporters routes
-const supportersRoutes = require('./routes/supporters');
-
-// Advanced Analytics routes
-const advancedAnalyticsRoutes = require('./routes/advancedAnalytics');
-
-// Content Management routes
-const contentRoutes = require('./routes/content');
-
-// Transcode Management routes
-const transcodeRoutes = require('./routes/transcode');
-
-// Metrics & Analytics routes
-const metricsRoutes = require('./routes/metrics');
-
-// Moderation routes
-const moderationRoutes = require('./routes/moderation');
-
-// Rights Management routes
-const rightsRoutes = require('./routes/rights');
-
-// Recommendation Engine routes
-const recommendationRoutes = require('./routes/recommendations');
-
-// Personalized Feed routes
-const feedRoutes = require('./routes/feed');
-
-// Trending & Explore routes
-const trendingRoutes = require('./routes/trending');
-
-// Player & Streaming routes
-const playerRoutes = require('./routes/player');
-
-// Phase 11: Social Features routes
-const messagingRoutes = require('./routes/messaging');
-const storiesRoutes = require('./routes/stories');
-const commentsRoutes = require('./routes/comments');
-const notificationsRoutes = require('./routes/notifications');
-
-// Phase 12: Advanced Live Streaming routes
-const pkBattlesRoutes = require('./routes/pkBattles');
-const multiHostRoutes = require('./routes/multiHost');
-const liveShoppingRoutes = require('./routes/liveShopping');
-const streamFiltersRoutes = require('./routes/streamFilters');
-const webrtcRoutes = require('./routes/webrtc');
-
-// Phase 13: AI Services & Creator Monetization routes
-const aiRoutes = require('./routes/ai');
-const monetizationRoutes = require('./routes/monetization');
-
-// Phase 14: Camera & Media Management routes
-const uploadRoutes = require('./routes/upload');
-const soundsRoutes = require('./routes/sounds');
-const giftsRoutes = require('./routes/gifts');
-const walletsRoutes = require('./routes/wallets');
-
-// Phase 15: Advanced Features routes
-// TODO: Fix videoQualityController exports issue - temporarily disabled
-// const videoQualityRoutes = require('./routes/videoQuality');
-// TODO: Fix schedulingController exports issue - temporarily disabled  
-// const schedulingRoutes = require('./routes/scheduling');
-const activityRoutes = require('./routes/activity');
+try {
+  messagingRoutes = require('./routes/messaging');
+  storiesRoutes = require('./routes/stories');
+  commentsRoutes = require('./routes/comments');
+  notificationsRoutes = require('./routes/notifications');
+  pkBattlesRoutes = require('./routes/pkBattles');
+  multiHostRoutes = require('./routes/multiHost');
+  liveShoppingRoutes = require('./routes/liveShopping');
+  streamFiltersRoutes = require('./routes/streamFilters');
+  webrtcRoutes = require('./routes/webrtc');
+  aiRoutes = require('./routes/ai');
+  monetizationRoutes = require('./routes/monetization');
+  uploadRoutes = require('./routes/upload');
+  soundsRoutes = require('./routes/sounds');
+  giftsRoutes = require('./routes/gifts');
+  walletsRoutes = require('./routes/wallets');
+  activityRoutes = require('./routes/activity');
+} catch (error) {
+  console.error('⚠️  Advanced feature routes use MongoDB models:', error.message);
+  const express = require('express');
+  const fallbackRouter = express.Router();
+  fallbackRouter.all('*', (req, res) => {
+    res.status(503).json({ success: false, message: 'This feature is being migrated to Firestore.' });
+  });
+  messagingRoutes = storiesRoutes = commentsRoutes = notificationsRoutes = fallbackRouter;
+  pkBattlesRoutes = multiHostRoutes = liveShoppingRoutes = streamFiltersRoutes = webrtcRoutes = fallbackRouter;
+  aiRoutes = monetizationRoutes = uploadRoutes = soundsRoutes = giftsRoutes = walletsRoutes = fallbackRouter;
+  activityRoutes = fallbackRouter;
+}
 
 const app = express();
 
