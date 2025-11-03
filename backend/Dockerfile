@@ -13,13 +13,13 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Only copy package manifests first for better caching
-COPY backend/package*.json ./
+COPY package*.json ./
 
 # Install prod dependencies
 RUN npm ci --only=production
 
 # Copy source code
-COPY backend/src ./src
+COPY src ./src
 
 # Create uploads directories (ephemeral in container; prefer S3 for persistence)
 RUN mkdir -p uploads/avatars uploads/documents uploads/products uploads/sounds uploads/stores uploads/temp uploads/videos || true
