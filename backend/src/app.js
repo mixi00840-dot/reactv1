@@ -8,22 +8,24 @@ require('dotenv').config();
 
 const connectDB = require('./utils/database');
 
-// Import routes with error handling
-let authRoutes, userRoutes, sellerRoutes, adminRoutes;
+// Import auth routes (migrated to Firestore)
+const authRoutes = require('./routes/auth');
+
+// Import other core routes with error handling (not yet migrated)
+let userRoutes, sellerRoutes, adminRoutes;
 try {
-  authRoutes = require('./routes/auth');
   userRoutes = require('./routes/users');
   sellerRoutes = require('./routes/sellers');
   adminRoutes = require('./routes/admin');
 } catch (error) {
-  console.error('Error loading core routes:', error.message);
+  console.error('Error loading user/seller/admin routes:', error.message);
   // Create fallback routes
   const express = require('express');
   const fallbackRouter = express.Router();
-  fallbackRouter.get('*', (req, res) => {
-    res.status(503).json({ success: false, message: 'Service temporarily unavailable' });
+  fallbackRouter.all('*', (req, res) => {
+    res.status(503).json({ success: false, message: 'This feature is being migrated to Firestore' });
   });
-  authRoutes = userRoutes = sellerRoutes = adminRoutes = fallbackRouter;
+  userRoutes = sellerRoutes = adminRoutes = fallbackRouter;
 }
 
 // E-commerce routes with error handling
