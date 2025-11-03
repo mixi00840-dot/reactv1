@@ -42,8 +42,8 @@ try {
   console.error('❌ Error setting up Socket.IO:', error.message);
 }
 
-// Initialize cron jobs only in production or when explicitly enabled
-if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true') {
+// Initialize cron jobs only when explicitly enabled
+if (process.env.ENABLE_CRON === 'true') {
   console.log('⏰ Initializing cron jobs...');
   try {
     const { initializeTrendingCron } = require('./jobs/trendingCalculation');
@@ -62,7 +62,7 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true')
     console.error('❌ Error initializing cron jobs:', error.message);
   }
 } else {
-  console.log('⏰ Cron jobs disabled in development mode');
+  console.log('⏰ Cron jobs disabled (set ENABLE_CRON=true to enable)');
 }
 
 // Start server
