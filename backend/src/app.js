@@ -166,7 +166,9 @@ const allowedOrigins = [
   /^https:\/\/.*\.cloudfront\.net$/,
   // Allow S3 static website endpoints (regional variants)
   /^http:\/\/.*\.s3-website[.-].*\.amazonaws\.com$/,
-  /^https:\/\/.*\.s3-website[.-].*\.amazonaws\.com$/
+  /^https:\/\/.*\.s3-website[.-].*\.amazonaws\.com$/,
+  // Allow any Google Cloud Run domain
+  /^https:\/\/.*\.run\.app$/
 ].filter(Boolean);
 
 app.use(cors({

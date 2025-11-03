@@ -1,0 +1,21 @@
+# Ignore patterns for Google Cloud Build
+node_modules/
+npm-debug.log
+.env
+.env.*
+!.env.example
+uploads/
+*.log
+.git/
+.gitignore
+README.md
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+coverage/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
