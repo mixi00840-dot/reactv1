@@ -1,9 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const { Wallet } = require('../models/Wallet');
-const SellerApplication = require('../models/SellerApplication');
-const Strike = require('../models/Strike');
+const bcrypt = require('bcryptjs');
+const db = require('../utils/database'); // Firestore instance
 const { authMiddleware } = require('../middleware/auth');
 const { uploadMiddleware, handleUploadError } = require('../middleware/upload');
 
@@ -13,14 +11,19 @@ const router = express.Router();
 router.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: 'Users API is working',
+    message: 'Users API is working (Firestore)',
     endpoints: [
       'GET /profile - Get user profile (requires auth)',
       'PUT /profile - Update user profile (requires auth)',
-      'POST /avatar - Upload avatar (requires auth)',
-      'GET /:id - Get user by ID',
-      'GET /:id/followers - Get user followers',
-      'GET /:id/following - Get user following'
+      'POST /upload-avatar - Upload avatar (requires auth)',
+      'GET /stats - Get user statistics (requires auth)',
+      'POST /change-password - Change password (requires auth)',
+      'GET /search - Search users (requires auth)',
+      'POST /:userId/follow - Follow a user (requires auth)',
+      'DELETE /:userId/unfollow - Unfollow a user (requires auth)',
+      'GET /:userId - Get user by ID',
+      'GET /:userId/followers - Get user followers',
+      'GET /:userId/following - Get user following'
     ]
   });
 });
@@ -30,27 +33,46 @@ router.get('/health', (req, res) => {
 // @access  Private
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id)
-      .select('-password')
-      .populate('wallet')
-      .populate('sellerStatus');
+    const userId = req.user.id || req.user._id;
+    const userDoc = await db.collection('users').doc(userId).get();
 
-    if (!user) {
+    if (!userDoc.exists) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
+    const userData = { id: userDoc.id, ...userDoc.data() };
+    delete userData.password; // Remove password from response
+
+    // Get wallet data
+    const walletDoc = await db.collection('wallets').doc(userId).get();
+    const wallet = walletDoc.exists ? { id: walletDoc.id, ...walletDoc.data() } : null;
+
     // Get active strikes count
-    const activeStrikes = await Strike.countActiveStrikes(user._id);
+    const strikesSnapshot = await db.collection('strikes')
+      .where('userId', '==', userId)
+      .where('isActive', '==', true)
+      .get();
+    const activeStrikes = strikesSnapshot.size;
+
+    // Get seller application if exists
+    const sellerSnapshot = await db.collection('sellerApplications')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+    const sellerStatus = !sellerSnapshot.empty ? 
+      { id: sellerSnapshot.docs[0].id, ...sellerSnapshot.docs[0].data() } : null;
 
     res.json({
       success: true,
       data: {
         user: {
-          ...user.toObject(),
-          activeStrikes
+          ...userData,
+          activeStrikes,
+          wallet,
+          sellerStatus
         }
       }
     });
@@ -101,16 +123,20 @@ router.put('/profile', [
       });
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    ).select('-password');
+    const userId = req.user.id || req.user._id;
+    updates.updatedAt = new Date().toISOString();
+
+    await db.collection('users').doc(userId).update(updates);
+
+    // Get updated user
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = { id: userDoc.id, ...userDoc.data() };
+    delete userData.password;
 
     res.json({
       success: true,
       message: 'Profile updated successfully',
-      data: { user }
+      data: { user: userData }
     });
 
   } catch (error) {
@@ -138,19 +164,24 @@ router.post('/upload-avatar', [
       });
     }
 
-    // Update user avatar
+    const userId = req.user.id || req.user._id;
     const avatarUrl = `/uploads/avatars/${req.file.filename}`;
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { avatar: avatarUrl },
-      { new: true }
-    ).select('-password');
+
+    await db.collection('users').doc(userId).update({
+      avatar: avatarUrl,
+      updatedAt: new Date().toISOString()
+    });
+
+    // Get updated user
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = { id: userDoc.id, ...userDoc.data() };
+    delete userData.password;
 
     res.json({
       success: true,
       message: 'Avatar uploaded successfully',
       data: {
-        user,
+        user: userData,
         avatarUrl
       }
     });
@@ -169,32 +200,57 @@ router.post('/upload-avatar', [
 // @access  Private
 router.get('/stats', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
-    const wallet = await Wallet.findOne({ userId: req.user._id });
-    const activeStrikes = await Strike.countActiveStrikes(req.user._id);
-    const sellerStatus = await SellerApplication.findOne({ userId: req.user._id });
+    const userId = req.user.id || req.user._id;
+
+    // Get user data
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    const user = userDoc.data();
+
+    // Get wallet data
+    const walletDoc = await db.collection('wallets').doc(userId).get();
+    const wallet = walletDoc.exists ? walletDoc.data() : null;
+
+    // Get active strikes count
+    const strikesSnapshot = await db.collection('strikes')
+      .where('userId', '==', userId)
+      .where('isActive', '==', true)
+      .get();
+    const activeStrikes = strikesSnapshot.size;
+
+    // Get seller application
+    const sellerSnapshot = await db.collection('sellerApplications')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+    const sellerStatus = !sellerSnapshot.empty ? sellerSnapshot.docs[0].data() : null;
 
     const stats = {
       profile: {
-        followersCount: user.followersCount,
-        followingCount: user.followingCount,
-        videosCount: user.videosCount,
-        postsCount: user.postsCount,
-        commentsCount: user.commentsCount,
-        likesReceived: user.likesReceived,
-        profileViews: user.profileViews
+        followersCount: user.followersCount || 0,
+        followingCount: user.followingCount || 0,
+        videosCount: user.videosCount || 0,
+        postsCount: user.postsCount || 0,
+        commentsCount: user.commentsCount || 0,
+        likesReceived: user.likesReceived || 0,
+        profileViews: user.profileViews || 0
       },
       wallet: wallet ? {
-        balance: wallet.balance,
-        totalEarnings: wallet.totalEarnings,
-        totalSpendings: wallet.totalSpendings,
-        supportLevel: wallet.supportLevel,
-        monthlyEarnings: wallet.monthlyEarnings,
-        monthlySpendings: wallet.monthlySpendings
+        balance: wallet.balance || 0,
+        totalEarnings: wallet.totalEarnings || 0,
+        totalSpendings: wallet.totalSpendings || 0,
+        supportLevel: wallet.supportLevel || 1,
+        monthlyEarnings: wallet.monthlyEarnings || 0,
+        monthlySpendings: wallet.monthlySpendings || 0
       } : null,
       account: {
-        isVerified: user.isVerified,
-        isFeatured: user.isFeatured,
+        isVerified: user.isVerified || false,
+        isFeatured: user.isFeatured || false,
         activeStrikes,
         memberSince: user.createdAt,
         lastLogin: user.lastLogin
@@ -220,71 +276,6 @@ router.get('/stats', authMiddleware, async (req, res) => {
   }
 });
 
-// @route   GET /api/users/notifications
-// @desc    Get user notifications (placeholder)
-// @access  Private
-router.get('/notifications', authMiddleware, async (req, res) => {
-  try {
-    // In a real implementation, you would fetch from a notifications collection
-    // For now, return recent strikes and important updates
-    
-    const recentStrikes = await Strike.find({ userId: req.user._id })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .populate('issuedBy', 'username fullName');
-
-    const sellerApplication = await SellerApplication.findOne({ userId: req.user._id });
-
-    const notifications = [];
-
-    // Add strike notifications
-    recentStrikes.forEach(strike => {
-      notifications.push({
-        id: strike._id,
-        type: 'strike',
-        title: `${strike.type.charAt(0).toUpperCase() + strike.type.slice(1)} Issued`,
-        message: strike.reason,
-        createdAt: strike.createdAt,
-        read: false,
-        severity: strike.severity
-      });
-    });
-
-    // Add seller application status notification
-    if (sellerApplication && sellerApplication.reviewedAt) {
-      notifications.push({
-        id: sellerApplication._id,
-        type: 'seller_application',
-        title: `Seller Application ${sellerApplication.status.charAt(0).toUpperCase() + sellerApplication.status.slice(1)}`,
-        message: sellerApplication.status === 'approved' 
-          ? 'Congratulations! Your seller application has been approved.'
-          : `Your seller application was ${sellerApplication.status}. ${sellerApplication.rejectionReason || ''}`,
-        createdAt: sellerApplication.reviewedAt,
-        read: false,
-        severity: sellerApplication.status === 'approved' ? 'low' : 'medium'
-      });
-    }
-
-    // Sort by most recent
-    notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    res.json({
-      success: true,
-      data: {
-        notifications: notifications.slice(0, 20), // Return latest 20
-        unreadCount: notifications.filter(n => !n.read).length
-      }
-    });
-
-  } catch (error) {
-    console.error('Get notifications error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching notifications'
-    });
-  }
-});
-
 // @route   POST /api/users/change-password
 // @desc    Change user password
 // @access  Private
@@ -304,12 +295,21 @@ router.post('/change-password', [
     }
 
     const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id || req.user._id;
 
     // Get user with password
-    const user = await User.findById(req.user._id);
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const userData = userDoc.data();
 
     // Verify current password
-    const isMatch = await user.comparePassword(currentPassword);
+    const isMatch = await bcrypt.compare(currentPassword, userData.password);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
@@ -317,9 +317,14 @@ router.post('/change-password', [
       });
     }
 
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
     // Update password
-    user.password = newPassword;
-    await user.save();
+    await db.collection('users').doc(userId).update({
+      password: hashedPassword,
+      updatedAt: new Date().toISOString()
+    });
 
     res.json({
       success: true,
@@ -348,20 +353,40 @@ router.get('/search', authMiddleware, async (req, res) => {
         message: 'Search query must be at least 2 characters'
       });
     }
+
+    const searchTerm = q.trim().toLowerCase();
     
-    const users = await User.find({
-      $or: [
-        { username: { $regex: q, $options: 'i' } },
-        { fullName: { $regex: q, $options: 'i' } }
-      ],
-      status: 'active'
-    })
-    .select('username fullName avatar isVerified followersCount')
-    .limit(parseInt(limit));
+    // Firestore doesn't support full-text search, so we'll do prefix matching
+    // For production, consider using Algolia or Elasticsearch for better search
+    const usersSnapshot = await db.collection('users')
+      .where('status', '==', 'active')
+      .limit(parseInt(limit) * 2) // Get more to filter
+      .get();
+
+    const users = [];
+    usersSnapshot.forEach(doc => {
+      const userData = doc.data();
+      const username = (userData.username || '').toLowerCase();
+      const fullName = (userData.fullName || '').toLowerCase();
+      
+      if (username.includes(searchTerm) || fullName.includes(searchTerm)) {
+        users.push({
+          id: doc.id,
+          username: userData.username,
+          fullName: userData.fullName,
+          avatar: userData.avatar,
+          isVerified: userData.isVerified,
+          followersCount: userData.followersCount || 0
+        });
+      }
+    });
+
+    // Limit results
+    const limitedUsers = users.slice(0, parseInt(limit));
     
     res.json({
       success: true,
-      data: { users }
+      data: { users: limitedUsers }
     });
     
   } catch (error) {
@@ -379,52 +404,70 @@ router.get('/search', authMiddleware, async (req, res) => {
 router.post('/:userId/follow', authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
+    const currentUserId = req.user.id || req.user._id;
     
-    if (userId === req.user._id.toString()) {
+    if (userId === currentUserId) {
       return res.status(400).json({
         success: false,
         message: 'You cannot follow yourself'
       });
     }
     
-    const userToFollow = await User.findById(userId);
-    if (!userToFollow) {
+    // Check if target user exists
+    const userToFollowDoc = await db.collection('users').doc(userId).get();
+    if (!userToFollowDoc.exists) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
     
-    const currentUser = await User.findById(req.user._id);
-    
     // Check if already following
-    if (currentUser.following && currentUser.following.includes(userId)) {
+    const followDoc = await db.collection('follows')
+      .where('followerId', '==', currentUserId)
+      .where('followingId', '==', userId)
+      .limit(1)
+      .get();
+    
+    if (!followDoc.empty) {
       return res.status(400).json({
         success: false,
-        message: 'Already following this user'
+        message: 'You are already following this user'
       });
     }
     
-    // Add to following/followers
-    if (!currentUser.following) currentUser.following = [];
-    if (!userToFollow.followers) userToFollow.followers = [];
+    // Create follow relationship
+    const batch = db.batch();
     
-    currentUser.following.push(userId);
-    currentUser.followingCount = currentUser.following.length;
+    const followRef = db.collection('follows').doc();
+    batch.set(followRef, {
+      followerId: currentUserId,
+      followingId: userId,
+      createdAt: new Date().toISOString()
+    });
     
-    userToFollow.followers.push(req.user._id);
-    userToFollow.followersCount = userToFollow.followers.length;
+    // Update follower count
+    const currentUserRef = db.collection('users').doc(currentUserId);
+    const targetUserRef = db.collection('users').doc(userId);
     
-    await currentUser.save();
-    await userToFollow.save();
+    const currentUserDoc = await currentUserRef.get();
+    const targetUserDoc = await targetUserRef.get();
+    
+    batch.update(currentUserRef, {
+      followingCount: (currentUserDoc.data().followingCount || 0) + 1,
+      updatedAt: new Date().toISOString()
+    });
+    
+    batch.update(targetUserRef, {
+      followersCount: (targetUserDoc.data().followersCount || 0) + 1,
+      updatedAt: new Date().toISOString()
+    });
+    
+    await batch.commit();
     
     res.json({
       success: true,
-      message: 'User followed successfully',
-      data: {
-        isFollowing: true,
-        followersCount: userToFollow.followersCount
-      }
+      message: 'User followed successfully'
     });
     
   } catch (error) {
@@ -436,48 +479,63 @@ router.post('/:userId/follow', authMiddleware, async (req, res) => {
   }
 });
 
-// @route   DELETE /api/users/:userId/follow
+// @route   DELETE /api/users/:userId/unfollow
 // @desc    Unfollow a user
 // @access  Private
-router.delete('/:userId/follow', authMiddleware, async (req, res) => {
+router.delete('/:userId/unfollow', authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
+    const currentUserId = req.user.id || req.user._id;
     
-    const userToUnfollow = await User.findById(userId);
-    if (!userToUnfollow) {
-      return res.status(404).json({
+    if (userId === currentUserId) {
+      return res.status(400).json({
         success: false,
-        message: 'User not found'
+        message: 'Invalid operation'
       });
     }
     
-    const currentUser = await User.findById(req.user._id);
+    // Find follow relationship
+    const followSnapshot = await db.collection('follows')
+      .where('followerId', '==', currentUserId)
+      .where('followingId', '==', userId)
+      .limit(1)
+      .get();
     
-    // Remove from following/followers
-    if (currentUser.following) {
-      currentUser.following = currentUser.following.filter(
-        id => id.toString() !== userId
-      );
-      currentUser.followingCount = currentUser.following.length;
+    if (followSnapshot.empty) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are not following this user'
+      });
     }
     
-    if (userToUnfollow.followers) {
-      userToUnfollow.followers = userToUnfollow.followers.filter(
-        id => id.toString() !== req.user._id.toString()
-      );
-      userToUnfollow.followersCount = userToUnfollow.followers.length;
-    }
+    // Delete follow relationship and update counts
+    const batch = db.batch();
     
-    await currentUser.save();
-    await userToUnfollow.save();
+    const followDoc = followSnapshot.docs[0];
+    batch.delete(followDoc.ref);
+    
+    // Update follower counts
+    const currentUserRef = db.collection('users').doc(currentUserId);
+    const targetUserRef = db.collection('users').doc(userId);
+    
+    const currentUserDoc = await currentUserRef.get();
+    const targetUserDoc = await targetUserRef.get();
+    
+    batch.update(currentUserRef, {
+      followingCount: Math.max(0, (currentUserDoc.data().followingCount || 0) - 1),
+      updatedAt: new Date().toISOString()
+    });
+    
+    batch.update(targetUserRef, {
+      followersCount: Math.max(0, (targetUserDoc.data().followersCount || 0) - 1),
+      updatedAt: new Date().toISOString()
+    });
+    
+    await batch.commit();
     
     res.json({
       success: true,
-      message: 'User unfollowed successfully',
-      data: {
-        isFollowing: false,
-        followersCount: userToUnfollow.followersCount
-      }
+      message: 'User unfollowed successfully'
     });
     
   } catch (error) {
@@ -485,6 +543,179 @@ router.delete('/:userId/follow', authMiddleware, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while unfollowing user'
+    });
+  }
+});
+
+// @route   GET /api/users/:userId
+// @desc    Get user by ID (public profile)
+// @access  Public
+router.get('/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const userDoc = await db.collection('users').doc(userId).get();
+    
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    const userData = userDoc.data();
+    
+    // Return public profile data only
+    const publicProfile = {
+      id: userDoc.id,
+      username: userData.username,
+      fullName: userData.fullName,
+      avatar: userData.avatar,
+      bio: userData.bio,
+      isVerified: userData.isVerified,
+      isFeatured: userData.isFeatured,
+      followersCount: userData.followersCount || 0,
+      followingCount: userData.followingCount || 0,
+      videosCount: userData.videosCount || 0,
+      postsCount: userData.postsCount || 0,
+      likesReceived: userData.likesReceived || 0,
+      createdAt: userData.createdAt
+    };
+    
+    res.json({
+      success: true,
+      data: { user: publicProfile }
+    });
+    
+  } catch (error) {
+    console.error('Get user by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching user'
+    });
+  }
+});
+
+// @route   GET /api/users/:userId/followers
+// @desc    Get user followers list
+// @access  Public
+router.get('/:userId/followers', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { limit = 20, offset = 0 } = req.query;
+    
+    // Get followers
+    const followsSnapshot = await db.collection('follows')
+      .where('followingId', '==', userId)
+      .limit(parseInt(limit))
+      .offset(parseInt(offset))
+      .get();
+    
+    const followerIds = followsSnapshot.docs.map(doc => doc.data().followerId);
+    
+    if (followerIds.length === 0) {
+      return res.json({
+        success: true,
+        data: { followers: [], total: 0 }
+      });
+    }
+    
+    // Get follower user data (Firestore 'in' query supports up to 10 items)
+    const followers = [];
+    for (let i = 0; i < followerIds.length; i += 10) {
+      const batch = followerIds.slice(i, i + 10);
+      const usersSnapshot = await db.collection('users')
+        .where('__name__', 'in', batch)
+        .get();
+      
+      usersSnapshot.forEach(doc => {
+        const userData = doc.data();
+        followers.push({
+          id: doc.id,
+          username: userData.username,
+          fullName: userData.fullName,
+          avatar: userData.avatar,
+          isVerified: userData.isVerified,
+          followersCount: userData.followersCount || 0
+        });
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        followers,
+        total: followsSnapshot.size
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get followers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching followers'
+    });
+  }
+});
+
+// @route   GET /api/users/:userId/following
+// @desc    Get user following list
+// @access  Public
+router.get('/:userId/following', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { limit = 20, offset = 0 } = req.query;
+    
+    // Get following
+    const followsSnapshot = await db.collection('follows')
+      .where('followerId', '==', userId)
+      .limit(parseInt(limit))
+      .offset(parseInt(offset))
+      .get();
+    
+    const followingIds = followsSnapshot.docs.map(doc => doc.data().followingId);
+    
+    if (followingIds.length === 0) {
+      return res.json({
+        success: true,
+        data: { following: [], total: 0 }
+      });
+    }
+    
+    // Get following user data
+    const following = [];
+    for (let i = 0; i < followingIds.length; i += 10) {
+      const batch = followingIds.slice(i, i + 10);
+      const usersSnapshot = await db.collection('users')
+        .where('__name__', 'in', batch)
+        .get();
+      
+      usersSnapshot.forEach(doc => {
+        const userData = doc.data();
+        following.push({
+          id: doc.id,
+          username: userData.username,
+          fullName: userData.fullName,
+          avatar: userData.avatar,
+          isVerified: userData.isVerified,
+          followersCount: userData.followersCount || 0
+        });
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        following,
+        total: followsSnapshot.size
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get following error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching following'
     });
   }
 });

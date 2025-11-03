@@ -1,7 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const SellerApplication = require('../models/SellerApplication');
-const User = require('../models/User');
+const db = require('../utils/database'); // Firestore instance
 const { authMiddleware } = require('../middleware/auth');
 const { uploadMiddleware, handleUploadError } = require('../middleware/upload');
 
@@ -49,13 +48,19 @@ router.post('/apply', [
       });
     }
 
+    const userId = req.user.id || req.user._id;
+
     // Check if user already has an application
-    const existingApplication = await SellerApplication.findOne({ userId: req.user._id });
+    const existingSnapshot = await db.collection('sellerApplications')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
     
-    if (existingApplication) {
+    if (!existingSnapshot.empty) {
+      const existingApp = existingSnapshot.docs[0].data();
       return res.status(400).json({
         success: false,
-        message: 'You already have a seller application. Current status: ' + existingApplication.status
+        message: 'You already have a seller application. Current status: ' + existingApp.status
       });
     }
 
@@ -79,30 +84,46 @@ router.post('/apply', [
     // Process uploaded documents
     const documentImages = req.files.map(file => ({
       url: `/uploads/documents/${file.filename}`,
-      uploadedAt: new Date()
+      uploadedAt: new Date().toISOString()
     }));
 
     // Create seller application
-    const application = new SellerApplication({
-      userId: req.user._id,
+    const applicationData = {
+      userId,
       documentType,
       documentNumber,
       documentImages,
-      businessName,
+      businessName: businessName || '',
       businessType: businessType || 'individual',
-      businessDescription,
-      expectedMonthlyRevenue
-    });
+      businessDescription: businessDescription || '',
+      expectedMonthlyRevenue: expectedMonthlyRevenue ? parseFloat(expectedMonthlyRevenue) : 0,
+      status: 'pending',
+      submittedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
-    await application.save();
+    const appRef = await db.collection('sellerApplications').add(applicationData);
 
-    // Populate user data for response
-    await application.populate('userId', 'username fullName email');
+    // Get user data for response
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.exists ? {
+      id: userDoc.id,
+      username: userDoc.data().username,
+      fullName: userDoc.data().fullName,
+      email: userDoc.data().email
+    } : null;
 
     res.status(201).json({
       success: true,
       message: 'Seller application submitted successfully',
-      data: { application }
+      data: {
+        application: {
+          id: appRef.id,
+          ...applicationData,
+          user: userData
+        }
+      }
     });
 
   } catch (error) {
@@ -119,20 +140,55 @@ router.post('/apply', [
 // @access  Private
 router.get('/application', authMiddleware, async (req, res) => {
   try {
-    const application = await SellerApplication.findOne({ userId: req.user._id })
-      .populate('userId', 'username fullName email')
-      .populate('reviewedBy', 'username fullName');
+    const userId = req.user.id || req.user._id;
 
-    if (!application) {
+    const snapshot = await db.collection('sellerApplications')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
       return res.status(404).json({
         success: false,
         message: 'No seller application found'
       });
     }
 
+    const appDoc = snapshot.docs[0];
+    const appData = appDoc.data();
+
+    // Get user data
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.exists ? {
+      id: userDoc.id,
+      username: userDoc.data().username,
+      fullName: userDoc.data().fullName,
+      email: userDoc.data().email
+    } : null;
+
+    // Get reviewer data if reviewed
+    let reviewedBy = null;
+    if (appData.reviewedBy) {
+      const reviewerDoc = await db.collection('users').doc(appData.reviewedBy).get();
+      if (reviewerDoc.exists) {
+        reviewedBy = {
+          id: reviewerDoc.id,
+          username: reviewerDoc.data().username,
+          fullName: reviewerDoc.data().fullName
+        };
+      }
+    }
+
     res.json({
       success: true,
-      data: { application }
+      data: {
+        application: {
+          id: appDoc.id,
+          ...appData,
+          user: userData,
+          reviewedBy
+        }
+      }
     });
 
   } catch (error) {
@@ -149,17 +205,9 @@ router.get('/application', authMiddleware, async (req, res) => {
 // @access  Private
 router.put('/application', [
   authMiddleware,
-  uploadMiddleware.documents,
-  handleUploadError,
-  body('businessName')
-    .optional()
-    .isLength({ min: 2, max: 100 }),
-  body('businessDescription')
-    .optional()
-    .isLength({ max: 1000 }),
-  body('expectedMonthlyRevenue')
-    .optional()
-    .isNumeric()
+  body('businessName').optional().isLength({ min: 2, max: 100 }),
+  body('businessDescription').optional().isLength({ max: 1000 }),
+  body('expectedMonthlyRevenue').optional().isNumeric()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -171,19 +219,27 @@ router.put('/application', [
       });
     }
 
-    const application = await SellerApplication.findOne({ userId: req.user._id });
+    const userId = req.user.id || req.user._id;
 
-    if (!application) {
+    const snapshot = await db.collection('sellerApplications')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
       return res.status(404).json({
         success: false,
         message: 'No seller application found'
       });
     }
 
-    if (application.status !== 'pending') {
+    const appDoc = snapshot.docs[0];
+    const appData = appDoc.data();
+
+    if (appData.status !== 'pending') {
       return res.status(400).json({
         success: false,
-        message: 'Cannot update application. Current status: ' + application.status
+        message: 'Cannot update application that has been reviewed'
       });
     }
 
@@ -192,31 +248,35 @@ router.put('/application', [
 
     allowedUpdates.forEach(field => {
       if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
+        updates[field] = field === 'expectedMonthlyRevenue' 
+          ? parseFloat(req.body[field]) 
+          : req.body[field];
       }
     });
 
-    // Handle new document uploads
-    if (req.files && req.files.length > 0) {
-      const newDocuments = req.files.map(file => ({
-        url: `/uploads/documents/${file.filename}`,
-        uploadedAt: new Date()
-      }));
-      
-      // Add to existing documents (don't replace)
-      updates.documentImages = [...application.documentImages, ...newDocuments];
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid fields to update'
+      });
     }
 
-    const updatedApplication = await SellerApplication.findByIdAndUpdate(
-      application._id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    ).populate('userId', 'username fullName email');
+    updates.updatedAt = new Date().toISOString();
+
+    await db.collection('sellerApplications').doc(appDoc.id).update(updates);
+
+    // Get updated application
+    const updatedDoc = await db.collection('sellerApplications').doc(appDoc.id).get();
 
     res.json({
       success: true,
       message: 'Application updated successfully',
-      data: { application: updatedApplication }
+      data: {
+        application: {
+          id: updatedDoc.id,
+          ...updatedDoc.data()
+        }
+      }
     });
 
   } catch (error) {
@@ -229,165 +289,136 @@ router.put('/application', [
 });
 
 // @route   DELETE /api/sellers/application
-// @desc    Withdraw seller application (only for pending applications)
+// @desc    Withdraw seller application (only pending applications)
 // @access  Private
 router.delete('/application', authMiddleware, async (req, res) => {
   try {
-    const application = await SellerApplication.findOne({ userId: req.user._id });
+    const userId = req.user.id || req.user._id;
 
-    if (!application) {
+    const snapshot = await db.collection('sellerApplications')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
       return res.status(404).json({
         success: false,
         message: 'No seller application found'
       });
     }
 
-    if (application.status !== 'pending') {
+    const appDoc = snapshot.docs[0];
+    const appData = appDoc.data();
+
+    if (appData.status !== 'pending') {
       return res.status(400).json({
         success: false,
-        message: 'Cannot withdraw application. Current status: ' + application.status
+        message: 'Cannot withdraw application that has been reviewed'
       });
     }
 
-    await SellerApplication.findByIdAndDelete(application._id);
+    await db.collection('sellerApplications').doc(appDoc.id).delete();
 
     res.json({
       success: true,
-      message: 'Seller application withdrawn successfully'
+      message: 'Application withdrawn successfully'
     });
 
   } catch (error) {
-    console.error('Withdraw seller application error:', error);
+    console.error('Delete seller application error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while withdrawing application'
+      message: 'Server error while deleting application'
     });
   }
 });
 
-// @route   GET /api/sellers/status
-// @desc    Get seller verification status
+// @route   GET /api/sellers/check-eligibility
+// @desc    Check if user is eligible to apply as seller
 // @access  Private
-router.get('/status', authMiddleware, async (req, res) => {
+router.get('/check-eligibility', authMiddleware, async (req, res) => {
   try {
-    const application = await SellerApplication.findOne({ userId: req.user._id });
-    
-    const status = {
-      hasApplication: !!application,
-      status: application ? application.status : null,
-      submittedAt: application ? application.submittedAt : null,
-      reviewedAt: application ? application.reviewedAt : null,
-      canApply: !application || application.status === 'rejected'
-    };
+    const userId = req.user.id || req.user._id;
+
+    // Get user data
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const userData = userDoc.data();
+
+    // Check if already a seller
+    if (userData.role === 'seller') {
+      return res.json({
+        success: true,
+        data: {
+          eligible: false,
+          reason: 'You are already a seller'
+        }
+      });
+    }
+
+    // Check if banned or suspended
+    if (userData.status === 'banned' || userData.status === 'suspended') {
+      return res.json({
+        success: true,
+        data: {
+          eligible: false,
+          reason: 'Your account is ' + userData.status
+        }
+      });
+    }
+
+    // Check for existing application
+    const appSnapshot = await db.collection('sellerApplications')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+
+    if (!appSnapshot.empty) {
+      const appData = appSnapshot.docs[0].data();
+      return res.json({
+        success: true,
+        data: {
+          eligible: false,
+          reason: 'You already have an application with status: ' + appData.status
+        }
+      });
+    }
+
+    // Check for active strikes
+    const strikesSnapshot = await db.collection('strikes')
+      .where('userId', '==', userId)
+      .where('isActive', '==', true)
+      .get();
+
+    if (strikesSnapshot.size > 0) {
+      return res.json({
+        success: true,
+        data: {
+          eligible: false,
+          reason: 'You have active strikes on your account'
+        }
+      });
+    }
 
     res.json({
       success: true,
-      data: { status }
+      data: {
+        eligible: true,
+        reason: 'You are eligible to apply as a seller'
+      }
     });
 
   } catch (error) {
-    console.error('Get seller status error:', error);
+    console.error('Check eligibility error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching seller status'
-    });
-  }
-});
-
-// @route   POST /api/sellers/reapply
-// @desc    Reapply for seller status (only after rejection)
-// @access  Private
-router.post('/reapply', [
-  authMiddleware,
-  uploadMiddleware.documents,
-  handleUploadError,
-  body('documentType')
-    .isIn(['passport', 'national_id', 'driving_license'])
-    .withMessage('Invalid document type'),
-  body('documentNumber')
-    .notEmpty()
-    .withMessage('Document number is required')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const existingApplication = await SellerApplication.findOne({ userId: req.user._id });
-    
-    if (!existingApplication) {
-      return res.status(400).json({
-        success: false,
-        message: 'No previous application found. Please use the apply endpoint.'
-      });
-    }
-
-    if (existingApplication.status !== 'rejected') {
-      return res.status(400).json({
-        success: false,
-        message: 'Can only reapply after rejection. Current status: ' + existingApplication.status
-      });
-    }
-
-    // Check if documents were uploaded
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one document image is required'
-      });
-    }
-
-    const {
-      documentType,
-      documentNumber,
-      businessName,
-      businessType,
-      businessDescription,
-      expectedMonthlyRevenue
-    } = req.body;
-
-    // Process uploaded documents
-    const documentImages = req.files.map(file => ({
-      url: `/uploads/documents/${file.filename}`,
-      uploadedAt: new Date()
-    }));
-
-    // Update existing application
-    existingApplication.status = 'pending';
-    existingApplication.documentType = documentType;
-    existingApplication.documentNumber = documentNumber;
-    existingApplication.documentImages = documentImages;
-    existingApplication.businessName = businessName;
-    existingApplication.businessType = businessType || 'individual';
-    existingApplication.businessDescription = businessDescription;
-    existingApplication.expectedMonthlyRevenue = expectedMonthlyRevenue;
-    existingApplication.submittedAt = new Date();
-    
-    // Clear review data
-    existingApplication.reviewedBy = null;
-    existingApplication.reviewedAt = null;
-    existingApplication.reviewNotes = '';
-    existingApplication.rejectionReason = '';
-
-    await existingApplication.save();
-    await existingApplication.populate('userId', 'username fullName email');
-
-    res.json({
-      success: true,
-      message: 'Seller application resubmitted successfully',
-      data: { application: existingApplication }
-    });
-
-  } catch (error) {
-    console.error('Seller reapplication error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while resubmitting application'
+      message: 'Server error while checking eligibility'
     });
   }
 });
