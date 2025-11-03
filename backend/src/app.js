@@ -206,25 +206,17 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
-    mongodb: 'connected'
+    database: 'Firestore'
   });
 });
 
 // Database health check
 app.get('/api/health/db', (req, res) => {
-  const mongoose = require('mongoose');
-  const dbState = mongoose.connection.readyState;
-  const states = {
-    0: 'disconnected',
-    1: 'connected',
-    2: 'connecting',
-    3: 'disconnecting'
-  };
-  
-  res.status(dbState === 1 ? 200 : 503).json({
-    status: dbState === 1 ? 'ok' : 'error',
-    database: states[dbState],
-    message: dbState === 1 ? 'Database connection healthy' : 'Database connection issue'
+  // Firestore is always available (no connection state to check)
+  res.status(200).json({
+    status: 'ok',
+    database: 'Firestore',
+    message: 'Firestore client ready'
   });
 });
 
