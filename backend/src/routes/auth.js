@@ -1,8 +1,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const { Wallet } = require('../models/Wallet');
+const db = require('../utils/database'); // Firestore instance
 const { generateToken, generateRefreshToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -78,45 +78,73 @@ router.post('/register', registerValidation, async (req, res) => {
 
     const { username, email, password, fullName, dateOfBirth, phone, bio } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }]
-    });
-
-    if (existingUser) {
+    // Check if user already exists by email
+    const usersRef = db.collection('users');
+    const emailSnapshot = await usersRef.where('email', '==', email).limit(1).get();
+    if (!emailSnapshot.empty) {
       return res.status(400).json({
         success: false,
-        message: existingUser.email === email 
-          ? 'Email already registered' 
-          : 'Username already taken'
+        message: 'Email already registered'
       });
     }
 
-    // Create new user
-    const user = new User({
+    // Check if username already exists
+    const usernameSnapshot = await usersRef.where('username', '==', username).limit(1).get();
+    if (!usernameSnapshot.empty) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username already taken'
+      });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user document
+    const userData = {
       username,
       email,
-      password,
+      password: hashedPassword,
       fullName,
       dateOfBirth,
-      phone,
-      bio
-    });
+      phone: phone || '',
+      bio: bio || '',
+      role: 'user',
+      status: 'active',
+      isVerified: false,
+      isFeatured: false,
+      avatar: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
+    };
 
-    await user.save();
+    // Use batch write for atomic operations
+    const batch = db.batch();
+    
+    const userRef = usersRef.doc();
+    batch.set(userRef, userData);
 
     // Create wallet for new user
-    const wallet = new Wallet({
-      userId: user._id
+    const walletRef = db.collection('wallets').doc(userRef.id);
+    batch.set(walletRef, {
+      userId: userRef.id,
+      balance: 0,
+      currency: 'USD',
+      transactions: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
-    await wallet.save();
+
+    await batch.commit();
 
     // Generate tokens
-    const token = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const token = generateToken(userRef.id);
+    const refreshToken = generateRefreshToken(userRef.id);
 
     // Remove password from response
-    const userResponse = user.toObject();
+    const userResponse = { ...userData, id: userRef.id };
     delete userResponse.password;
 
     res.status(201).json({
@@ -131,15 +159,6 @@ router.post('/register', registerValidation, async (req, res) => {
 
   } catch (error) {
     console.error('Registration error:', error);
-    
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      return res.status(400).json({
-        success: false,
-        message: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`
-      });
-    }
-    
     res.status(500).json({
       success: false,
       message: 'Server error during registration'
@@ -164,50 +183,28 @@ router.post('/login', loginValidation, async (req, res) => {
 
     const { login, password } = req.body;
 
-    // Find user by email or username (defensive against driver errors)
-    let user = null;
-    try {
-      // Prefer direct query here to eliminate any potential issues with statics binding
-      user = await User.findOne({
-        $or: [{ email: login }, { username: login }]
-      });
-    } catch (dbErr) {
-      console.error('Login DB lookup error:', dbErr?.message || dbErr);
-      return res.status(500).json({
-        success: false,
-        // Keep message generic but add a short machine-readable code for triage
-        message: 'Server error during login',
-        code: 'DB_LOOKUP_ERROR'
-      });
-    }
+    // Find user by email or username
+    const usersRef = db.collection('users');
+    let userDoc = null;
+    let userData = null;
+    
+    // Check if login is email or username
+    const isEmail = login.includes('@');
+    const field = isEmail ? 'email' : 'username';
+    const snapshot = await usersRef.where(field, '==', login).limit(1).get();
 
-    if (!user) {
+    if (snapshot.empty) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
-    // Check password with guard against missing/invalid hash
-    if (!user.password || typeof user.password !== 'string' || user.password.length < 20) {
-      // bcrypt hash is typically > 20 chars; treat missing/short as invalid
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
+    userDoc = snapshot.docs[0];
+    userData = userDoc.data();
 
-    let isMatch = false;
-    try {
-      isMatch = await user.comparePassword(password);
-    } catch (cmpErr) {
-      console.error('Password compare error:', cmpErr?.message || cmpErr);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials',
-        code: 'COMPARE_ERROR'
-      });
-    }
+    // Check password
+    const isMatch = await bcrypt.compare(password, userData.password);
 
     if (!isMatch) {
       return res.status(401).json({
@@ -217,14 +214,14 @@ router.post('/login', loginValidation, async (req, res) => {
     }
 
     // Check if account is active
-    if (user.status === 'banned') {
+    if (userData.status === 'banned') {
       return res.status(403).json({
         success: false,
         message: 'Account is banned. Contact support for assistance.'
       });
     }
 
-    if (user.status === 'suspended') {
+    if (userData.status === 'suspended') {
       return res.status(403).json({
         success: false,
         message: 'Account is suspended. Contact support for assistance.'
@@ -232,33 +229,17 @@ router.post('/login', loginValidation, async (req, res) => {
     }
 
     // Update last login
-    await user.updateLastLogin();
+    await userDoc.ref.update({
+      lastLogin: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
 
-    // Generate tokens (gracefully handle missing refresh secret)
-    if (!process.env.JWT_SECRET) {
-      console.error('Login error: JWT_SECRET is not configured');
-      return res.status(500).json({
-        success: false,
-        message: 'Server configuration error: JWT secret not set'
-      });
-    }
-
-    const token = generateToken(user._id);
-
-    let refreshToken = null;
-    try {
-      if (process.env.JWT_REFRESH_SECRET) {
-        refreshToken = generateRefreshToken(user._id);
-      } else {
-        console.warn('Login warning: JWT_REFRESH_SECRET not set; proceeding without refresh token');
-      }
-    } catch (e) {
-      console.error('Login error creating refresh token:', e?.message || e);
-      // Proceed without refresh token
-    }
+    // Generate tokens
+    const token = generateToken(userDoc.id);
+    const refreshToken = generateRefreshToken(userDoc.id);
 
     // Remove password from response
-    const userResponse = user.toObject();
+    const userResponse = { ...userData, id: userDoc.id };
     delete userResponse.password;
 
     res.json({
@@ -297,10 +278,10 @@ router.post('/refresh', async (req, res) => {
     // Verify refresh token
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     
-    // Find user
-    const user = await User.findById(decoded.userId).select('-password');
+    // Find user in Firestore
+    const userDoc = await db.collection('users').doc(decoded.userId || decoded.id).get();
     
-    if (!user) {
+    if (!userDoc.exists) {
       return res.status(401).json({
         success: false,
         message: 'Invalid refresh token'
@@ -308,7 +289,7 @@ router.post('/refresh', async (req, res) => {
     }
 
     // Generate new access token
-    const newToken = generateToken(user._id);
+    const newToken = generateToken(userDoc.id);
 
     res.json({
       success: true,
@@ -340,9 +321,10 @@ router.post('/forgot-password', async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.where('email', '==', email).limit(1).get();
 
-    if (!user) {
+    if (snapshot.empty) {
       // Don't reveal if email exists or not
       return res.json({
         success: true,
@@ -388,18 +370,20 @@ router.get('/me', async (req, res) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Get user from database
-    const user = await User.findById(decoded.id).select('-password');
+    // Get user from Firestore
+    const userDoc = await db.collection('users').doc(decoded.id || decoded.userId).get();
     
-    if (!user) {
+    if (!userDoc.exists) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
+    const userData = userDoc.data();
+
     // Check if user is active
-    if (user.status !== 'active') {
+    if (userData.status !== 'active') {
       return res.status(403).json({
         success: false,
         message: 'Account is not active'
@@ -410,15 +394,15 @@ router.get('/me', async (req, res) => {
       success: true,
       data: {
         user: {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          fullName: user.fullName,
-          role: user.role,
-          status: user.status,
-          isVerified: user.isVerified,
-          avatar: user.avatar,
-          bio: user.bio
+          id: userDoc.id,
+          username: userData.username,
+          email: userData.email,
+          fullName: userData.fullName,
+          role: userData.role,
+          status: userData.status,
+          isVerified: userData.isVerified,
+          avatar: userData.avatar,
+          bio: userData.bio
         }
       }
     });

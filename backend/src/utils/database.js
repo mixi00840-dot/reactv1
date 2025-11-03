@@ -1,37 +1,19 @@
-const mongoose = require('mongoose');
+const { Firestore } = require('@google-cloud/firestore');
 
-const connectDB = async () => {
-  try {
-    if (!process.env.MONGODB_URI) {
-      console.warn('⚠️  MONGODB_URI is not set; starting without a database connection');
-      return; // Allow app to start for health checks and basic routes
-    }
+/**
+ * Initialize Firestore client
+ * In Cloud Run, this automatically uses the service account credentials
+ * and project ID from the environment.
+ */
+const db = new Firestore({
+  // projectId is automatically detected in Google Cloud environments
+  // For local development, set GOOGLE_APPLICATION_CREDENTIALS or FIRESTORE_EMULATOR_HOST
+});
 
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    
-    // Handle connection events
-    mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB connection error:', err);
-    });
-    
-    mongoose.connection.on('disconnected', () => {
-      console.log('🔌 MongoDB disconnected');
-    });
-    
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      console.log('🛑 MongoDB connection closed due to app termination');
-      process.exit(0);
-    });
-    
-  } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
-    // Do not hard-exit here; let caller decide. AppRunner can pass health checks and logs can be inspected.
-    throw error;
-  }
-};
+console.log('✅ Firestore client initialized');
 
-module.exports = connectDB;
+// Firestore doesn't require explicit connection like MongoDB
+// The client is ready to use immediately
+
+// Export the Firestore instance
+module.exports = db;

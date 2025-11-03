@@ -1,0 +1,405 @@
+{
+  "passed": 24,
+  "failed": 42,
+  "total": 66,
+  "tests": [
+    {
+      "name": "Server Health Check",
+      "status": "FAILED",
+      "duration": 38,
+      "error": "Error"
+    },
+    {
+      "name": "Database Connection",
+      "status": "PASSED",
+      "duration": 617,
+      "error": null
+    },
+    {
+      "name": "Admin Login",
+      "status": "FAILED",
+      "duration": 199,
+      "error": "Server error during login"
+    },
+    {
+      "name": "User Registration",
+      "status": "FAILED",
+      "duration": 196,
+      "error": "Server error during registration"
+    },
+    {
+      "name": "Regular User Login",
+      "status": "FAILED",
+      "duration": 210,
+      "error": "Server error during login"
+    },
+    {
+      "name": "Token Validation",
+      "status": "FAILED",
+      "duration": 199,
+      "error": "No authentication token provided"
+    },
+    {
+      "name": "Password Reset Request",
+      "status": "PASSED",
+      "duration": 204,
+      "error": null
+    },
+    {
+      "name": "Logout",
+      "status": "PASSED",
+      "duration": 206,
+      "error": null
+    },
+    {
+      "name": "Get All Users (Admin)",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Get User Details",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user ID"
+    },
+    {
+      "name": "Search Users",
+      "status": "FAILED",
+      "duration": 205,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Filter Users by Status",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Update User Profile (Admin)",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user ID"
+    },
+    {
+      "name": "Verify User",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user ID"
+    },
+    {
+      "name": "Feature User",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user ID"
+    },
+    {
+      "name": "Ban User",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user ID"
+    },
+    {
+      "name": "Unban User",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user ID"
+    },
+    {
+      "name": "Get Seller Applications",
+      "status": "FAILED",
+      "duration": 203,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Get Application Details",
+      "status": "PASSED",
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Approve Seller Application",
+      "status": "PASSED",
+      "duration": 1,
+      "error": null
+    },
+    {
+      "name": "Get All Content",
+      "status": "PASSED",
+      "duration": 204,
+      "error": null
+    },
+    {
+      "name": "Get Content by Type (Videos)",
+      "status": "PASSED",
+      "duration": 203,
+      "error": null
+    },
+    {
+      "name": "Get Content by Type (Posts)",
+      "status": "PASSED",
+      "duration": 303,
+      "error": null
+    },
+    {
+      "name": "Search Content",
+      "status": "PASSED",
+      "duration": 925,
+      "error": null
+    },
+    {
+      "name": "Get Trending Content",
+      "status": "PASSED",
+      "duration": 205,
+      "error": null
+    },
+    {
+      "name": "Get All Comments",
+      "status": "PASSED",
+      "duration": 205,
+      "error": null
+    },
+    {
+      "name": "Get Comments by Status",
+      "status": "PASSED",
+      "duration": 205,
+      "error": null
+    },
+    {
+      "name": "Approve Comment",
+      "status": "PASSED",
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Block Comment",
+      "status": "PASSED",
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Delete Comment",
+      "status": "PASSED",
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Get All Products",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Error fetching products"
+    },
+    {
+      "name": "Get Product Details",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test product"
+    },
+    {
+      "name": "Search Products",
+      "status": "FAILED",
+      "duration": 307,
+      "error": "Error fetching products"
+    },
+    {
+      "name": "Filter Products by Category",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Error fetching products"
+    },
+    {
+      "name": "Get All Stores",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Error fetching stores"
+    },
+    {
+      "name": "Get Store Details",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test store"
+    },
+    {
+      "name": "Get All Orders",
+      "status": "FAILED",
+      "duration": 205,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Get Order Details",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test order"
+    },
+    {
+      "name": "Update Order Status",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test order"
+    },
+    {
+      "name": "Get All Gifts",
+      "status": "FAILED",
+      "duration": 205,
+      "error": "Error fetching gifts"
+    },
+    {
+      "name": "Get Featured Gifts",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Error fetching gifts"
+    },
+    {
+      "name": "Get Gift Categories",
+      "status": "PASSED",
+      "duration": 205,
+      "error": null
+    },
+    {
+      "name": "Get All Sounds",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Cannot call `sounds.find()` before initial connection is complete if `bufferCommands = false`. Make sure you `await mongoose.connect()` if you have `bufferCommands = false`."
+    },
+    {
+      "name": "Get Trending Sounds",
+      "status": "FAILED",
+      "duration": 205,
+      "error": "Cannot call `sounds.find()` before initial connection is complete if `bufferCommands = false`. Make sure you `await mongoose.connect()` if you have `bufferCommands = false`."
+    },
+    {
+      "name": "Search Sounds",
+      "status": "FAILED",
+      "duration": 205,
+      "error": "Cannot call `sounds.find()` before initial connection is complete if `bufferCommands = false`. Make sure you `await mongoose.connect()` if you have `bufferCommands = false`."
+    },
+    {
+      "name": "Get Active Stories",
+      "status": "FAILED",
+      "duration": 143,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Get User Stories",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user"
+    },
+    {
+      "name": "Get User Wallet",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user"
+    },
+    {
+      "name": "Get Wallet Transactions",
+      "status": "FAILED",
+      "duration": 0,
+      "error": "No test user"
+    },
+    {
+      "name": "Get All Transactions (Admin)",
+      "status": "FAILED",
+      "duration": 163,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Get User Notifications",
+      "status": "PASSED",
+      "duration": 206,
+      "error": null
+    },
+    {
+      "name": "Send Notification (Admin)",
+      "status": "PASSED",
+      "duration": 204,
+      "error": null
+    },
+    {
+      "name": "Get All Coupons",
+      "status": "FAILED",
+      "duration": 306,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Validate Coupon",
+      "status": "PASSED",
+      "duration": 206,
+      "error": null
+    },
+    {
+      "name": "Get Active Banners",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Failed to fetch active banners"
+    },
+    {
+      "name": "Get Banners by Position",
+      "status": "PASSED",
+      "duration": 206,
+      "error": null
+    },
+    {
+      "name": "Get All Translations",
+      "status": "FAILED",
+      "duration": 203,
+      "error": "Cannot call `translations.find()` before initial connection is complete if `bufferCommands = false`. Make sure you `await mongoose.connect()` if you have `bufferCommands = false`."
+    },
+    {
+      "name": "Get Translations by Language",
+      "status": "FAILED",
+      "duration": 205,
+      "error": "Cannot call `translations.find()` before initial connection is complete if `bufferCommands = false`. Make sure you `await mongoose.connect()` if you have `bufferCommands = false`."
+    },
+    {
+      "name": "Get Supported Languages",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Cannot call `languages.find()` before initial connection is complete if `bufferCommands = false`. Make sure you `await mongoose.connect()` if you have `bufferCommands = false`."
+    },
+    {
+      "name": "Get Dashboard Stats",
+      "status": "FAILED",
+      "duration": 204,
+      "error": "Access denied. No token provided."
+    },
+    {
+      "name": "Get Platform Analytics",
+      "status": "PASSED",
+      "duration": 204,
+      "error": null
+    },
+    {
+      "name": "Get User Analytics",
+      "status": "PASSED",
+      "duration": 205,
+      "error": null
+    },
+    {
+      "name": "Get Revenue Analytics",
+      "status": "PASSED",
+      "duration": 205,
+      "error": null
+    },
+    {
+      "name": "Get All Categories",
+      "status": "FAILED",
+      "duration": 205,
+      "error": "Failed to fetch categories"
+    },
+    {
+      "name": "Get Platform Settings",
+      "status": "FAILED",
+      "duration": 205,
+      "error": "Failed to fetch settings"
+    },
+    {
+      "name": "Update Platform Settings",
+      "status": "PASSED",
+      "duration": 204,
+      "error": null
+    }
+  ],
+  "startTime": 1762125108808,
+  "endTime": 1762125119795
+}

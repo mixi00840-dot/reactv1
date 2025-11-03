@@ -133,16 +133,9 @@ const app = express();
 // Trust proxy setting (fixes rate limiting warning)
 app.set('trust proxy', 1);
 
-// Connect to MongoDB asynchronously
-(async () => {
-  try {
-    await connectDB();
-    console.log('✅ Database connection established');
-  } catch (error) {
-    console.error('❌ Failed to connect to database:', error.message);
-    // Don't exit here, let the server start anyway for basic health checks
-  }
-})();
+// Initialize Firestore client (no async connection needed)
+const db = connectDB; // connectDB is now the Firestore instance
+console.log('✅ Firestore client ready');
 
 // Security middleware
 app.use(helmet());
