@@ -1,14 +1,24 @@
 const { Firestore } = require('@google-cloud/firestore');
+const admin = require('firebase-admin');
 
 /**
- * Initialize Firestore client
+ * Initialize Firebase Admin SDK
  * In Cloud Run, this automatically uses the service account credentials
- * and project ID from the environment.
+ * For local development, set GOOGLE_APPLICATION_CREDENTIALS environment variable
  */
-const db = new Firestore({
-  // projectId is automatically detected in Google Cloud environments
-  // For local development, set GOOGLE_APPLICATION_CREDENTIALS or FIRESTORE_EMULATOR_HOST
-});
+if (!admin.apps.length) {
+  admin.initializeApp({
+    // projectId is automatically detected in Google Cloud environments
+    // credential: admin.credential.applicationDefault() is used by default
+  });
+  console.log('✅ Firebase Admin SDK initialized');
+}
+
+/**
+ * Initialize Firestore client from Firebase Admin
+ * This allows both Firebase Auth and Firestore to share the same credentials
+ */
+const db = admin.firestore();
 
 console.log('✅ Firestore client initialized');
 
