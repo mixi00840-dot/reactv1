@@ -131,6 +131,9 @@ const allowedOrigins = [
   'http://localhost:3001',
   'https://localhost:3001',
   process.env.FRONTEND_URL,
+  // Allow Firebase Hosting domains
+  /^https:\/\/.*\.web\.app$/,
+  /^https:\/\/.*\.firebaseapp\.com$/,
   // Allow any Netlify domain for admin dashboard
   /^https:\/\/.*\.netlify\.app$/,
   // Allow any Vercel domain
