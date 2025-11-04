@@ -95,24 +95,30 @@ try {
   aiRoutes = require('./routes/ai');
   monetizationRoutes = require('./routes/monetization');
   uploadRoutes = require('./routes/upload');
-// Phase 11-15 routes (use fallback)
-const fallback5 = createFallbackRouter();
-const messagingRoutes = fallback5;
-const storiesRoutes = fallback5;
-const commentsRoutes = fallback5;
-const notificationsRoutes = fallback5;
-const pkBattlesRoutes = fallback5;
-const multiHostRoutes = fallback5;
-const liveShoppingRoutes = fallback5;
-const streamFiltersRoutes = fallback5;
-const webrtcRoutes = fallback5;
-const aiRoutes = fallback5;
-const monetizationRoutes = fallback5;
-const uploadRoutes = fallback5;
-const soundsRoutes = fallback5;
-const giftsRoutes = fallback5;
-const walletsRoutes = fallback5;
-const activityRoutes = fallback5;
+  soundsRoutes = require('./routes/sounds');
+  giftsRoutes = require('./routes/gifts');
+  walletsRoutes = require('./routes/wallets');
+  activityRoutes = require('./routes/activity');
+} catch (error) {
+  console.error('⚠️  Phase 11-15 routes have issues:', error.message);
+  const fallback5 = createFallbackRouter();
+  messagingRoutes = fallback5;
+  storiesRoutes = fallback5;
+  commentsRoutes = fallback5;
+  notificationsRoutes = fallback5;
+  pkBattlesRoutes = fallback5;
+  multiHostRoutes = fallback5;
+  liveShoppingRoutes = fallback5;
+  streamFiltersRoutes = fallback5;
+  webrtcRoutes = fallback5;
+  aiRoutes = fallback5;
+  monetizationRoutes = fallback5;
+  uploadRoutes = fallback5;
+  soundsRoutes = fallback5;
+  giftsRoutes = fallback5;
+  walletsRoutes = fallback5;
+  activityRoutes = fallback5;
+}
 
 const app = express();
 
