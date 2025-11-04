@@ -253,9 +253,12 @@ router.post('/login', loginValidation, async (req, res) => {
       const authResult = await response.json();
 
       if (!response.ok || authResult.error) {
+        // Log the actual Firebase error for debugging
+        console.error('Firebase Auth Error:', JSON.stringify(authResult.error || authResult, null, 2));
         return res.status(401).json({
           success: false,
-          message: 'Invalid credentials'
+          message: 'Invalid credentials',
+          debug: process.env.NODE_ENV !== 'production' ? authResult.error : undefined
         });
       }
 
