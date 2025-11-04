@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { getDb } = require('../utils/databaseDual');
+const { getDb } = require('../utils/database');
 const MessagingService = require('../services/messagingService');
 
 /**
