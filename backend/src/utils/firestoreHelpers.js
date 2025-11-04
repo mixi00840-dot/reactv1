@@ -3,7 +3,7 @@
  * Reusable functions for common Firestore operations to replace MongoDB models
  */
 
-const { getDb } = require('./database');
+const db = require('./database');
 const { FieldValue } = require('@google-cloud/firestore');
 
 /**
@@ -14,7 +14,7 @@ const { FieldValue } = require('@google-cloud/firestore');
  * @returns {Promise<object>} Created document with ID
  */
 async function createDocument(collectionName, data, docId = null) {
-  const db = getDb();
+  // Using imported db instance
   const docData = {
     ...data,
     createdAt: FieldValue.serverTimestamp(),
@@ -40,7 +40,7 @@ async function createDocument(collectionName, data, docId = null) {
  * @returns {Promise<object|null>} Document data or null
  */
 async function findById(collectionName, docId) {
-  const db = getDb();
+  // Using imported db instance
   const docRef = db.collection(collectionName).doc(docId);
   const snapshot = await docRef.get();
   
@@ -59,7 +59,7 @@ async function findById(collectionName, docId) {
  * @returns {Promise<array>} Array of documents
  */
 async function findDocuments(collectionName, filters = {}, options = {}) {
-  const db = getDb();
+  // Using imported db instance
   let query = db.collection(collectionName);
 
   // Apply filters
@@ -108,7 +108,7 @@ async function findOne(collectionName, filters = {}) {
  * @returns {Promise<object>} Updated document
  */
 async function updateById(collectionName, docId, updates) {
-  const db = getDb();
+  // Using imported db instance
   const docRef = db.collection(collectionName).doc(docId);
   
   const updateData = {
@@ -129,7 +129,7 @@ async function updateById(collectionName, docId, updates) {
  * @returns {Promise<boolean>} Success status
  */
 async function deleteById(collectionName, docId) {
-  const db = getDb();
+  // Using imported db instance
   await db.collection(collectionName).doc(docId).delete();
   return true;
 }
@@ -141,7 +141,7 @@ async function deleteById(collectionName, docId) {
  * @returns {Promise<number>} Document count
  */
 async function countDocuments(collectionName, filters = {}) {
-  const db = getDb();
+  // Using imported db instance
   let query = db.collection(collectionName);
 
   Object.entries(filters).forEach(([field, value]) => {
@@ -162,7 +162,7 @@ async function countDocuments(collectionName, filters = {}) {
  * @returns {Promise<array>} Array of documents
  */
 async function advancedQuery(collectionName, conditions = [], options = {}) {
-  const db = getDb();
+  // Using imported db instance
   let query = db.collection(collectionName);
 
   // Apply conditions
@@ -195,7 +195,7 @@ async function advancedQuery(collectionName, conditions = [], options = {}) {
  * @returns {Promise<array>} Created documents with IDs
  */
 async function batchCreate(collectionName, documents) {
-  const db = getDb();
+  // Using imported db instance
   const batch = db.batch();
   const refs = [];
 
@@ -229,7 +229,7 @@ async function batchCreate(collectionName, documents) {
  * @returns {Promise<boolean>} Success status
  */
 async function batchUpdate(collectionName, updates) {
-  const db = getDb();
+  // Using imported db instance
   const batch = db.batch();
 
   updates.forEach(({ id, data }) => {
@@ -251,7 +251,7 @@ async function batchUpdate(collectionName, updates) {
  * @returns {Promise<boolean>} Success status
  */
 async function batchDelete(collectionName, docIds) {
-  const db = getDb();
+  // Using imported db instance
   const batch = db.batch();
 
   docIds.forEach(id => {
@@ -274,7 +274,7 @@ async function paginatedQuery(collectionName, filters = {}, pagination = {}) {
   const { page = 1, limit = 10, orderBy = 'createdAt', direction = 'desc' } = pagination;
   const offset = (page - 1) * limit;
 
-  const db = getDb();
+  // Using imported db instance
   let query = db.collection(collectionName);
 
   // Apply filters
@@ -314,7 +314,7 @@ async function paginatedQuery(collectionName, filters = {}, pagination = {}) {
  * @returns {Promise<boolean>} Success status
  */
 async function incrementField(collectionName, docId, field, amount = 1) {
-  const db = getDb();
+  // Using imported db instance
   const docRef = db.collection(collectionName).doc(docId);
   
   await docRef.update({
@@ -334,7 +334,7 @@ async function incrementField(collectionName, docId, field, amount = 1) {
  * @returns {Promise<boolean>} Success status
  */
 async function arrayAdd(collectionName, docId, field, value) {
-  const db = getDb();
+  // Using imported db instance
   const docRef = db.collection(collectionName).doc(docId);
   
   await docRef.update({
@@ -354,7 +354,7 @@ async function arrayAdd(collectionName, docId, field, value) {
  * @returns {Promise<boolean>} Success status
  */
 async function arrayRemove(collectionName, docId, field, value) {
-  const db = getDb();
+  // Using imported db instance
   const docRef = db.collection(collectionName).doc(docId);
   
   await docRef.update({
@@ -371,7 +371,7 @@ async function arrayRemove(collectionName, docId, field, value) {
  * @returns {Promise<any>} Transaction result
  */
 async function runTransaction(callback) {
-  const db = getDb();
+  // Using imported db instance
   return await db.runTransaction(callback);
 }
 
@@ -382,7 +382,7 @@ async function runTransaction(callback) {
  * @returns {Promise<boolean>} Exists status
  */
 async function documentExists(collectionName, docId) {
-  const db = getDb();
+  // Using imported db instance
   const snapshot = await db.collection(collectionName).doc(docId).get();
   return snapshot.exists;
 }
