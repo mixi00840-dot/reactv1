@@ -170,6 +170,147 @@ class SettingsController {
       res.status(500).json({ success: false, message: 'Error bulk updating settings', error: error.message });
     }
   }
+
+  // Get settings grouped by category
+  async getSettingsGrouped(req, res) {
+    try {
+      const settings = await findDocuments('settings', {});
+      
+      // Group by category
+      const grouped = settings.reduce((acc, setting) => {
+        const category = setting.category || 'general';
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(setting);
+        return acc;
+      }, {});
+
+      res.json({ success: true, data: { settings: grouped } });
+    } catch (error) {
+      console.error('Error fetching grouped settings:', error);
+      res.status(500).json({ success: false, message: 'Error fetching grouped settings', error: error.message });
+    }
+  }
+
+  // Update setting (alias for upsertSetting)
+  async updateSetting(req, res) {
+    return this.upsertSetting(req, res);
+  }
+
+  // Get settings version (for cache management)
+  async getSettingsVersion(req, res) {
+    try {
+      // Get the most recently updated setting
+      const settings = await findDocuments('settings', {});
+      const latestUpdate = settings.reduce((latest, setting) => {
+        const updatedAt = new Date(setting.updatedAt || setting.createdAt).getTime();
+        return updatedAt > latest ? updatedAt : latest;
+      }, 0);
+
+      res.json({ 
+        success: true, 
+        data: { 
+          version: latestUpdate,
+          timestamp: new Date(latestUpdate).toISOString()
+        } 
+      });
+    } catch (error) {
+      console.error('Error fetching settings version:', error);
+      res.status(500).json({ success: false, message: 'Error fetching settings version', error: error.message });
+    }
+  }
+
+  // Export all settings
+  async exportSettings(req, res) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Admin access required' });
+      }
+
+      const settings = await findDocuments('settings', {});
+      
+      const exportData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        exportedBy: req.user.id,
+        settings: settings.map(s => ({
+          key: s.key,
+          value: s.value,
+          category: s.category,
+          description: s.description,
+          dataType: s.dataType,
+          isPublic: s.isPublic
+        }))
+      };
+
+      res.json({ success: true, data: exportData });
+    } catch (error) {
+      console.error('Error exporting settings:', error);
+      res.status(500).json({ success: false, message: 'Error exporting settings', error: error.message });
+    }
+  }
+
+  // Import settings
+  async importSettings(req, res) {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+        return res.status(403).json({ success: false, message: 'SuperAdmin access required' });
+      }
+
+      const { settings, overwrite = false } = req.body;
+
+      if (!settings || !Array.isArray(settings)) {
+        return res.status(400).json({ success: false, message: 'Settings array is required' });
+      }
+
+      const results = {
+        imported: 0,
+        skipped: 0,
+        failed: 0,
+        errors: []
+      };
+
+      for (const setting of settings) {
+        try {
+          const { key, category = 'general' } = setting;
+          const existing = await findOne('settings', { key, category });
+
+          if (existing && !overwrite) {
+            results.skipped++;
+            continue;
+          }
+
+          const settingData = {
+            ...setting,
+            updatedAt: new Date().toISOString(),
+            importedBy: req.user.id
+          };
+
+          if (existing) {
+            await updateById('settings', existing.id, settingData);
+          } else {
+            settingData.createdAt = new Date().toISOString();
+            await createDocument('settings', settingData);
+          }
+
+          results.imported++;
+        } catch (error) {
+          results.failed++;
+          results.errors.push({ key: setting.key, error: error.message });
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Import completed: ${results.imported} imported, ${results.skipped} skipped, ${results.failed} failed`,
+        data: results
+      });
+    } catch (error) {
+      console.error('Error importing settings:', error);
+      res.status(500).json({ success: false, message: 'Error importing settings', error: error.message });
+    }
+  }
 }
 
 module.exports = new SettingsController();

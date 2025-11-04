@@ -241,6 +241,231 @@ class CMSController {
       res.status(500).json({ success: false, message: 'Error activating theme', error: error.message });
     }
   }
+
+  // Get single banner
+  async getBanner(req, res) {
+    try {
+      const { id } = req.params;
+      const banner = await findById('banners', id);
+      if (!banner) {
+        return res.status(404).json({ success: false, message: 'Banner not found' });
+      }
+      res.json({ success: true, data: { banner } });
+    } catch (error) {
+      console.error('Error fetching banner:', error);
+      res.status(500).json({ success: false, message: 'Error fetching banner', error: error.message });
+    }
+  }
+
+  // Get active banners (public)
+  async getActiveBanners(req, res) {
+    try {
+      const { placement } = req.query;
+      const filters = { status: 'active' };
+      if (placement) filters.placement = placement;
+
+      const now = new Date().toISOString();
+      const banners = await findDocuments('banners', filters);
+      
+      // Filter by date range
+      const activeBanners = banners.filter(b => 
+        (!b.startDate || b.startDate <= now) && 
+        (!b.endDate || b.endDate >= now)
+      );
+
+      res.json({ success: true, data: { banners: activeBanners, total: activeBanners.length } });
+    } catch (error) {
+      console.error('Error fetching active banners:', error);
+      res.status(500).json({ success: false, message: 'Error fetching banners', error: error.message });
+    }
+  }
+
+  // Record banner impression
+  async recordImpression(req, res) {
+    try {
+      const { id } = req.params;
+      await incrementField('banners', id, 'impressions', 1);
+      res.json({ success: true, message: 'Impression recorded' });
+    } catch (error) {
+      console.error('Error recording impression:', error);
+      res.status(500).json({ success: false, message: 'Error recording impression', error: error.message });
+    }
+  }
+
+  // Record banner click
+  async recordClick(req, res) {
+    try {
+      const { id } = req.params;
+      await incrementField('banners', id, 'clicks', 1);
+      res.json({ success: true, message: 'Click recorded' });
+    } catch (error) {
+      console.error('Error recording click:', error);
+      res.status(500).json({ success: false, message: 'Error recording click', error: error.message });
+    }
+  }
+
+  // Get page by slug
+  async getPageBySlug(req, res) {
+    try {
+      const { slug } = req.params;
+      const page = await findOne('pages', { slug });
+      if (!page) {
+        return res.status(404).json({ success: false, message: 'Page not found' });
+      }
+      
+      // Increment view count
+      await incrementField('pages', page.id, 'views', 1);
+      
+      res.json({ success: true, data: { page } });
+    } catch (error) {
+      console.error('Error fetching page:', error);
+      res.status(500).json({ success: false, message: 'Error fetching page', error: error.message });
+    }
+  }
+
+  // Publish page
+  async publishPage(req, res) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Admin access required' });
+      }
+
+      const { id } = req.params;
+      await updateById('pages', id, { 
+        status: 'published',
+        publishedAt: new Date().toISOString()
+      });
+
+      res.json({ success: true, message: 'Page published successfully' });
+    } catch (error) {
+      console.error('Error publishing page:', error);
+      res.status(500).json({ success: false, message: 'Error publishing page', error: error.message });
+    }
+  }
+
+  // Get single theme
+  async getTheme(req, res) {
+    try {
+      const { id } = req.params;
+      const theme = await findById('themes', id);
+      if (!theme) {
+        return res.status(404).json({ success: false, message: 'Theme not found' });
+      }
+      res.json({ success: true, data: { theme } });
+    } catch (error) {
+      console.error('Error fetching theme:', error);
+      res.status(500).json({ success: false, message: 'Error fetching theme', error: error.message });
+    }
+  }
+
+  // Get theme CSS
+  async getThemeCSS(req, res) {
+    try {
+      const { id } = req.params;
+      const theme = await findById('themes', id);
+      if (!theme) {
+        return res.status(404).json({ success: false, message: 'Theme not found' });
+      }
+      
+      // Generate CSS from theme config
+      const css = this.generateThemeCSS(theme.config || {});
+      res.type('text/css').send(css);
+    } catch (error) {
+      console.error('Error fetching theme CSS:', error);
+      res.status(500).json({ success: false, message: 'Error fetching theme CSS', error: error.message });
+    }
+  }
+
+  // Create theme
+  async createTheme(req, res) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Admin access required' });
+      }
+
+      const themeData = {
+        ...req.body,
+        isActive: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const themeId = await createDocument('themes', themeData);
+      const theme = await findById('themes', themeId);
+
+      res.status(201).json({ success: true, data: { theme } });
+    } catch (error) {
+      console.error('Error creating theme:', error);
+      res.status(500).json({ success: false, message: 'Error creating theme', error: error.message });
+    }
+  }
+
+  // Update theme
+  async updateTheme(req, res) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Admin access required' });
+      }
+
+      const { id } = req.params;
+      await updateById('themes', id, {
+        ...req.body,
+        updatedAt: new Date().toISOString()
+      });
+
+      const theme = await findById('themes', id);
+      res.json({ success: true, data: { theme } });
+    } catch (error) {
+      console.error('Error updating theme:', error);
+      res.status(500).json({ success: false, message: 'Error updating theme', error: error.message });
+    }
+  }
+
+  // Delete theme
+  async deleteTheme(req, res) {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+        return res.status(403).json({ success: false, message: 'Admin access required' });
+      }
+
+      const { id } = req.params;
+      const theme = await findById('themes', id);
+      
+      if (theme && theme.isActive) {
+        return res.status(400).json({ success: false, message: 'Cannot delete active theme' });
+      }
+
+      await deleteById('themes', id);
+      res.json({ success: true, message: 'Theme deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting theme:', error);
+      res.status(500).json({ success: false, message: 'Error deleting theme', error: error.message });
+    }
+  }
+
+  // Helper: Generate CSS from theme config
+  generateThemeCSS(config) {
+    const { colors = {}, fonts = {}, spacing = {} } = config;
+    
+    let css = ':root {\n';
+    
+    // Colors
+    if (colors.primary) css += `  --color-primary: ${colors.primary};\n`;
+    if (colors.secondary) css += `  --color-secondary: ${colors.secondary};\n`;
+    if (colors.accent) css += `  --color-accent: ${colors.accent};\n`;
+    if (colors.background) css += `  --color-background: ${colors.background};\n`;
+    if (colors.text) css += `  --color-text: ${colors.text};\n`;
+    
+    // Fonts
+    if (fonts.primary) css += `  --font-primary: ${fonts.primary};\n`;
+    if (fonts.secondary) css += `  --font-secondary: ${fonts.secondary};\n`;
+    
+    // Spacing
+    if (spacing.unit) css += `  --spacing-unit: ${spacing.unit};\n`;
+    
+    css += '}\n';
+    return css;
+  }
 }
 
 module.exports = new CMSController();
