@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { getDb } = require('../utils/databaseDual');
 const MessagingService = require('../services/messagingService');
 
 /**
@@ -18,13 +18,15 @@ const socketAuth = async (socket, next) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
+    const db = getDb();
+    const userDoc = await db.collection('users').doc(decoded.userId).get();
     
-    if (!user) {
+    if (!userDoc.exists) {
       return next(new Error('User not found'));
     }
     
-    socket.userId = user._id.toString();
+    const user = { id: userDoc.id, ...userDoc.data() };
+    socket.userId = user.id;
     socket.user = user;
     next();
     
