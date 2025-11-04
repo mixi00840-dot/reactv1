@@ -14,69 +14,67 @@ const userRoutes = require('./routes/users');
 const sellerRoutes = require('./routes/sellers');
 const adminRoutes = require('./routes/admin');
 
-// E-commerce routes with error handling
-let productRoutes, storeRoutes, categoryRoutes, cartRoutes, orderRoutes, paymentRoutes, couponRoutes, shippingRoutes, customerServiceRoutes, analyticsRoutes;
+// Create fallback router for unmigrated features
+const createFallbackRouter = () => {
+  const fallbackRouter = express.Router();
+  fallbackRouter.all('*', (req, res) => {
+    res.status(503).json({ success: false, message: 'Feature being migrated to Firestore' });
+  });
+  return fallbackRouter;
+};
+
+// E-commerce routes (Firestore - Phase 2 complete)
+let productRoutes, storeRoutes, orderRoutes;
 try {
   productRoutes = require('./routes/products');
   storeRoutes = require('./routes/stores');
-  categoryRoutes = require('./routes/categories');
-  cartRoutes = require('./routes/cart');
   orderRoutes = require('./routes/orders');
-  paymentRoutes = require('./routes/payments');
-  couponRoutes = require('./routes/coupons');
-  shippingRoutes = require('./routes/shipping');
-  customerServiceRoutes = require('./routes/customerService');
-  analyticsRoutes = require('./routes/analytics');
 } catch (error) {
-  console.error('Error loading e-commerce routes:', error.message);
-  const express = require('express');
-  const fallbackRouter = express.Router();
-  fallbackRouter.get('*', (req, res) => {
-    res.status(503).json({ success: false, message: 'E-commerce service temporarily unavailable' });
-  });
-  productRoutes = storeRoutes = categoryRoutes = cartRoutes = orderRoutes = paymentRoutes = couponRoutes = shippingRoutes = customerServiceRoutes = analyticsRoutes = fallbackRouter;
+  console.error('⚠️  E-commerce routes have missing methods:', error.message);
+  const fallback = createFallbackRouter();
+  productRoutes = storeRoutes = orderRoutes = fallback;
 }
 
-// Settings & Audit routes (wrapped in try-catch for Firestore migration)
-let settingsRoutes, auditLogsRoutes, languageRoutes, translationRoutes;
-let streamProviderRoutes, livestreamRoutes, cmsRoutes, bannersRoutes;
-let supportersRoutes, advancedAnalyticsRoutes, contentRoutes, transcodeRoutes;
-let metricsRoutes, moderationRoutes, rightsRoutes, recommendationRoutes;
-let feedRoutes, trendingRoutes, playerRoutes;
+// E-commerce routes still using MongoDB (will use fallback)
+const fallback2 = createFallbackRouter();
+const categoryRoutes = fallback2;
+const cartRoutes = fallback2;
+const paymentRoutes = fallback2;
+const couponRoutes = fallback2;
+const shippingRoutes = fallback2;
+const customerServiceRoutes = fallback2;
+const analyticsRoutes = fallback2;
 
+// CMS & Settings routes (Firestore - Phase 2 complete)
+let settingsRoutes, cmsRoutes, bannersRoutes;
 try {
   settingsRoutes = require('./routes/settings');
-  auditLogsRoutes = require('./routes/auditLogs');
-  languageRoutes = require('./routes/languages');
-  translationRoutes = require('./routes/translations');
-  streamProviderRoutes = require('./routes/streamProviders');
-  livestreamRoutes = require('./routes/livestreams');
   cmsRoutes = require('./routes/cms');
   bannersRoutes = require('./routes/banners');
-  supportersRoutes = require('./routes/supporters');
-  advancedAnalyticsRoutes = require('./routes/advancedAnalytics');
-  contentRoutes = require('./routes/content');
-  transcodeRoutes = require('./routes/transcode');
-  metricsRoutes = require('./routes/metrics');
-  moderationRoutes = require('./routes/moderation');
-  rightsRoutes = require('./routes/rights');
-  recommendationRoutes = require('./routes/recommendations');
-  feedRoutes = require('./routes/feed');
-  trendingRoutes = require('./routes/trending');
-  playerRoutes = require('./routes/player');
 } catch (error) {
-  console.error('⚠️  Some routes use MongoDB models (not yet migrated to Firestore):', error.message);
-  const express = require('express');
-  const fallbackRouter = express.Router();
-  fallbackRouter.all('*', (req, res) => {
-    res.status(503).json({ success: false, message: 'This feature is being migrated to Firestore. Authentication endpoints are available.' });
-  });
-  settingsRoutes = auditLogsRoutes = languageRoutes = translationRoutes = fallbackRouter;
-  streamProviderRoutes = livestreamRoutes = cmsRoutes = bannersRoutes = fallbackRouter;
-  supportersRoutes = advancedAnalyticsRoutes = contentRoutes = transcodeRoutes = fallbackRouter;
-  metricsRoutes = moderationRoutes = rightsRoutes = recommendationRoutes = fallbackRouter;
-  feedRoutes = trendingRoutes = playerRoutes = fallbackRouter;
+  console.error('⚠️  CMS/Settings routes have issues:', error.message);
+  const fallback3 = createFallbackRouter();
+  settingsRoutes = cmsRoutes = bannersRoutes = fallback3;
 }
+
+// Content & Advanced features still using MongoDB (will use fallback)
+const fallback4 = createFallbackRouter();
+const auditLogsRoutes = fallback4;
+const languageRoutes = fallback4;
+const translationRoutes = fallback4;
+const streamProviderRoutes = fallback4;
+const livestreamRoutes = fallback4;
+const supportersRoutes = fallback4;
+const advancedAnalyticsRoutes = fallback4;
+const contentRoutes = fallback4;
+const transcodeRoutes = fallback4;
+const metricsRoutes = fallback4;
+const moderationRoutes = fallback4;
+const rightsRoutes = fallback4;
+const recommendationRoutes = fallback4;
+const feedRoutes = fallback4;
+const trendingRoutes = fallback4;
+const playerRoutes = fallback4;
 
 // Phase 11-15 routes (wrapped for Firestore migration)
 let messagingRoutes, storiesRoutes, commentsRoutes, notificationsRoutes;
@@ -97,39 +95,33 @@ try {
   aiRoutes = require('./routes/ai');
   monetizationRoutes = require('./routes/monetization');
   uploadRoutes = require('./routes/upload');
-  soundsRoutes = require('./routes/sounds');
-  giftsRoutes = require('./routes/gifts');
-  walletsRoutes = require('./routes/wallets');
-  activityRoutes = require('./routes/activity');
-} catch (error) {
-  console.error('⚠️  Advanced feature routes use MongoDB models:', error.message);
-  const express = require('express');
-  const fallbackRouter = express.Router();
-  fallbackRouter.all('*', (req, res) => {
-    res.status(503).json({ success: false, message: 'This feature is being migrated to Firestore.' });
-  });
-  messagingRoutes = storiesRoutes = commentsRoutes = notificationsRoutes = fallbackRouter;
-  pkBattlesRoutes = multiHostRoutes = liveShoppingRoutes = streamFiltersRoutes = webrtcRoutes = fallbackRouter;
-  aiRoutes = monetizationRoutes = uploadRoutes = soundsRoutes = giftsRoutes = walletsRoutes = fallbackRouter;
-  activityRoutes = fallbackRouter;
-}
+// Phase 11-15 routes (use fallback)
+const fallback5 = createFallbackRouter();
+const messagingRoutes = fallback5;
+const storiesRoutes = fallback5;
+const commentsRoutes = fallback5;
+const notificationsRoutes = fallback5;
+const pkBattlesRoutes = fallback5;
+const multiHostRoutes = fallback5;
+const liveShoppingRoutes = fallback5;
+const streamFiltersRoutes = fallback5;
+const webrtcRoutes = fallback5;
+const aiRoutes = fallback5;
+const monetizationRoutes = fallback5;
+const uploadRoutes = fallback5;
+const soundsRoutes = fallback5;
+const giftsRoutes = fallback5;
+const walletsRoutes = fallback5;
+const activityRoutes = fallback5;
 
 const app = express();
 
 // Trust proxy setting (fixes rate limiting warning)
 app.set('trust proxy', 1);
 
-// Initialize Firestore client (no async connection needed)
-const db = connectDB; // connectDB is now the Firestore instance
-console.log('✅ Firestore client ready');
-
-// Security middleware
-app.use(helmet());
-
-// CORS configuration to allow multiple origins
+// CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://localhost:3000',
   'http://localhost:3001',
   'https://localhost:3001',
   process.env.FRONTEND_URL,
