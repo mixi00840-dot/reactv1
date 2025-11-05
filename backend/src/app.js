@@ -131,13 +131,13 @@ try {
   soundsRoutes = createFallbackRouter();
 }
 
-// Load other critical admin routes
-const moderationRoutes = require('./routes/moderation-firestore');
-const settingsRoutes2 = require('./routes/settings-firestore');
-const transcodeRoutes2 = require('./routes/transcode-firestore');
-const trendingRoutes2 = require('./routes/trending-firestore');
-const analyticsRoutes2 = require('./routes/analytics-firestore');
-const metricsRoutes2 = require('./routes/metrics-firestore');
+// Load other critical admin routes (reuse existing variables, don't redeclare)
+moderationRoutes = require('./routes/moderation-firestore');
+settingsRoutes = require('./routes/settings-firestore');
+transcodeRoutes = require('./routes/transcode-firestore');
+trendingRoutes = require('./routes/trending-firestore');
+analyticsRoutes2 = require('./routes/analytics-firestore');
+metricsRoutes = require('./routes/metrics-firestore');
 console.log('✅ Admin dashboard routes loaded (Firestore stubs)');
 
 // Routes still needing full migration (return fallback 503)
