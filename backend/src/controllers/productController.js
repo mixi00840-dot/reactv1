@@ -571,6 +571,46 @@ class ProductController {
       });
     }
   }
+
+  // Get global product stats for admin dashboard
+  async getGlobalStats(req, res) {
+    try {
+      const { findDocuments } = require('../utils/firestoreHelpers');
+      const products = await findDocuments('products', {}, { limit: 10000 });
+
+      let total = 0;
+      let active = 0;
+      let inactive = 0;
+      let outOfStock = 0;
+      let totalValue = 0;
+
+      for (const p of products) {
+        total += 1;
+        if (p.status === 'active') active += 1;
+        if (p.status === 'inactive') inactive += 1;
+        const qty = p.inventory?.stockQuantity ?? p.inventory ?? 0;
+        if ((p.inventory?.trackInventory ? qty : 0) <= 0) outOfStock += 1;
+        const price = p.pricing?.basePrice ?? p.price ?? 0;
+        totalValue += price * (qty || 0);
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          stats: {
+            total,
+            active,
+            inactive,
+            outOfStock,
+            totalValue: Number(totalValue.toFixed(2))
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching global product stats:', error);
+      return res.status(500).json({ success: false, message: 'Error fetching product stats' });
+    }
+  }
 }
 
 module.exports = new ProductController();

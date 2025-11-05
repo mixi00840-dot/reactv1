@@ -453,6 +453,30 @@ class OrderController {
       });
     }
   }
+
+  // Get global order stats for admin dashboard
+  async getGlobalStats(req, res) {
+    try {
+      const orders = await findDocuments('orders', {}, { limit: 10000 });
+      const stats = {
+        total: orders.length,
+        byStatus: {},
+        revenue: 0
+      };
+
+      for (const o of orders) {
+        const s = o.status || 'unknown';
+        stats.byStatus[s] = (stats.byStatus[s] || 0) + 1;
+        const total = o.pricing?.total ?? o.totals?.finalTotal ?? 0;
+        stats.revenue += total;
+      }
+
+      return res.json({ success: true, data: { stats } });
+    } catch (error) {
+      console.error('Error fetching global order stats:', error);
+      return res.status(500).json({ success: false, message: 'Error fetching order stats' });
+    }
+  }
 }
 
 module.exports = new OrderController();

@@ -430,14 +430,16 @@ router.get('/applications', authMiddleware, async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
     
-    // Build query
+    // Build query with fallback ordering to avoid composite index issues
     let query = db.collection('sellerApplications');
     
-    if (status) {
+    const hasStatus = Boolean(status);
+    if (hasStatus) {
       query = query.where('status', '==', status);
+      // Avoid orderBy when using status filter to prevent composite index requirement
+    } else {
+      query = query.orderBy('createdAt', 'desc');
     }
-    
-    query = query.orderBy('createdAt', 'desc');
     
     // Get total count
     const countSnapshot = await query.get();
