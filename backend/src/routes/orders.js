@@ -191,6 +191,12 @@ router.get('/',
   orderController.getOrders
 );
 
+// GET /api/orders/stats - Global order stats (admin dashboard)
+router.get('/stats',
+  authMiddleware,
+  orderController.getGlobalStats
+);
+
 // GET /api/orders/analytics - Get order analytics (seller/admin only)
 router.get('/analytics',
   authMiddleware,

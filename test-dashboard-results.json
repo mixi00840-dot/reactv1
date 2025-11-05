@@ -1,0 +1,628 @@
+﻿[
+    {
+        "Scenario":  "Basic Health",
+        "Method":  "GET",
+        "Response":  {
+                         "status":  "ok",
+                         "message":  "Mixillo API is running",
+                         "timestamp":  "2025-11-05T13:02:18.985Z",
+                         "environment":  "production",
+                         "uptime":  27.365657297,
+                         "database":  "Firestore"
+                     },
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Server Health Check",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "/health"
+    },
+    {
+        "Scenario":  "Firestore Connection",
+        "Method":  "GET",
+        "Response":  {
+                         "status":  "ok",
+                         "database":  "Firestore",
+                         "message":  "Firestore client ready"
+                     },
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Database Health Check",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "/api/health/db"
+    },
+    {
+        "Scenario":  "API Available",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "API Root",
+        "Error":  "The remote server returned an error: (404) Not Found.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api"
+    },
+    {
+        "Scenario":  "Missing Credentials",
+        "Method":  "POST",
+        "Response":  null,
+        "Expected":  "400",
+        "Success":  false,
+        "Name":  "Login - No Credentials",
+        "Error":  "The remote server returned an error: (400) Bad Request.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/auth/login"
+    },
+    {
+        "Scenario":  "Invalid Credentials",
+        "Method":  "POST",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Login - Invalid Credentials",
+        "Error":  "The remote server returned an error: (400) Bad Request.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/auth/login"
+    },
+    {
+        "Scenario":  "Missing Registration Data",
+        "Method":  "POST",
+        "Response":  null,
+        "Expected":  "400",
+        "Success":  false,
+        "Name":  "Register - No Data",
+        "Error":  "The remote server returned an error: (400) Bad Request.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/auth/register"
+    },
+    {
+        "Scenario":  "Missing Firebase Token",
+        "Method":  "POST",
+        "Response":  null,
+        "Expected":  "400",
+        "Success":  false,
+        "Name":  "Firebase Verify - No Token",
+        "Error":  "The remote server returned an error: (400) Bad Request.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/auth/firebase/verify"
+    },
+    {
+        "Scenario":  "Fetch All Stories",
+        "Method":  "GET",
+        "Response":  {
+                         "success":  true,
+                         "data":  {
+                                      "stories":  [
+
+                                                  ],
+                                      "count":  0
+                                  }
+                     },
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Stories - Get All",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "/api/stories"
+    },
+    {
+        "Scenario":  "Limited Results",
+        "Method":  "GET",
+        "Response":  {
+                         "success":  true,
+                         "data":  {
+                                      "stories":  [
+
+                                                  ],
+                                      "count":  0
+                                  }
+                     },
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Stories - Get With Limit",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "/api/stories?limit=5"
+    },
+    {
+        "Scenario":  "Statistics",
+        "Method":  "GET",
+        "Response":  {
+                         "success":  true,
+                         "data":  {
+                                      "activeStories":  0,
+                                      "totalViews":  0,
+                                      "totalReactions":  0,
+                                      "totalReplies":  0,
+                                      "averageViews":  0
+                                  }
+                     },
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Stories - Get Stats",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "/api/stories/stats"
+    },
+    {
+        "Scenario":  "Unauthorized Feed Access",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Stories - Get Feed (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/stories/feed"
+    },
+    {
+        "Scenario":  "User Specific Stories",
+        "Method":  "GET",
+        "Response":  {
+                         "success":  true,
+                         "data":  {
+                                      "stories":  [
+
+                                                  ]
+                                  }
+                     },
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Stories - Get User Stories",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "/api/stories/user/test-user-123"
+    },
+    {
+        "Scenario":  "Unauthorized Create",
+        "Method":  "POST",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Stories - Create (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/stories"
+    },
+    {
+        "Scenario":  "Wallet Statistics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Wallets - Get Stats",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/wallets/stats"
+    },
+    {
+        "Scenario":  "Unauthorized Admin Access",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Wallets - Get All (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/wallets"
+    },
+    {
+        "Scenario":  "Unauthorized User Access",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Wallets - Get My Wallet (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/wallets/me"
+    },
+    {
+        "Scenario":  "Unauthorized Balance Check",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Wallets - Get Balance (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/wallets/balance"
+    },
+    {
+        "Scenario":  "Unauthorized Transaction History",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Wallets - Get Transactions (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/wallets/transactions"
+    },
+    {
+        "Scenario":  "Unauthorized Withdrawal",
+        "Method":  "POST",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Wallets - Create Withdrawal (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/wallets/withdraw"
+    },
+    {
+        "Scenario":  "Monetization Statistics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Monetization - Get Stats",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/monetization/stats"
+    },
+    {
+        "Scenario":  "Transaction List",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Monetization - Get Transactions",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/monetization/transactions"
+    },
+    {
+        "Scenario":  "Revenue Analytics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Monetization - Get Revenue Chart",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/monetization/revenue-chart"
+    },
+    {
+        "Scenario":  "Revenue 30 Days",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Monetization - Revenue Chart 30 Days",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/monetization/revenue-chart?days=30"
+    },
+    {
+        "Scenario":  "Moderation Statistics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Moderation - Get Stats",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/moderation/stats"
+    },
+    {
+        "Scenario":  "Moderation Queue",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Moderation - Get Queue",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/moderation/queue"
+    },
+    {
+        "Scenario":  "Pending Items Only",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Moderation - Queue Filtered",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/moderation/queue?status=pending"
+    },
+    {
+        "Scenario":  "System Settings",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Settings - Get All",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/settings"
+    },
+    {
+        "Scenario":  "Unauthorized Settings Update",
+        "Method":  "PUT",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Settings - Update (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/settings"
+    },
+    {
+        "Scenario":  "Transcode Statistics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Transcode - Get Stats",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/transcode/stats"
+    },
+    {
+        "Scenario":  "Transcode Queue",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Transcode - Get Queue",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/transcode/queue"
+    },
+    {
+        "Scenario":  "Trending Configuration",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Trending - Get Config",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/trending/config"
+    },
+    {
+        "Scenario":  "Trending History",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Trending - Get History",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/trending/history"
+    },
+    {
+        "Scenario":  "Algorithm Weights",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Trending - Get Weights",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/trending/weights"
+    },
+    {
+        "Scenario":  "Trending Thresholds",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Trending - Get Thresholds",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/trending/thresholds"
+    },
+    {
+        "Scenario":  "Sound Statistics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Sounds - Admin Stats",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/sounds/admin/stats"
+    },
+    {
+        "Scenario":  "Trending Sounds",
+        "Method":  "GET",
+        "Response":  {
+                         "success":  true,
+                         "data":  {
+                                      "sounds":  [
+
+                                                 ],
+                                      "count":  0
+                                  }
+                     },
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Sounds - Get Trending",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "/api/sounds/trending"
+    },
+    {
+        "Scenario":  "Sound Search",
+        "Method":  "GET",
+        "Response":  {
+                         "success":  true,
+                         "data":  {
+                                      "sounds":  [
+
+                                                 ],
+                                      "count":  0
+                                  }
+                     },
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Sounds - Search",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "/api/sounds/search?q=test"
+    },
+    {
+        "Scenario":  "Sound Moderation",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Sounds - Moderation Queue",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/sounds/moderation"
+    },
+    {
+        "Scenario":  "Advanced Analytics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Analytics - Advanced",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/analytics/advanced"
+    },
+    {
+        "Scenario":  "Content Analytics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Analytics - Content",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/analytics/content"
+    },
+    {
+        "Scenario":  "Storage Usage",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Analytics - Storage",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/analytics/storage"
+    },
+    {
+        "Scenario":  "System Metrics",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Metrics - Overview",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/metrics/overview"
+    },
+    {
+        "Scenario":  "Unauthorized User List",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "401",
+        "Success":  false,
+        "Name":  "Users - Get All (No Auth)",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/users"
+    },
+    {
+        "Scenario":  "User Profile",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Users - Get Profile",
+        "Error":  "The remote server returned an error: (404) Not Found.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/users/test-user-123"
+    },
+    {
+        "Scenario":  "User Search",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "200",
+        "Success":  false,
+        "Name":  "Users - Search",
+        "Error":  "The remote server returned an error: (401) Unauthorized.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/users/search?q=test"
+    },
+    {
+        "Scenario":  "OPTIONS Request",
+        "Method":  "OPTIONS",
+        "Response":  null,
+        "Expected":  "204",
+        "Success":  true,
+        "Name":  "CORS - Preflight Check",
+        "Error":  null,
+        "Status":  204,
+        "Endpoint":  "/api/health"
+    },
+    {
+        "Scenario":  "Multiple Rapid Requests",
+        "Method":  "GET",
+        "Response":  [
+                         "ERROR",
+                         "ERROR",
+                         "ERROR",
+                         "ERROR",
+                         "ERROR"
+                     ],
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Rate Limiting Test",
+        "Error":  null,
+        "Status":  "TESTED",
+        "Endpoint":  "/api/health"
+    },
+    {
+        "Scenario":  "404 Not Found",
+        "Method":  "GET",
+        "Response":  null,
+        "Expected":  "404",
+        "Success":  false,
+        "Name":  "Invalid Endpoint",
+        "Error":  "The remote server returned an error: (404) Not Found.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/nonexistent/route"
+    },
+    {
+        "Scenario":  "Method Not Allowed",
+        "Method":  "DELETE",
+        "Response":  null,
+        "Expected":  "404",
+        "Success":  false,
+        "Name":  "Invalid Method",
+        "Error":  "The remote server returned an error: (404) Not Found.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/health"
+    },
+    {
+        "Scenario":  "Bad Request Format",
+        "Method":  "POST",
+        "Response":  null,
+        "Expected":  "400",
+        "Success":  false,
+        "Name":  "Malformed Request",
+        "Error":  "The remote server returned an error: (400) Bad Request.",
+        "Status":  "ERROR",
+        "Endpoint":  "/api/auth/login"
+    },
+    {
+        "Scenario":  "Load Dashboard",
+        "Method":  "GET",
+        "Response":  "Dashboard HTML loaded successfully",
+        "Expected":  "200",
+        "Success":  true,
+        "Name":  "Dashboard Frontend",
+        "Error":  null,
+        "Status":  200,
+        "Endpoint":  "https://mixillo.web.app"
+    }
+]

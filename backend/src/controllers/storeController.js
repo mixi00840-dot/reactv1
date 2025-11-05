@@ -270,6 +270,38 @@ class StoreController {
       res.status(500).json({ success: false, message: 'Error activating store', error: error.message });
     }
   }
+
+  // Get global store stats for admin dashboard
+  async getGlobalStats(req, res) {
+    try {
+      const { findDocuments } = require('../utils/firestoreHelpers');
+      const stores = await findDocuments('stores', {}, { limit: 10000 });
+
+      let total = 0;
+      let active = 0;
+      let inactive = 0;
+      let verified = 0;
+      let featured = 0;
+
+      for (const s of stores) {
+        total += 1;
+        if (s.status === 'active') active += 1;
+        if (s.status && s.status !== 'active') inactive += 1;
+        if (s.verified) verified += 1;
+        if (s.isFeatured) featured += 1;
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          stats: { total, active, inactive, verified, featured }
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching global store stats:', error);
+      return res.status(500).json({ success: false, message: 'Error fetching store stats' });
+    }
+  }
 }
 
 module.exports = new StoreController();

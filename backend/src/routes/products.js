@@ -96,6 +96,12 @@ router.post('/search',
   productController.searchProducts
 );
 
+// GET /api/products/stats - Global product stats (admin dashboard)
+router.get('/stats',
+  optionalAuthMiddleware,
+  productController.getGlobalStats
+);
+
 // GET /api/products/:id - Get single product by ID or slug
 router.get('/:id',
   optionalAuthMiddleware,
