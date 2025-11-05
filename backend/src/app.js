@@ -11,7 +11,6 @@ const connectDB = require('./utils/database');
 // Import core routes (migrated to Firestore)
 const authRoutes = require('./routes/auth');
 const authFirebaseRoutes = require('./routes/authFirebase'); // New Firebase Auth routes
-const userRoutes = require('./routes/users');
 const sellerRoutes = require('./routes/sellers');
 const adminRoutes = require('./routes/admin');
 
@@ -260,9 +259,10 @@ app.get('/api/health/db', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes); // Legacy JWT auth (for backward compatibility)
 app.use('/api/auth/firebase', authFirebaseRoutes); // New Firebase Auth routes
-app.use('/api/users', userRoutes);
+app.use('/api/users', require('./routes/users-firestore')); // Public user routes
 app.use('/api/sellers', sellerRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/users', require('./routes/admin/users')); // Admin user management
 
 // E-commerce API routes
 app.use('/api/products', productRoutes);
