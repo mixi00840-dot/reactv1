@@ -42,7 +42,7 @@ import {
   AccessTime as PriorityIcon,
   Assignment as TicketIcon,
 } from '@mui/icons-material';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import toast from 'react-hot-toast';
 
 function TabPanel({ children, value, index, ...other }) {
@@ -800,3 +800,4 @@ function CustomerSupport() {
 }
 
 export default CustomerSupport;
+

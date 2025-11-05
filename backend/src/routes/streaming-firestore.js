@@ -80,6 +80,48 @@ router.post('/livestreams', verifyFirebaseToken, async (req, res) => {
   }
 });
 
+// Start streaming (creates stream and returns RTMP/WebSocket URLs)
+router.post('/start', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { title, isPrivate = false } = req.body;
+    const userId = req.user.id || req.user.uid;
+    const db = require('../utils/database');
+    
+    const streamId = `stream_${Date.now()}_${userId}`;
+    const chatRoomId = `chat_${streamId}`;
+    
+    // Create stream record in Firestore
+    await db.collection('livestreams').doc(streamId).set({
+      id: streamId,
+      userId,
+      title: title || 'My Live Stream',
+      status: 'starting',
+      isPrivate,
+      viewers: 0,
+      chatRoomId,
+      rtmpUrl: `rtmp://stream.mixillo.com/live/${streamId}`,
+      streamKey: `key_${streamId}`,
+      hlsUrl: `https://cdn.mixillo.com/hls/${streamId}/master.m3u8`,
+      websocketUrl: `wss://mixillo-backend-52242135857.europe-west1.run.app/streaming`,
+      createdAt: new Date()
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        streamId,
+        rtmpUrl: `rtmp://stream.mixillo.com/live/${streamId}`,
+        streamKey: `key_${streamId}`,
+        chatRoomId,
+        websocketUrl: `wss://mixillo-backend-52242135857.europe-west1.run.app/streaming`
+      }
+    });
+  } catch (error) {
+    console.error('Error starting stream:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Start livestream
 router.post('/livestreams/:streamId/start', verifyFirebaseToken, async (req, res) => {
   try {

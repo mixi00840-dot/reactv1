@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContextFirebase';
 
 // Components
 import Layout from './components/Layout';

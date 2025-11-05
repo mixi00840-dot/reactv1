@@ -385,8 +385,10 @@ router.post('/verify-token', async (req, res) => {
       decodedToken = await admin.auth().verifyIdToken(idToken, true);
       uid = decodedToken.uid;
     } catch (idTokenError) {
-      // If ID token verification fails, try to handle as custom token
-      if (idTokenError.code === 'auth/argument-error' || idTokenError.code === 'auth/id-token-expired') {
+      // Custom token support (for testing/development only)
+      const allowCustomTokens = process.env.ALLOW_CUSTOM_TOKENS === 'true' || process.env.NODE_ENV !== 'production';
+      
+      if (allowCustomTokens && (idTokenError.code === 'auth/argument-error' || idTokenError.code === 'auth/id-token-expired')) {
         try {
           const decoded = jwt.decode(idToken);
           

@@ -16,7 +16,7 @@ import {
   Star as StarIcon, Upload as UploadIcon, History as ActivityIcon
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 
 function TabPanel({ children, value, index, ...other }) {
   return (

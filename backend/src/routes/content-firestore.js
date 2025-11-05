@@ -94,5 +94,57 @@ router.delete('/:contentId', verifyFirebaseToken, async (req, res) => {
   }
 });
 
+// Like/Unlike content
+router.post('/:contentId/like', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { contentId } = req.params;
+    const userId = req.user.id || req.user.uid;
+    const db = require('../utils/database');
+    
+    // Check if already liked
+    const likeDoc = await db.collection('contentLikes')
+      .doc(`${contentId}_${userId}`)
+      .get();
+    
+    if (likeDoc.exists) {
+      // Unlike
+      await likeDoc.ref.delete();
+      const likeSnapshot = await db.collection('contentLikes')
+        .where('contentId', '==', contentId)
+        .count()
+        .get();
+      
+      const likeCount = likeSnapshot.data().count || 0;
+      
+      return res.json({
+        success: true,
+        data: { liked: false, likeCount }
+      });
+    } else {
+      // Like
+      await db.collection('contentLikes').doc(`${contentId}_${userId}`).set({
+        contentId,
+        userId,
+        createdAt: new Date()
+      });
+      
+      const likeSnapshot = await db.collection('contentLikes')
+        .where('contentId', '==', contentId)
+        .count()
+        .get();
+      
+      const likeCount = likeSnapshot.data().count || 0;
+      
+      return res.json({
+        success: true,
+        data: { liked: true, likeCount }
+      });
+    }
+  } catch (error) {
+    console.error('Error toggling like:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;
 

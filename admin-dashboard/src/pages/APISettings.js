@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import {
   Box,
   Paper,
@@ -581,3 +581,4 @@ const APISettings = () => {
 };
 
 export default APISettings;
+

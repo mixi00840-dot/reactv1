@@ -54,7 +54,7 @@ import {
   Star as StarIcon
 } from '@mui/icons-material';
 import axios from 'axios';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import toast from 'react-hot-toast';
 
 // TabPanel Component

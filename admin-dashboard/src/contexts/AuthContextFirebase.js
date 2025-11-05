@@ -7,7 +7,7 @@ import {
   sendEmailVerification
 } from 'firebase/auth';
 import { auth } from '../firebase';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -73,8 +73,34 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // Get Firebase ID token
-          const idToken = await firebaseUser.getIdToken();
+          // Wait for auth to be ready
+          await auth.authStateReady();
+          
+          // Get Firebase ID token with validation
+          let idToken;
+          try {
+            idToken = await firebaseUser.getIdToken(false);
+            
+            // Validate token format
+            if (!idToken || typeof idToken !== 'string' || idToken.split('.').length !== 3) {
+              throw new Error('Invalid token format');
+            }
+          } catch (tokenError) {
+            console.error('Error getting ID token:', tokenError);
+            // Try force refresh
+            try {
+              idToken = await firebaseUser.getIdToken(true);
+              if (!idToken || typeof idToken !== 'string' || idToken.split('.').length !== 3) {
+                throw new Error('Invalid token format after refresh');
+              }
+            } catch (refreshError) {
+              console.error('Token refresh failed:', refreshError);
+              toast.error('Authentication error. Please log in again.');
+              await signOut(auth);
+              dispatch({ type: 'AUTH_ERROR' });
+              return;
+            }
+          }
           
           // Fetch user data from our backend
           const response = await api.get('/api/auth/firebase/me', {
@@ -99,6 +125,13 @@ export function AuthProvider({ children }) {
           });
         } catch (error) {
           console.error('Load user error:', error);
+          
+          // If it's a token error, sign out
+          if (error.message?.includes('token') || error.response?.status === 401) {
+            toast.error('Authentication error. Please log in again.');
+            await signOut(auth);
+          }
+          
           dispatch({ type: 'AUTH_ERROR' });
         }
       } else {
@@ -147,7 +180,36 @@ export function AuthProvider({ children }) {
       );
       
       const firebaseUser = userCredential.user;
-      const idToken = await firebaseUser.getIdToken();
+      
+      // Wait for auth to be ready
+      await auth.authStateReady();
+      
+      // Get Firebase ID token with validation
+      let idToken;
+      try {
+        idToken = await firebaseUser.getIdToken(false);
+        
+        // Validate token format (should have 3 parts: header.payload.signature)
+        if (!idToken || typeof idToken !== 'string' || idToken.split('.').length !== 3) {
+          console.error('Invalid token format received');
+          throw new Error('Invalid token format');
+        }
+      } catch (tokenError) {
+        console.error('Error getting ID token:', tokenError);
+        // Try force refresh
+        try {
+          idToken = await firebaseUser.getIdToken(true);
+          if (!idToken || typeof idToken !== 'string' || idToken.split('.').length !== 3) {
+            throw new Error('Invalid token format after refresh');
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+          toast.error('Authentication error. Please try again.');
+          await signOut(auth);
+          dispatch({ type: 'AUTH_ERROR' });
+          return false;
+        }
+      }
       
       // Get user profile from backend
       const response = await api.get('/api/auth/firebase/me', {
@@ -193,6 +255,8 @@ export function AuthProvider({ children }) {
         message = 'This account has been disabled. Contact support.';
       } else if (error.code === 'auth/invalid-email') {
         message = 'Invalid email address';
+      } else if (error.message?.includes('token')) {
+        message = 'Authentication error. Please try again.';
       } else if (error.response?.data?.message) {
         message = error.response.data.message;
       }

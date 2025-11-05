@@ -17,7 +17,54 @@ const verifyFirebaseToken = async (req, res, next) => {
       });
     }
 
-    const token = authHeader.split('Bearer ')[1];
+    const token = authHeader.split('Bearer ')[1]?.trim();
+    
+    // Validate token format before verification
+    if (!token || typeof token !== 'string' || token.length < 10) {
+      console.error('Invalid token: missing or too short', { 
+        hasToken: !!token, 
+        tokenType: typeof token,
+        tokenLength: token?.length 
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token format',
+        code: 'INVALID_TOKEN'
+      });
+    }
+    
+    // Basic JWT format validation (should have 3 parts separated by dots)
+    const tokenParts = token.split('.');
+    if (tokenParts.length !== 3) {
+      console.error('Token format error: Expected 3 parts, got', tokenParts.length, {
+        tokenPreview: token.substring(0, 20) + '...'
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token format: Token must have header, payload, and signature',
+        code: 'INVALID_TOKEN_FORMAT'
+      });
+    }
+    
+    // Validate JWT header contains "kid" claim (check if token is properly formatted)
+    try {
+      const header = JSON.parse(Buffer.from(tokenParts[0], 'base64url').toString());
+      if (!header.alg || !header.typ) {
+        console.error('Token header missing required fields', { header });
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token format: Missing required header fields',
+          code: 'INVALID_TOKEN_HEADER'
+        });
+      }
+    } catch (headerError) {
+      console.error('Token header parse error:', headerError);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token format: Cannot parse token header',
+        code: 'INVALID_TOKEN_HEADER'
+      });
+    }
     
     let decodedToken;
     let uid;
@@ -27,9 +74,11 @@ const verifyFirebaseToken = async (req, res, next) => {
       decodedToken = await admin.auth().verifyIdToken(token, true); // checkRevoked = true
       uid = decodedToken.uid;
     } catch (idTokenError) {
-      // If ID token verification fails, try to handle as custom token (for testing only)
-      // Custom tokens are JWTs that can be decoded to extract UID
-      if (idTokenError.code === 'auth/argument-error' || idTokenError.code === 'auth/id-token-expired') {
+      // Custom token support (for testing/development only)
+      // In production, only Firebase ID tokens should be used
+      const allowCustomTokens = process.env.ALLOW_CUSTOM_TOKENS === 'true' || process.env.NODE_ENV !== 'production';
+      
+      if (allowCustomTokens && (idTokenError.code === 'auth/argument-error' || idTokenError.code === 'auth/id-token-expired')) {
         try {
           // Decode custom token (JWT) to extract UID without signature verification
           // We'll verify the user exists in Firebase Auth instead
@@ -118,13 +167,41 @@ const verifyFirebaseToken = async (req, res, next) => {
       });
     }
 
-    if (error.code === 'auth/argument-error') {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token format',
-        code: 'INVALID_TOKEN'
-      });
-    }
+        if (error.code === 'auth/argument-error') {
+          // Log more details for debugging
+          let tokenPreview = 'N/A';
+          try {
+            const parts = token?.split('.');
+            if (parts && parts.length === 3) {
+              const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString());
+              tokenPreview = {
+                alg: header.alg,
+                typ: header.typ,
+                hasKid: !!header.kid,
+                hasKeyId: !!header.keyId
+              };
+            }
+          } catch (e) {
+            // Ignore parse errors
+          }
+          
+          console.error('Token verification error:', {
+            code: error.code,
+            message: error.message,
+            tokenLength: token?.length,
+            tokenParts: token?.split('.').length,
+            tokenHeader: tokenPreview,
+            userAgent: req.headers['user-agent'],
+            ip: req.ip
+          });
+          
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid token format. Please log out and log in again.',
+            code: 'INVALID_TOKEN',
+            hint: 'The token may be corrupted. Please clear your browser cache and try again.'
+          });
+        }
 
     return res.status(401).json({
       success: false,

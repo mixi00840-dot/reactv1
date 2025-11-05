@@ -115,16 +115,27 @@ try {
 
 // Messaging, comments, notifications already migrated (from previous work)
 try {
-  messagingRoutes = require('./routes/messaging');
-  commentsRoutes = require('./routes/comments');
-  notificationsRoutes = require('./routes/notifications');
-  console.log('✅ Messaging, comments, notifications routes loaded');
+  messagingRoutes = require('./routes/messaging-firestore');
+  console.log('✅ Messaging routes loaded (Firestore)');
 } catch (error) {
-  console.error('⚠️ Social routes error:', error.message);
-  const fallbackSocial = createFallbackRouter();
-  messagingRoutes = fallbackSocial;
-  commentsRoutes = fallbackSocial;
-  notificationsRoutes = fallbackSocial;
+  console.error('⚠️ Messaging routes error:', error.message);
+  messagingRoutes = createFallbackRouter();
+}
+
+try {
+  commentsRoutes = require('./routes/comments-firestore');
+  console.log('✅ Comments routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Comments routes error:', error.message);
+  commentsRoutes = createFallbackRouter();
+}
+
+try {
+  notificationsRoutes = require('./routes/notifications-firestore');
+  console.log('✅ Notifications routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Notifications routes error:', error.message);
+  notificationsRoutes = createFallbackRouter();
 }
 
 // Load stub Firestore routes for admin dashboard (return empty data instead of 503)
@@ -284,28 +295,32 @@ const app = express();
 app.set('trust proxy', 1);
 
 // CORS configuration
-const allowedOrigins = [
+// Production: Restrict to specific domains
+// Development: Allow localhost and common hosting platforms
+const isProduction = process.env.NODE_ENV === 'production';
+const allowedOrigins = isProduction ? [
+  // Production domains only
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_DASHBOARD_URL,
+  'https://mixillo.firebaseapp.com',
+  'https://mixillo.web.app',
+  // Add your production domains here
+].filter(Boolean) : [
+  // Development - allow localhost and common hosting platforms
   'http://localhost:3000',
   'http://localhost:3001',
   'https://localhost:3001',
   process.env.FRONTEND_URL,
+  process.env.ADMIN_DASHBOARD_URL,
   // Allow Firebase Hosting domains
   /^https:\/\/.*\.web\.app$/,
   /^https:\/\/.*\.firebaseapp\.com$/,
-  // Allow any Netlify domain for admin dashboard
+  // Allow common hosting platforms for development
   /^https:\/\/.*\.netlify\.app$/,
-  // Allow any Vercel domain
   /^https:\/\/.*\.vercel\.app$/,
-  // Allow any GitHub Pages domain
   /^https:\/\/.*\.github\.io$/,
-  // Allow any AWS Amplify Hosting domain
   /^https:\/\/.*\.amplifyapp\.com$/,
-  // Allow any CloudFront distribution domain
   /^https:\/\/.*\.cloudfront\.net$/,
-  // Allow S3 static website endpoints (regional variants)
-  /^http:\/\/.*\.s3-website[.-].*\.amazonaws\.com$/,
-  /^https:\/\/.*\.s3-website[.-].*\.amazonaws\.com$/,
-  // Allow any Google Cloud Run domain
   /^https:\/\/.*\.run\.app$/
 ].filter(Boolean);
 
@@ -453,6 +468,9 @@ app.use('/api/recommendations', recommendationRoutes);
 
 // Personalized Feed API routes
 app.use('/api/feed', feedRoutes);
+
+// Search API routes (Firestore)
+app.use('/api/search', require('./routes/search-firestore'));
 
 // Trending & Explore API routes (Firestore)
 app.use('/api/trending', trendingRoutes); // ✅ Firestore stub

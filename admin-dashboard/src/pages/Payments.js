@@ -25,7 +25,7 @@ import {
   AccountBalance as AccountBalanceIcon,
   CreditCard as CreditCardIcon,
 } from '@mui/icons-material';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import toast from 'react-hot-toast';
 
 function Payments() {

@@ -16,7 +16,7 @@ import {
   Switch
 } from '@mui/material';
 import { Save, Person, Email, Lock, Badge } from '@mui/icons-material';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 

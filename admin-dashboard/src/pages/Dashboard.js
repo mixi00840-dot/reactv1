@@ -36,7 +36,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import toast from 'react-hot-toast';
 
 ChartJS.register(

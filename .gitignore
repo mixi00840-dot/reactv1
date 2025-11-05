@@ -61,7 +61,7 @@ serviceAccount.*.json
 created-admin.json
 test-results.json
 
-# Temporary test scripts
+# Temporary test scripts and files
 bootstrap-firebase-admin.js
 create-admin-with-service-account.js
 create-firebase-user-and-elevate.js
@@ -73,5 +73,8 @@ run-firebase-login-created.js
 run-firebase-login.js
 run-legacy-admin.js
 run-legacy-login.js
-test-custom-token-backend.js
-test-live-firebase-admin.js
+test-*.js
+test-*.ps1
+*test*.json
+test-output.txt
+PRE_LAUNCH_COMPREHENSIVE_AUDIT.js

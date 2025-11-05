@@ -291,6 +291,64 @@ router.get('/search', verifyFirebaseToken, requireAdmin, async (req, res) => {
 });
 
 
+// @route   POST /api/users/:userId/follow
+// @desc    Follow or unfollow a user
+// @access  Private (Firebase Auth)
+router.post('/:userId/follow', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = req.user.id || req.user.uid;
+    
+    if (userId === currentUserId) {
+      return res.status(400).json({ success: false, message: 'Cannot follow yourself' });
+    }
+    
+    const followDocId = `${currentUserId}_${userId}`;
+    const followDoc = await db.collection('follows').doc(followDocId).get();
+    
+    if (followDoc.exists) {
+      // Unfollow
+      await followDoc.ref.delete();
+      
+      // Get follower count
+      const followerSnapshot = await db.collection('follows')
+        .where('followingId', '==', userId)
+        .count()
+        .get();
+      
+      const followerCount = followerSnapshot.data().count || 0;
+      
+      return res.json({
+        success: true,
+        data: { isFollowing: false, followerCount }
+      });
+    } else {
+      // Follow
+      await db.collection('follows').doc(followDocId).set({
+        followerId: currentUserId,
+        followingId: userId,
+        createdAt: new Date()
+      });
+      
+      // Get follower count
+      const followerSnapshot = await db.collection('follows')
+        .where('followingId', '==', userId)
+        .count()
+        .get();
+      
+      const followerCount = followerSnapshot.data().count || 0;
+      
+      return res.json({
+        success: true,
+        data: { isFollowing: true, followerCount }
+      });
+    }
+  } catch (error) {
+    console.error('Follow/unfollow error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // @route   GET /api/users/:userId
 // @desc    Get user by ID
 // @access  Public
@@ -305,8 +363,50 @@ router.get('/:userId', async (req, res) => {
 
     const userData = userDoc.data();
     delete userData.password;
+    
+    // Get follower/following counts
+    const followerSnapshot = await db.collection('follows')
+      .where('followingId', '==', userId)
+      .count()
+      .get();
+    const followingSnapshot = await db.collection('follows')
+      .where('followerId', '==', userId)
+      .count()
+      .get();
+    
+    // Check if current user follows this user
+    let isFollowing = false;
+    if (req.headers.authorization) {
+      try {
+        const { verifyFirebaseToken } = require('../middleware/firebaseAuth');
+        // Quick check without full middleware
+        const currentUserId = req.user?.id || req.user?.uid;
+        if (currentUserId) {
+          const followDoc = await db.collection('follows')
+            .doc(`${currentUserId}_${userId}`)
+            .get();
+          isFollowing = followDoc.exists;
+        }
+      } catch (e) {
+        // Not authenticated, isFollowing stays false
+      }
+    }
 
-    res.json({ success: true, data: { user: { id: userDoc.id, ...userData } } });
+    res.json({ 
+      success: true, 
+      data: { 
+        user: { 
+          id: userDoc.id, 
+          ...userData,
+          stats: {
+            followers: followerSnapshot.data().count || 0,
+            following: followingSnapshot.data().count || 0,
+            videos: 0 // TODO: Count from content collection
+          },
+          isFollowing
+        } 
+      } 
+    });
   } catch (error) {
     console.error('Get user by ID error:', error);
     res.status(500).json({ success: false, message: 'Server error' });

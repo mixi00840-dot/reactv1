@@ -38,7 +38,7 @@ import {
   Verified as VerifiedIcon,
   Store as StoreIcon,
 } from '@mui/icons-material';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import toast from 'react-hot-toast';
 
 function Stores() {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
+import api from '../utils/apiFirebase';
 import './ContentManager.css';
 
 const ContentManager = () => {
@@ -405,3 +405,4 @@ const ContentManager = () => {
 };
 
 export default ContentManager;
+

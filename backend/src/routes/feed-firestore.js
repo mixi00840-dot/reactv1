@@ -14,20 +14,76 @@ router.get('/health', (req, res) => {
 // Get feed (root endpoint - requires auth)
 router.get('/', verifyFirebaseToken, async (req, res) => {
   try {
-    const { limit = 20, offset = 0, type = 'for-you' } = req.query;
+    const { limit = 20, page = 1, type = 'for-you', hashtag } = req.query;
+    const db = require('../utils/database');
+    
+    let query = db.collection('content')
+      .where('status', '==', 'published')
+      .orderBy('createdAt', 'desc');
+    
+    // Filter by hashtag if provided
+    if (hashtag) {
+      query = query.where('hashtags', 'array-contains', hashtag);
+    }
+    
+    const snapshot = await query
+      .limit(parseInt(limit))
+      .offset((parseInt(page) - 1) * parseInt(limit))
+      .get();
+    
+    const videos = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      videos.push({
+        id: doc.id,
+        videoUrl: data.videoUrl || data.media?.masterFile?.url || '',
+        thumbnailUrl: data.thumbnailUrl || data.media?.thumbnail?.url || '',
+        creator: {
+          id: data.userId,
+          username: data.creator?.username || '@user',
+          avatar: data.creator?.avatar || '',
+          verified: data.creator?.verified || false
+        },
+        caption: data.caption || data.description || '',
+        hashtags: data.hashtags || [],
+        stats: {
+          likes: data.likes || data.stats?.likes || 0,
+          comments: data.comments || data.stats?.comments || 0,
+          shares: data.shares || data.stats?.shares || 0,
+          views: data.views || data.stats?.views || 0
+        },
+        duration: data.duration || 0,
+        createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date()
+      });
+    });
+    
     res.json({
       success: true,
       data: {
-        feed: [],
-        count: 0,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        type
+        videos,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          hasMore: videos.length === parseInt(limit),
+          nextCursor: videos.length > 0 ? Buffer.from(JSON.stringify({ id: videos[videos.length - 1].id })).toString('base64') : null
+        }
       }
     });
   } catch (error) {
     console.error('Error getting feed:', error);
-    res.status(500).json({ success: false, message: error.message });
+    // Return empty feed if error (e.g., missing index)
+    res.json({
+      success: true,
+      data: {
+        videos: [],
+        pagination: {
+          page: parseInt(req.query.page || 1),
+          limit: parseInt(req.query.limit || 20),
+          hasMore: false,
+          nextCursor: null
+        }
+      }
+    });
   }
 });
 

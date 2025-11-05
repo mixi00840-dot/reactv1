@@ -63,12 +63,114 @@ router.get('/balance', verifyFirebaseToken, async (req, res) => {
     res.json({ 
       success: true, 
       data: { 
-        balance: wallet.balance || 0,
+        coins: wallet.coins || wallet.balance || 0,
+        balance: wallet.balance || wallet.coins || 0,
         currency: wallet.currency || 'USD'
       } 
     });
   } catch (error) {
     console.error('Error getting balance:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Purchase coins
+router.post('/purchase', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { packageId, amount, paymentMethod, transactionId, idempotencyKey } = req.body;
+    const userId = req.user.id || req.user.uid;
+    const db = require('../utils/database');
+    
+    // Coin packages
+    const packages = {
+      'package_100': { coins: 100, price: 0.99 },
+      'package_500': { coins: 500, price: 4.99 },
+      'package_1000': { coins: 1000, price: 9.99 },
+      'package_5000': { coins: 5000, price: 49.99 }
+    };
+    
+    const package = packages[packageId];
+    if (!package || package.price !== amount) {
+      return res.status(400).json({ success: false, message: 'Invalid package or amount' });
+    }
+    
+    // Check idempotency (prevent duplicate charges)
+    if (idempotencyKey) {
+      const existingTxn = await db.collection('transactions')
+        .where('idempotencyKey', '==', idempotencyKey)
+        .limit(1)
+        .get();
+      
+      if (!existingTxn.empty) {
+        const txnData = existingTxn.docs[0].data();
+        return res.json({
+          success: true,
+          data: {
+            transactionId: txnData.id,
+            coins: txnData.coins,
+            newBalance: txnData.newBalance,
+            receipt: {
+              id: `receipt_${txnData.id}`,
+              amount: txnData.amount,
+              currency: txnData.currency || 'USD',
+              timestamp: txnData.createdAt
+            }
+          }
+        });
+      }
+    }
+    
+    // Get current wallet
+    const wallet = await walletsHelpers.getWalletByUserId(userId);
+    const currentCoins = wallet.coins || wallet.balance || 0;
+    
+    // Create transaction
+    const transactionId_gen = `txn_${Date.now()}_${userId}`;
+    const transaction = {
+      id: transactionId_gen,
+      userId,
+      type: 'purchase',
+      packageId,
+      coins: package.coins,
+      amount,
+      currency: 'USD',
+      paymentMethod,
+      transactionId: transactionId || transactionId_gen,
+      idempotencyKey: idempotencyKey || `idemp_${Date.now()}_${userId}`,
+      status: 'completed',
+      createdAt: new Date()
+    };
+    
+    await db.collection('transactions').doc(transactionId_gen).set(transaction);
+    
+    // Update wallet
+    const newBalance = currentCoins + package.coins;
+    await db.collection('wallets').doc(userId).set({
+      coins: newBalance,
+      balance: newBalance,
+      updatedAt: new Date()
+    }, { merge: true });
+    
+    // Create receipt
+    const receipt = {
+      id: `receipt_${transactionId_gen}`,
+      transactionId: transactionId_gen,
+      amount,
+      currency: 'USD',
+      timestamp: new Date()
+    };
+    
+    res.json({
+      success: true,
+      data: {
+        transactionId: transactionId_gen,
+        coins: package.coins,
+        newBalance,
+        receipt
+      }
+    });
+  } catch (error) {
+    console.error('Error processing purchase:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
