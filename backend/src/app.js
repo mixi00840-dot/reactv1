@@ -302,10 +302,10 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/content', contentRoutes);
 
 // Transcode Management API routes (Firestore)
-app.use('/api/transcode', transcodeRoutes2); // ✅ Firestore stub
+app.use('/api/transcode', transcodeRoutes); // ✅ Firestore stub
 
 // Metrics & Analytics API routes (Firestore)
-app.use('/api/metrics', metricsRoutes2); // ✅ Firestore stub
+app.use('/api/metrics', metricsRoutes); // ✅ Firestore stub
 
 // Moderation API routes (Firestore)
 app.use('/api/moderation', moderationRoutes); // ✅ Firestore stub
@@ -320,7 +320,7 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/feed', feedRoutes);
 
 // Trending & Explore API routes (Firestore)
-app.use('/api/trending', trendingRoutes2); // ✅ Firestore stub
+app.use('/api/trending', trendingRoutes); // ✅ Firestore stub
 
 // Player & Streaming API routes
 app.use('/api/player', playerRoutes);
