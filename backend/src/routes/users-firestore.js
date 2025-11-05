@@ -1,13 +1,26 @@
 const express = require('express');
-const { authMiddleware, adminMiddleware } = require('../middleware/auth');
+const { verifyFirebaseToken, requireAdmin } = require('../middleware/firebaseAuth');
 const db = require('../utils/database');
 
 const router = express.Router();
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Users API is working (Firestore)',
+    endpoints: [
+      'GET /profile - Get user profile (requires Firebase auth)',
+      'GET /stats - Get user statistics (requires admin)',
+      'GET /:userId - Get user by ID'
+    ]
+  });
+});
+
 // @route   GET /api/users/profile
 // @desc    Get current user profile
-// @access  Private
-router.get('/profile', authMiddleware, async (req, res) => {
+// @access  Private (Firebase Auth)
+router.get('/profile', verifyFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.id || req.user._id || req.user.uid;
     const userDoc = await db.collection('users').doc(userId).get();
@@ -38,8 +51,8 @@ router.get('/profile', authMiddleware, async (req, res) => {
 
 // @route   GET /api/users
 // @desc    Get all users (admin)
-// @access  Admin
-router.get('/', [authMiddleware, adminMiddleware], async (req, res) => {
+// @access  Admin (Firebase Auth)
+router.get('/', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     const { limit = 25, offset = 0, status, role, search, verified, page = 1 } = req.query;
 
@@ -184,9 +197,9 @@ router.get('/', [authMiddleware, adminMiddleware], async (req, res) => {
 });
 
 // @route   GET /api/users/stats
-// @desc    Get user statistics
-// @access  Admin
-router.get('/stats', [authMiddleware, adminMiddleware], async (req, res) => {
+// @desc    Get user statistics (admin only)
+// @access  Admin (Firebase Auth)
+router.get('/stats', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     const usersSnapshot = await db.collection('users').get();
     
@@ -246,7 +259,7 @@ router.get('/stats', [authMiddleware, adminMiddleware], async (req, res) => {
 // @route   GET /api/users/search
 // @desc    Search for users by username or email
 // @access  Admin
-router.get('/search', [authMiddleware, adminMiddleware], async (req, res) => {
+router.get('/search', verifyFirebaseToken, requireAdmin, async (req, res) => {
     try {
         const { q, limit = 20 } = req.query;
         if (!q || q.trim().length < 2) {

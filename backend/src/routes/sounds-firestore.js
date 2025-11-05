@@ -1,13 +1,37 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, adminMiddleware } = require('../middleware/auth');
+const { verifyFirebaseToken, requireAdmin } = require('../middleware/firebaseAuth');
 
 /**
  * Sounds Routes - Firestore Stub
  */
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Sounds API is operational (Firestore stub)' });
+});
+
+// Get sounds overview (root endpoint - public)
+router.get('/', async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    res.json({ 
+      success: true, 
+      data: {
+        sounds: [],
+        total: 0,
+        page: parseInt(page),
+        limit: parseInt(limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error getting sounds:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Get sounds statistics (Admin)
-router.get('/admin/stats', authenticate, adminMiddleware, async (req, res) => {
+router.get('/admin/stats', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ 
       success: true, 
@@ -47,7 +71,7 @@ router.get('/search', async (req, res) => {
 });
 
 // Get sounds pending review (Admin)
-router.get('/moderation/pending-review', authenticate, adminMiddleware, async (req, res) => {
+router.get('/moderation/pending-review', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     res.json({ success: true, data: { sounds: [], count: 0 } });
@@ -58,7 +82,7 @@ router.get('/moderation/pending-review', authenticate, adminMiddleware, async (r
 });
 
 // Get sounds moderation queue (Admin)
-router.get('/moderation', authenticate, adminMiddleware, async (req, res) => {
+router.get('/moderation', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     res.json({ success: true, data: { sounds: [], count: 0 } });

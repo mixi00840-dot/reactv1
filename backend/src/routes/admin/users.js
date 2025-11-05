@@ -1,13 +1,17 @@
 const express = require('express');
-const { adminMiddleware } = require('../../middleware/auth');
+const { verifyFirebaseToken, requireAdmin } = require('../../middleware/firebaseAuth');
 const db = require('../../utils/database');
 
 const router = express.Router();
 
+// Apply Firebase auth and admin middleware to all routes
+router.use(verifyFirebaseToken);
+router.use(requireAdmin);
+
 // @route   GET /api/admin/users
 // @desc    Get all users with pagination and filtering (for admin dashboard)
 // @access  Admin
-router.get('/', adminMiddleware, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { limit = 25, offset = 0, status, role, sortBy = 'createdAt', order = 'desc' } = req.query;
 
@@ -58,7 +62,7 @@ router.get('/', adminMiddleware, async (req, res) => {
 // @route   GET /api/admin/users/search
 // @desc    Search for users by username or email (for admin dashboard)
 // @access  Admin
-router.get('/search', adminMiddleware, async (req, res) => {
+router.get('/search', async (req, res) => {
     try {
         const { q, limit = 20 } = req.query;
         if (!q || q.trim().length < 2) {

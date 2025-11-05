@@ -1,5 +1,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
+const axios = require('axios');
+const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const db = require('../utils/database');
 const { verifyFirebaseToken, requireAdmin } = require('../middleware/firebaseAuth');
@@ -21,6 +23,49 @@ router.get('/health', (req, res) => {
       'POST /reset-password - Send password reset email'
     ]
   });
+});
+
+// Temporary bootstrap endpoint to create an admin user (guarded by a secret)
+router.post('/bootstrap-admin', async (req, res) => {
+  try {
+    const key = req.headers['x-bootstrap-key'];
+    if (!process.env.BOOTSTRAP_KEY || key !== process.env.BOOTSTRAP_KEY) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const { email, password, fullName = 'Bootstrap Admin' } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'email and password required' });
+    }
+
+    // Create Firebase Auth user
+    const user = await admin.auth().createUser({
+      email,
+      password,
+      displayName: fullName,
+      emailVerified: true,
+      disabled: false
+    });
+
+    // Upsert Firestore user doc with role: admin
+    const userRef = db.collection('users').doc(user.uid);
+    await userRef.set({
+      email,
+      username: email.split('@')[0],
+      fullName,
+      role: 'admin',
+      status: 'active',
+      isVerified: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      firebaseUid: user.uid
+    }, { merge: true });
+
+    return res.json({ success: true, data: { uid: user.uid, email } });
+  } catch (error) {
+    console.error('bootstrap-admin error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to bootstrap admin' });
+  }
 });
 
 // Validation middleware
@@ -237,24 +282,23 @@ router.post('/login', loginValidation, async (req, res) => {
     // We need to use Firebase Client SDK on frontend or verify with Firebase REST API
     try {
       // Use Firebase REST API to verify password
-      const firebaseApiKey = process.env.FIREBASE_WEB_API_KEY;
+      const firebaseApiKey = process.env.FIREBASE_WEB_API_KEY || 'AIzaSyBqomROTpVMIBRbYBpXRdOUnFBtZXaEwZM';
       const verifyPasswordUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`;
       
-      const response = await fetch(verifyPasswordUrl, {
-        method: 'POST',
+      const response = await axios.post(verifyPasswordUrl, {
+        email: userData.email,
+        password,
+        returnSecureToken: true
+      }, {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: userData.email,
-          password,
-          returnSecureToken: true
-        })
+        timeout: 10000
       });
 
-      const authResult = await response.json();
+      const authResult = response.data;
 
-      if (!response.ok || authResult.error) {
+      if (authResult.error) {
         // Log the actual Firebase error for debugging
-        console.error('Firebase Auth Error:', JSON.stringify(authResult.error || authResult, null, 2));
+        console.error('Firebase Auth Error:', JSON.stringify(authResult.error, null, 2));
         return res.status(401).json({
           success: false,
           message: 'Invalid credentials',
@@ -284,10 +328,29 @@ router.post('/login', loginValidation, async (req, res) => {
       });
 
     } catch (authError) {
-      console.error('Firebase authentication error:', authError);
+      console.error('Firebase authentication error:', authError.response?.data || authError.message);
+      
+      // Handle specific Firebase errors
+      if (authError.response?.data?.error) {
+        const error = authError.response.data.error;
+        if (error.message?.includes('INVALID_PASSWORD') || error.message?.includes('EMAIL_NOT_FOUND')) {
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid credentials'
+          });
+        }
+        if (error.message?.includes('API key not valid')) {
+          return res.status(500).json({
+            success: false,
+            message: 'Firebase API configuration error'
+          });
+        }
+      }
+      
       return res.status(401).json({
         success: false,
-        message: 'Authentication failed'
+        message: 'Authentication failed',
+        debug: process.env.NODE_ENV !== 'production' ? authError.message : undefined
       });
     }
 
@@ -301,7 +364,7 @@ router.post('/login', loginValidation, async (req, res) => {
 });
 
 // @route   POST /api/auth/firebase/verify-token
-// @desc    Verify Firebase ID token
+// @desc    Verify Firebase ID token or custom token
 // @access  Public
 router.post('/verify-token', async (req, res) => {
   try {
@@ -314,11 +377,42 @@ router.post('/verify-token', async (req, res) => {
       });
     }
 
-    // Verify the ID token
-    const decodedToken = await admin.auth().verifyIdToken(idToken, true);
+    let decodedToken;
+    let uid;
+
+    // Try to verify as ID token first
+    try {
+      decodedToken = await admin.auth().verifyIdToken(idToken, true);
+      uid = decodedToken.uid;
+    } catch (idTokenError) {
+      // If ID token verification fails, try to handle as custom token
+      if (idTokenError.code === 'auth/argument-error' || idTokenError.code === 'auth/id-token-expired') {
+        try {
+          const decoded = jwt.decode(idToken);
+          
+          if (!decoded || !decoded.uid) {
+            throw new Error('Invalid custom token format');
+          }
+          
+          uid = decoded.uid;
+          const firebaseUser = await admin.auth().getUser(uid);
+          
+          decodedToken = {
+            uid: uid,
+            email: firebaseUser.email,
+            email_verified: firebaseUser.emailVerified,
+            custom_token: true
+          };
+        } catch (customTokenError) {
+          throw idTokenError;
+        }
+      } else {
+        throw idTokenError;
+      }
+    }
 
     // Get user data from Firestore
-    const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+    const userDoc = await db.collection('users').doc(uid).get();
 
     if (!userDoc.exists) {
       return res.status(404).json({
@@ -335,7 +429,8 @@ router.post('/verify-token', async (req, res) => {
       data: {
         user: userResponse,
         tokenValid: true,
-        emailVerified: decodedToken.email_verified
+        emailVerified: decodedToken.email_verified || decodedToken.email_verified,
+        isCustomToken: decodedToken.custom_token || false
       }
     });
 

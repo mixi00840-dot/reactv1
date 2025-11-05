@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const messagingController = require('../controllers/messagingController');
-const { authenticate } = require('../middleware/auth');
+const { verifyFirebaseToken } = require('../middleware/firebaseAuth');
 
 /**
  * Messaging Routes
@@ -9,30 +9,30 @@ const { authenticate } = require('../middleware/auth');
  */
 
 // Send direct message
-router.post('/send', authenticate, messagingController.sendMessage);
+router.post('/send', verifyFirebaseToken, messagingController.sendMessage);
 
 // Create group conversation
-router.post('/groups', authenticate, messagingController.createGroup);
+router.post('/groups', verifyFirebaseToken, messagingController.createGroup);
 
 // Get user conversations
-router.get('/conversations', authenticate, messagingController.getConversations);
+router.get('/conversations', verifyFirebaseToken, messagingController.getConversations);
 
 // Send group message
-router.post('/conversations/:conversationId/messages', authenticate, messagingController.sendGroupMessage);
+router.post('/conversations/:conversationId/messages', verifyFirebaseToken, messagingController.sendGroupMessage);
 
 // Get conversation messages
-router.get('/conversations/:conversationId/messages', authenticate, messagingController.getMessages);
+router.get('/conversations/:conversationId/messages', verifyFirebaseToken, messagingController.getMessages);
 
 // Mark conversation as read
-router.post('/conversations/:conversationId/read', authenticate, messagingController.markAsRead);
+router.post('/conversations/:conversationId/read', verifyFirebaseToken, messagingController.markAsRead);
 
 // Search messages
-router.get('/search', authenticate, messagingController.searchMessages);
+router.get('/search', verifyFirebaseToken, messagingController.searchMessages);
 
 // Add reaction to message
-router.post('/messages/:messageId/reactions', authenticate, messagingController.addReaction);
+router.post('/messages/:messageId/reactions', verifyFirebaseToken, messagingController.addReaction);
 
 // Delete message
-router.delete('/messages/:messageId', authenticate, messagingController.deleteMessage);
+router.delete('/messages/:messageId', verifyFirebaseToken, messagingController.deleteMessage);
 
 module.exports = router;

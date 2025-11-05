@@ -1,13 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, adminMiddleware } = require('../middleware/auth');
+const { verifyFirebaseToken, requireAdmin } = require('../middleware/firebaseAuth');
 
 /**
  * Settings Routes - Firestore Stub
  */
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Settings API is operational (Firestore stub)' });
+});
+
 // Get app settings (Admin)
-router.get('/', authenticate, adminMiddleware, async (req, res) => {
+router.get('/', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ 
       success: true, 
@@ -29,7 +34,7 @@ router.get('/', authenticate, adminMiddleware, async (req, res) => {
 });
 
 // Update settings (Admin)
-router.put('/', authenticate, adminMiddleware, async (req, res) => {
+router.put('/', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ success: true, message: 'Settings updated' });
   } catch (error) {

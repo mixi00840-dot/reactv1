@@ -24,37 +24,46 @@ const createFallbackRouter = () => {
 };
 
 // E-commerce routes (Firestore - Phase 2 complete)
-let productRoutes, storeRoutes, orderRoutes;
+let productRoutes, storeRoutes;
+let orderRoutes; // Will be set to Firestore version below
 try {
   productRoutes = require('./routes/products');
   storeRoutes = require('./routes/stores');
-  orderRoutes = require('./routes/orders');
 } catch (error) {
   console.error('⚠️  E-commerce routes have missing methods:', error.message);
   const fallback = createFallbackRouter();
-  productRoutes = storeRoutes = orderRoutes = fallback;
+  productRoutes = storeRoutes = fallback;
+}
+
+// Load Firestore orders route
+try {
+  orderRoutes = require('./routes/orders-firestore');
+  console.log('✅ Orders routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Orders routes error:', error.message);
+  orderRoutes = createFallbackRouter();
 }
 
 // E-commerce routes still using MongoDB (will use fallback)
 const fallback2 = createFallbackRouter();
-const categoryRoutes = fallback2;
-const cartRoutes = fallback2;
-const paymentRoutes = fallback2;
+let categoryRoutes = fallback2; // Changed to let for Firestore override
+let cartRoutes = fallback2; // Changed to let for Firestore override
+let paymentRoutes = fallback2; // Changed to let for Firestore override
 const couponRoutes = fallback2;
 const shippingRoutes = fallback2;
 const customerServiceRoutes = fallback2;
 let analyticsRoutes = fallback2; // Changed to let for Firestore override
 
 // CMS & Settings routes (Firestore - Phase 2 complete)
-let settingsRoutes, cmsRoutes, bannersRoutes;
+let cmsRoutes, bannersRoutes;
+let settingsRoutes; // Will be set by Firestore stub loader below
 try {
-  settingsRoutes = require('./routes/settings');
   cmsRoutes = require('./routes/cms');
   bannersRoutes = require('./routes/banners');
 } catch (error) {
-  console.error('⚠️  CMS/Settings routes have issues:', error.message);
+  console.error('⚠️  CMS/Banners routes have issues:', error.message);
   const fallback3 = createFallbackRouter();
-  settingsRoutes = cmsRoutes = bannersRoutes = fallback3;
+  cmsRoutes = bannersRoutes = fallback3;
 }
 
 // Content & Advanced features still using MongoDB (will use fallback)
@@ -62,25 +71,30 @@ const fallback4 = createFallbackRouter();
 const auditLogsRoutes = fallback4;
 const languageRoutes = fallback4;
 const translationRoutes = fallback4;
-const streamProviderRoutes = fallback4;
-const livestreamRoutes = fallback4;
+let streamProviderRoutes = fallback4; // Changed to let for Firestore override (streaming)
+let livestreamRoutes = fallback4; // Changed to let for Firestore override (streaming)
 const supportersRoutes = fallback4;
 const advancedAnalyticsRoutes = fallback4;
-const contentRoutes = fallback4;
+let contentRoutes = fallback4; // Changed to let for Firestore override
 let transcodeRoutes = fallback4;  // Changed to let for Firestore override
 let metricsRoutes = fallback4;     // Changed to let for Firestore override
 let moderationRoutes = fallback4;  // Changed to let for Firestore override
 const rightsRoutes = fallback4;
 const recommendationRoutes = fallback4;
-const feedRoutes = fallback4;
+let feedRoutes = fallback4; // Changed to let for Firestore override
 let trendingRoutes = fallback4;    // Changed to let for Firestore override
-const playerRoutes = fallback4;
+let playerRoutes = fallback4; // Changed to let for Firestore override
 
 // Phase 11-15 routes (Firestore migration complete for critical routes)
 let messagingRoutes, storiesRoutes, commentsRoutes, notificationsRoutes;
 let pkBattlesRoutes, multiHostRoutes, liveShoppingRoutes, streamFiltersRoutes, webrtcRoutes;
 let aiRoutes, monetizationRoutes, uploadRoutes, soundsRoutes, giftsRoutes, walletsRoutes;
 let activityRoutes;
+
+// Load Firestore routes for unmigrated features
+let cartRoutes_firestore, categoriesRoutes_firestore, contentRoutes_firestore;
+let commentsRoutes_firestore, feedRoutes_firestore, messagingRoutes_firestore;
+let streamingRoutes_firestore, playerRoutes_firestore, uploadsRoutes_firestore, paymentsRoutes_firestore;
 
 // Load migrated Firestore routes (these work without MongoDB)
 try {
@@ -92,7 +106,7 @@ try {
 }
 
 try {
-  walletsRoutes = require('./routes/wallets'); // ✅ Migrated to Firestore
+  walletsRoutes = require('./routes/wallets-firestore'); // ✅ Migrated to Firestore
   console.log('✅ Wallets routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Wallets routes error:', error.message);
@@ -131,16 +145,125 @@ try {
 }
 
 // Load other critical admin routes (reuse existing variables, don't redeclare)
+// Load each route individually to prevent one failure from affecting others
 try {
   moderationRoutes = require('./routes/moderation-firestore');
-  settingsRoutes = require('./routes/settings-firestore');
-  transcodeRoutes = require('./routes/transcode-firestore');
-  trendingRoutes = require('./routes/trending-firestore');
-  analyticsRoutes = require('./routes/analytics-firestore');
-  metricsRoutes = require('./routes/metrics-firestore');
-  console.log('✅ Admin dashboard routes loaded (Firestore stubs)');
+  console.log('✅ Moderation routes loaded');
 } catch (error) {
-  console.error('⚠️ Error loading admin dashboard routes:', error.message);
+  console.error('⚠️ Moderation routes error:', error.message);
+}
+
+try {
+  settingsRoutes = require('./routes/settings-firestore');
+  console.log('✅ Settings routes loaded');
+} catch (error) {
+  console.error('⚠️ Settings routes error:', error.message);
+}
+
+try {
+  transcodeRoutes = require('./routes/transcode-firestore');
+  console.log('✅ Transcode routes loaded');
+} catch (error) {
+  console.error('⚠️ Transcode routes error:', error.message);
+}
+
+try {
+  trendingRoutes = require('./routes/trending-firestore');
+  console.log('✅ Trending routes loaded');
+} catch (error) {
+  console.error('⚠️ Trending routes error:', error.message);
+}
+
+try {
+  analyticsRoutes = require('./routes/analytics-firestore');
+  console.log('✅ Analytics routes loaded');
+} catch (error) {
+  console.error('⚠️ Analytics routes error:', error.message);
+}
+
+try {
+  metricsRoutes = require('./routes/metrics-firestore');
+  console.log('✅ Metrics routes loaded');
+} catch (error) {
+  console.error('⚠️ Metrics routes error:', error.message);
+}
+
+// Load new Firestore routes for unmigrated features
+try {
+  cartRoutes = require('./routes/cart-firestore');
+  console.log('✅ Cart routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Cart routes error:', error.message);
+}
+
+try {
+  categoriesRoutes_firestore = require('./routes/categories-firestore');
+  categoryRoutes = categoriesRoutes_firestore;
+  console.log('✅ Categories routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Categories routes error:', error.message);
+}
+
+try {
+  contentRoutes = require('./routes/content-firestore');
+  console.log('✅ Content routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Content routes error:', error.message);
+}
+
+try {
+  commentsRoutes_firestore = require('./routes/comments-firestore');
+  commentsRoutes = commentsRoutes_firestore;
+  console.log('✅ Comments routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Comments routes error:', error.message);
+}
+
+try {
+  feedRoutes = require('./routes/feed-firestore');
+  console.log('✅ Feed routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Feed routes error:', error.message);
+}
+
+try {
+  messagingRoutes_firestore = require('./routes/messaging-firestore');
+  messagingRoutes = messagingRoutes_firestore;
+  console.log('✅ Messaging routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Messaging routes error:', error.message);
+}
+
+try {
+  streamingRoutes_firestore = require('./routes/streaming-firestore');
+  streamProviderRoutes = streamingRoutes_firestore;
+  livestreamRoutes = streamingRoutes_firestore;
+  console.log('✅ Streaming routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Streaming routes error:', error.message);
+}
+
+try {
+  playerRoutes = require('./routes/player-firestore');
+  console.log('✅ Player routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Player routes error:', error.message);
+}
+
+try {
+  uploadsRoutes_firestore = require('./routes/uploads-firestore');
+  uploadRoutes = uploadsRoutes_firestore;
+  console.log('✅ Uploads routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Uploads routes error:', error.message);
+}
+
+try {
+  paymentsRoutes_firestore = require('./routes/payments-firestore');
+  paymentRoutes = paymentsRoutes_firestore;
+  console.log('✅ Payments routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Payments routes error:', error.message);
 }
 
 // Routes still needing full migration (return fallback 503)
@@ -151,7 +274,7 @@ liveShoppingRoutes = fallback5;
 streamFiltersRoutes = fallback5;
 webrtcRoutes = fallback5;
 aiRoutes = fallback5;
-uploadRoutes = fallback5;
+// uploadRoutes is set above from Firestore routes, don't overwrite
 giftsRoutes = fallback5;
 activityRoutes = fallback5;
 
@@ -216,11 +339,27 @@ app.use(cors({
 // Handle preflight OPTIONS requests
 app.options('*', cors());
 
-// Rate limiting
+// Rate limiting (configurable for live testing)
+const allowlist = (process.env.RATE_LIMIT_ALLOWLIST || '')
+  .split(',')
+  .map(ip => ip.trim())
+  .filter(Boolean);
+
+function isAllowlistedIp(req) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress;
+  if (!ip) return false;
+  // Normalize IPv6-mapped IPv4 like ::ffff:1.2.3.4
+  const normalized = typeof ip === 'string' && ip.startsWith('::ffff:') ? ip.replace('::ffff:', '') : ip;
+  return allowlist.includes(normalized);
+}
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: (parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || (15 * 60 * 1000)),
+  max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => isAllowlistedIp(req)
 });
 app.use('/api', limiter);
 
@@ -284,9 +423,8 @@ app.use('/api/audit-logs', auditLogsRoutes);
 app.use('/api/languages', languageRoutes);
 app.use('/api/translations', translationRoutes);
 
-// Streaming API routes
-app.use('/api/streaming/providers', streamProviderRoutes);
-app.use('/api/streaming/livestreams', livestreamRoutes);
+// Streaming API routes (Firestore)
+app.use('/api/streaming', streamProviderRoutes); // Handles both /providers and /livestreams
 
 // CMS API routes
 app.use('/api/cms', cmsRoutes);
@@ -294,9 +432,6 @@ app.use('/api/banners', bannersRoutes);
 
 // Supporters API routes
 app.use('/api/supporters', supportersRoutes);
-
-// Advanced Analytics API routes
-app.use('/api/analytics', analyticsRoutes);
 
 // Content Management API routes
 app.use('/api/content', contentRoutes);

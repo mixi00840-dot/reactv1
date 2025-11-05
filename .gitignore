@@ -55,3 +55,23 @@ uploads/
 *.sqlite
 *.sqlite3
 Figma_UI/
+
+# Sensitive files
+serviceAccount.*.json
+created-admin.json
+test-results.json
+
+# Temporary test scripts
+bootstrap-firebase-admin.js
+create-admin-with-service-account.js
+create-firebase-user-and-elevate.js
+create-short-lived-firebase-admin.js
+login-direct-firebase.js
+login-via-custom-token.js
+probe-live.js
+run-firebase-login-created.js
+run-firebase-login.js
+run-legacy-admin.js
+run-legacy-login.js
+test-custom-token-backend.js
+test-live-firebase-admin.js

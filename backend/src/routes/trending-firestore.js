@@ -1,10 +1,33 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, adminMiddleware } = require('../middleware/auth');
+const { verifyFirebaseToken, requireAdmin } = require('../middleware/firebaseAuth');
 
 /**
  * Trending Routes - Firestore Stub
  */
+
+// Health check
+router.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Trending API is operational (Firestore stub)' });
+});
+
+// Get trending overview (root endpoint - public)
+router.get('/', async (req, res) => {
+  try {
+    res.json({ 
+      success: true, 
+      data: {
+        hashtags: [],
+        sounds: [],
+        content: [],
+        count: 0
+      }
+    });
+  } catch (error) {
+    console.error('Error getting trending overview:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // Get trending hashtags
 router.get('/hashtags', async (req, res) => {
@@ -96,7 +119,7 @@ router.get('/videos', async (req, res) => {
 });
 
 // Get trending config (Admin)
-router.get('/config', authenticate, adminMiddleware, async (req, res) => {
+router.get('/config', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ 
       success: true, 
@@ -121,7 +144,7 @@ router.get('/config', authenticate, adminMiddleware, async (req, res) => {
 });
 
 // Get config history (Admin)
-router.get('/config/history', authenticate, adminMiddleware, async (req, res) => {
+router.get('/config/history', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     const { limit = 10 } = req.query;
     res.json({ success: true, data: { history: [], count: 0 } });
@@ -132,7 +155,7 @@ router.get('/config/history', authenticate, adminMiddleware, async (req, res) =>
 });
 
 // Update trending weights (Admin)
-router.put('/config/weights', authenticate, adminMiddleware, async (req, res) => {
+router.put('/config/weights', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ success: true, message: 'Weights updated' });
   } catch (error) {
@@ -142,7 +165,7 @@ router.put('/config/weights', authenticate, adminMiddleware, async (req, res) =>
 });
 
 // Update trending thresholds (Admin)
-router.put('/config/thresholds', authenticate, adminMiddleware, async (req, res) => {
+router.put('/config/thresholds', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ success: true, message: 'Thresholds updated' });
   } catch (error) {
@@ -152,7 +175,7 @@ router.put('/config/thresholds', authenticate, adminMiddleware, async (req, res)
 });
 
 // Get trending analytics
-router.get('/analytics', authenticate, adminMiddleware, async (req, res) => {
+router.get('/analytics', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ success: true, data: { analytics: [] } });
   } catch (error) {
@@ -162,7 +185,7 @@ router.get('/analytics', authenticate, adminMiddleware, async (req, res) => {
 });
 
 // Get trending history (Admin)
-router.get('/history', authenticate, adminMiddleware, async (req, res) => {
+router.get('/history', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ success: true, data: { history: [], count: 0 } });
   } catch (error) {
@@ -172,7 +195,7 @@ router.get('/history', authenticate, adminMiddleware, async (req, res) => {
 });
 
 // Get trending weights (Admin)
-router.get('/weights', authenticate, adminMiddleware, async (req, res) => {
+router.get('/weights', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ 
       success: true, 
@@ -190,7 +213,7 @@ router.get('/weights', authenticate, adminMiddleware, async (req, res) => {
 });
 
 // Get trending thresholds (Admin)
-router.get('/thresholds', authenticate, adminMiddleware, async (req, res) => {
+router.get('/thresholds', verifyFirebaseToken, requireAdmin, async (req, res) => {
   try {
     res.json({ 
       success: true, 

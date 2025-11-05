@@ -150,3 +150,27 @@ curl https://mixillo-backend-52242135857.europe-west1.run.app/health
 **Last Updated:** November 4, 2025  
 **Deployment Revision:** mixillo-backend-00011-ng6  
 **GitHub Repository:** https://github.com/mixi00840-dot/reactv1
+
+---
+
+## Live Test Run - November 5, 2025
+
+### Environment
+- Backend (Cloud Run): `https://mixillo-backend-52242135857.europe-west1.run.app`
+- Legacy Render URL: `https://reactv1-v8sa.onrender.com` (suspended by owner)
+
+### Results
+- Health check `/health`: ✅ 200 OK (database: Firestore)
+- Public endpoints (e.g., `/api/products`, `/api/stores`, `/api/settings/public`): ⚠️ 429 Too Many Requests (rate limiting)
+- Firebase login `/api/auth/firebase/login`: ⚠️ 429 Too Many Requests
+- Protected admin endpoints (e.g., `/api/admin/users`, `/api/analytics/dashboard/overview`): Blocked due to login rate limiting
+- Upload pipeline live test: Skipped due to authentication rate limiting
+
+### Notes
+- Cloud Run instance is responsive, but IP-based rate limiting returned 429 for most API tests during this window.
+- Render service is suspended, so JWT-based legacy tests against `reactv1-v8sa.onrender.com` cannot run.
+
+### Recommendations
+- Temporarily raise the rate-limiter thresholds or whitelist current tester IP for a short window.
+- Re-run the Firebase login + protected route tests once 429 subsides.
+- Optionally provide a low-privilege test admin account and time window to avoid triggering abuse protections.

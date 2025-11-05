@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../utils/database'); // Firestore instance
-const { authMiddleware, adminMiddleware } = require('../middleware/auth');
+const { verifyFirebaseToken, requireAdmin } = require('../middleware/firebaseAuth');
 
 const router = express.Router();
 
@@ -28,9 +28,9 @@ router.get('/health', async (req, res) => {
   });
 });
 
-// Apply auth and admin middleware to all routes AFTER health check
-router.use(authMiddleware);
-router.use(adminMiddleware);
+// Apply Firebase auth and admin middleware to all routes AFTER health check
+router.use(verifyFirebaseToken);
+router.use(requireAdmin);
 
 // @route   GET /api/admin/dashboard
 // @desc    Get admin dashboard statistics
@@ -149,88 +149,47 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
-// @route   GET /api/admin/users
-// @desc    Get all users with pagination and filters
+// Note: User management routes are handled by /api/admin/users router
+// (mounted separately in app.js to avoid conflicts)
+
+// @route   GET /api/admin/users/search
+// @desc    Search users (must come before /users/:userId to avoid route conflict)
 // @access  Admin
-router.get('/users', async (req, res) => {
+router.get('/users/search', async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 20,
-      status,
-      role,
-      isVerified,
-      search
-    } = req.query;
-
-    let query = db.collection('users');
-
-    // Apply filters
-    if (status) {
-      query = query.where('status', '==', status);
-    }
-    if (role) {
-      query = query.where('role', '==', role);
-    }
-    if (isVerified !== undefined) {
-      query = query.where('isVerified', '==', isVerified === 'true');
+    const { q, limit = 20 } = req.query;
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Search query must be at least 2 characters' 
+      });
     }
 
-    // Get total count for pagination
-    const snapshot = await query.get();
-    const total = snapshot.size;
+    const searchTerm = q.trim().toLowerCase();
+    const usersSnapshot = await db.collection('users').get();
 
-    // Apply pagination
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-    const usersSnapshot = await query
-      .orderBy('createdAt', 'desc')
-      .limit(parseInt(limit))
-      .offset(offset)
-      .get();
-
-    let users = usersSnapshot.docs.map(doc => {
+    const users = [];
+    usersSnapshot.forEach(doc => {
       const userData = doc.data();
-      delete userData.password;
-      return {
-        id: doc.id,
-        ...userData
-      };
-    });
-
-    // Apply search filter (client-side since Firestore doesn't support full-text search)
-    if (search) {
-      const searchLower = search.toLowerCase();
-      users = users.filter(user =>
-        (user.username || '').toLowerCase().includes(searchLower) ||
-        (user.fullName || '').toLowerCase().includes(searchLower) ||
-        (user.email || '').toLowerCase().includes(searchLower)
-      );
-    }
-
-    res.json({
-      success: true,
-      data: {
-        users,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / parseInt(limit))
-        }
+      if (
+        (userData.username && userData.username.toLowerCase().includes(searchTerm)) ||
+        (userData.email && userData.email.toLowerCase().includes(searchTerm))
+      ) {
+        delete userData.password;
+        users.push({ id: doc.id, ...userData });
       }
     });
 
+    const limitedUsers = users.slice(0, parseInt(limit));
+    res.json({ success: true, data: { users: limitedUsers } });
   } catch (error) {
-    console.error('Get users error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching users'
-    });
+    console.error('Admin search users error:', error);
+    res.status(500).json({ success: false, message: 'Server error during user search.' });
   }
 });
 
 // @route   GET /api/admin/users/:userId
-// @desc    Get detailed user information
+// @desc    Get detailed user information  
 // @access  Admin
 router.get('/users/:userId', async (req, res) => {
   try {
