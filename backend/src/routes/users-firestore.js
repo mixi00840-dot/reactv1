@@ -4,6 +4,38 @@ const db = require('../utils/database');
 
 const router = express.Router();
 
+// @route   GET /api/users/profile
+// @desc    Get current user profile
+// @access  Private
+router.get('/profile', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id || req.user.uid;
+    const userDoc = await db.collection('users').doc(userId).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const userData = { id: userDoc.id, ...userDoc.data() };
+    delete userData.password;
+
+    res.json({
+      success: true,
+      data: { user: userData }
+    });
+
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching profile'
+    });
+  }
+});
+
 // @route   GET /api/users
 // @desc    Get all users (admin)
 // @access  Admin
