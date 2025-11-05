@@ -423,4 +423,124 @@ router.get('/check-eligibility', authMiddleware, async (req, res) => {
   }
 });
 
+// @route   GET /api/sellers/applications
+// @desc    Get all seller applications (admin-accessible)
+// @access  Private (Admin)
+router.get('/applications', authMiddleware, async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+    
+    // Build query
+    let query = db.collection('sellerApplications');
+    
+    if (status) {
+      query = query.where('status', '==', status);
+    }
+    
+    query = query.orderBy('createdAt', 'desc');
+    
+    // Get total count
+    const countSnapshot = await query.get();
+    const total = countSnapshot.size;
+    
+    // Apply pagination
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const snapshot = await query.limit(parseInt(limit)).offset(offset).get();
+    
+    const applications = [];
+    
+    for (const doc of snapshot.docs) {
+      const appData = doc.data();
+      
+      // Get user data
+      const userDoc = await db.collection('users').doc(appData.userId).get();
+      const userData = userDoc.exists ? {
+        id: userDoc.id,
+        username: userDoc.data().username,
+        fullName: userDoc.data().fullName,
+        email: userDoc.data().email,
+        avatar: userDoc.data().avatar
+      } : null;
+      
+      applications.push({
+        id: doc.id,
+        ...appData,
+        user: userData
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        applications,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / parseInt(limit))
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get seller applications error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching applications'
+    });
+  }
+});
+
+// @route   GET /api/sellers/stats
+// @desc    Get seller statistics
+// @access  Private (Admin)
+router.get('/stats', authMiddleware, async (req, res) => {
+  try {
+    const applicationsSnapshot = await db.collection('sellerApplications').get();
+    
+    let pending = 0;
+    let approved = 0;
+    let rejected = 0;
+    let total = applicationsSnapshot.size;
+    
+    applicationsSnapshot.forEach(doc => {
+      const app = doc.data();
+      if (app.status === 'pending') pending++;
+      else if (app.status === 'approved') approved++;
+      else if (app.status === 'rejected') rejected++;
+    });
+    
+    // Get recent applications (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const recentSnapshot = await db.collection('sellerApplications')
+      .where('createdAt', '>=', sevenDaysAgo.toISOString())
+      .get();
+    
+    const recentApplications = recentSnapshot.size;
+    
+    res.json({
+      success: true,
+      data: {
+        stats: {
+          total,
+          pending,
+          approved,
+          rejected,
+          recentApplications,
+          approvalRate: total > 0 ? ((approved / total) * 100).toFixed(2) : 0
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get seller stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching statistics'
+    });
+  }
+});
+
 module.exports = router;

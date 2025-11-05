@@ -501,4 +501,58 @@ router.get('/meta/statuses', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/orders/stats
+ * Get order statistics
+ * Access: Admin
+ */
+router.get('/stats', async (req, res) => {
+  try {
+    const db = require('../utils/database');
+    const ordersSnapshot = await db.collection('orders').get();
+    
+    let total = 0;
+    let pending = 0;
+    let processing = 0;
+    let shipped = 0;
+    let delivered = 0;
+    let cancelled = 0;
+    let totalRevenue = 0;
+    
+    ordersSnapshot.forEach(doc => {
+      const order = doc.data();
+      total++;
+      if (order.status === 'pending') pending++;
+      if (order.status === 'processing') processing++;
+      if (order.status === 'shipped') shipped++;
+      if (order.status === 'delivered') delivered++;
+      if (order.status === 'cancelled') cancelled++;
+      if (order.totals?.total) {
+        totalRevenue += order.totals.total;
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        stats: {
+          total,
+          pending,
+          processing,
+          shipped,
+          delivered,
+          cancelled,
+          totalRevenue: totalRevenue.toFixed(2)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get order stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch order statistics'
+    });
+  }
+});
+
 module.exports = router;

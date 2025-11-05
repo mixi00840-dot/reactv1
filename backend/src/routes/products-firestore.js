@@ -469,4 +469,50 @@ router.patch('/:id/inventory', authenticateUser, authorizeRoles('admin'), async 
   }
 });
 
+/**
+ * GET /api/products/stats
+ * Get product statistics
+ * Access: Admin
+ */
+router.get('/stats', async (req, res) => {
+  try {
+    const db = require('../utils/database');
+    const productsSnapshot = await db.collection('products').get();
+    
+    let total = 0;
+    let active = 0;
+    let inactive = 0;
+    let outOfStock = 0;
+    let totalValue = 0;
+    
+    productsSnapshot.forEach(doc => {
+      const product = doc.data();
+      total++;
+      if (product.status === 'active') active++;
+      if (product.status === 'inactive') inactive++;
+      if (product.inventory <= 0) outOfStock++;
+      totalValue += (product.price || 0) * (product.inventory || 0);
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        stats: {
+          total,
+          active,
+          inactive,
+          outOfStock,
+          totalValue: totalValue.toFixed(2)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get product stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch product statistics'
+    });
+  }
+});
+
 module.exports = router;

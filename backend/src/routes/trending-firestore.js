@@ -6,6 +6,95 @@ const { authenticate, adminMiddleware } = require('../middleware/auth');
  * Trending Routes - Firestore Stub
  */
 
+// Get trending hashtags
+router.get('/hashtags', async (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+    const db = require('../utils/database');
+    
+    // Get hashtags from stories or videos (placeholder)
+    // In real implementation, would aggregate from content
+    res.json({ 
+      success: true, 
+      data: {
+        hashtags: [],
+        count: 0
+      }
+    });
+  } catch (error) {
+    console.error('Error getting trending hashtags:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get trending sounds
+router.get('/sounds', async (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+    const db = require('../utils/database');
+    
+    // Get trending sounds from sounds collection
+    const soundsSnapshot = await db.collection('sounds')
+      .orderBy('usageCount', 'desc')
+      .limit(parseInt(limit))
+      .get();
+    
+    const sounds = [];
+    soundsSnapshot.forEach(doc => {
+      sounds.push({ id: doc.id, ...doc.data() });
+    });
+    
+    res.json({ 
+      success: true, 
+      data: {
+        sounds,
+        count: sounds.length
+      }
+    });
+  } catch (error) {
+    console.error('Error getting trending sounds:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get trending videos
+router.get('/videos', async (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+    const db = require('../utils/database');
+    
+    // Get trending videos from stories collection
+    const videosSnapshot = await db.collection('stories')
+      .where('type', '==', 'video')
+      .orderBy('viewCount', 'desc')
+      .limit(parseInt(limit))
+      .get();
+    
+    const videos = [];
+    videosSnapshot.forEach(doc => {
+      videos.push({ id: doc.id, ...doc.data() });
+    });
+    
+    res.json({ 
+      success: true, 
+      data: {
+        videos,
+        count: videos.length
+      }
+    });
+  } catch (error) {
+    console.error('Error getting trending videos:', error);
+    // If viewCount index doesn't exist, return empty array
+    res.json({ 
+      success: true, 
+      data: {
+        videos: [],
+        count: 0
+      }
+    });
+  }
+});
+
 // Get trending config (Admin)
 router.get('/config', authenticate, adminMiddleware, async (req, res) => {
   try {

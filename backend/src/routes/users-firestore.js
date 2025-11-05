@@ -41,29 +41,204 @@ router.get('/profile', authMiddleware, async (req, res) => {
 // @access  Admin
 router.get('/', [authMiddleware, adminMiddleware], async (req, res) => {
   try {
-    const { limit = 25, offset = 0, status, role } = req.query;
+    const { limit = 25, offset = 0, status, role, search, verified, page = 1 } = req.query;
 
     let query = db.collection('users');
 
-    if (status) {
-      query = query.where('status', '==', status);
-    }
-    if (role) {
-      query = query.where('role', '==', role);
-    }
+    // Handle filtering - avoid composite indexes by doing client-side filtering when needed
+    try {
+      if (status && !role) {
+        // Status + orderBy requires index, so fetch all and filter client-side
+        const snapshot = await query.orderBy('createdAt', 'desc').get();
+        
+        let users = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.status === status) {
+            delete data.password;
+            users.push({ id: doc.id, ...data });
+          }
+        });
 
-    const snapshot = await query.orderBy('createdAt', 'desc').limit(parseInt(limit)).offset(parseInt(offset)).get();
-    
-    const users = [];
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      delete data.password;
-      users.push({ id: doc.id, ...data });
-    });
+        // Apply search filter if provided
+        if (search) {
+          const searchLower = search.toLowerCase();
+          users = users.filter(u => 
+            u.username?.toLowerCase().includes(searchLower) ||
+            u.email?.toLowerCase().includes(searchLower) ||
+            u.fullName?.toLowerCase().includes(searchLower)
+          );
+        }
 
-    res.json({ success: true, data: { users, count: users.length } });
+        // Apply verified filter if provided
+        if (verified !== undefined) {
+          const isVerified = verified === 'true' || verified === true;
+          users = users.filter(u => u.isVerified === isVerified);
+        }
+
+        // Apply pagination
+        const startIndex = (parseInt(page) - 1) * parseInt(limit);
+        const paginatedUsers = users.slice(startIndex, startIndex + parseInt(limit));
+
+        return res.json({ 
+          success: true, 
+          data: { 
+            users: paginatedUsers, 
+            count: users.length,
+            pagination: {
+              page: parseInt(page),
+              limit: parseInt(limit),
+              total: users.length,
+              pages: Math.ceil(users.length / parseInt(limit))
+            }
+          } 
+        });
+      } else if (role && !status) {
+        query = query.where('role', '==', role);
+      }
+      
+      // If no status filter or both filters, use indexed query
+      const snapshot = await query.orderBy('createdAt', 'desc').limit(parseInt(limit)).offset(parseInt(offset)).get();
+      
+      let users = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        delete data.password;
+        users.push({ id: doc.id, ...data });
+      });
+
+      // Apply search filter if provided
+      if (search) {
+        const searchLower = search.toLowerCase();
+        users = users.filter(u => 
+          u.username?.toLowerCase().includes(searchLower) ||
+          u.email?.toLowerCase().includes(searchLower) ||
+          u.fullName?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Apply verified filter if provided
+      if (verified !== undefined) {
+        const isVerified = verified === 'true' || verified === true;
+        users = users.filter(u => u.isVerified === isVerified);
+      }
+
+      res.json({ success: true, data: { users, count: users.length } });
+    } catch (queryError) {
+      // Fallback: fetch all users and filter client-side
+      console.warn('Query failed, falling back to client-side filtering:', queryError.message);
+      const snapshot = await db.collection('users').get();
+      
+      let users = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        delete data.password;
+        users.push({ id: doc.id, ...data });
+      });
+
+      // Apply all filters client-side
+      if (status) {
+        users = users.filter(u => u.status === status);
+      }
+      if (role) {
+        users = users.filter(u => u.role === role);
+      }
+      if (search) {
+        const searchLower = search.toLowerCase();
+        users = users.filter(u => 
+          u.username?.toLowerCase().includes(searchLower) ||
+          u.email?.toLowerCase().includes(searchLower) ||
+          u.fullName?.toLowerCase().includes(searchLower)
+        );
+      }
+      if (verified !== undefined) {
+        const isVerified = verified === 'true' || verified === true;
+        users = users.filter(u => u.isVerified === isVerified);
+      }
+
+      // Sort by createdAt desc
+      users.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      // Apply pagination
+      const startIndex = (parseInt(page) - 1) * parseInt(limit);
+      const paginatedUsers = users.slice(startIndex, startIndex + parseInt(limit));
+
+      res.json({ 
+        success: true, 
+        data: { 
+          users: paginatedUsers, 
+          count: users.length,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: users.length,
+            pages: Math.ceil(users.length / parseInt(limit))
+          }
+        } 
+      });
+    }
   } catch (error) {
     console.error('Get all users error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/users/stats
+// @desc    Get user statistics
+// @access  Admin
+router.get('/stats', [authMiddleware, adminMiddleware], async (req, res) => {
+  try {
+    const usersSnapshot = await db.collection('users').get();
+    
+    let total = 0;
+    let active = 0;
+    let banned = 0;
+    let suspended = 0;
+    let verified = 0;
+    let featured = 0;
+    let sellers = 0;
+    let admins = 0;
+    
+    usersSnapshot.forEach(doc => {
+      const user = doc.data();
+      total++;
+      if (user.status === 'active') active++;
+      if (user.status === 'banned') banned++;
+      if (user.status === 'suspended') suspended++;
+      if (user.isVerified) verified++;
+      if (user.isFeatured) featured++;
+      if (user.role === 'seller') sellers++;
+      if (user.role === 'admin') admins++;
+    });
+    
+    // Get recent signups (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const recentSnapshot = await db.collection('users')
+      .where('createdAt', '>=', sevenDaysAgo.toISOString())
+      .get();
+    
+    const recentSignups = recentSnapshot.size;
+    
+    res.json({
+      success: true,
+      data: {
+        stats: {
+          total,
+          active,
+          banned,
+          suspended,
+          verified,
+          featured,
+          sellers,
+          admins,
+          recentSignups
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get user stats error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

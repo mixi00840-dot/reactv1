@@ -468,4 +468,50 @@ router.patch('/:id/feature', authenticateUser, authorizeRoles('admin'), async (r
   }
 });
 
+/**
+ * GET /api/stores/stats
+ * Get store statistics
+ * Access: Admin
+ */
+router.get('/stats', async (req, res) => {
+  try {
+    const db = require('../utils/database');
+    const storesSnapshot = await db.collection('stores').get();
+    
+    let total = 0;
+    let active = 0;
+    let inactive = 0;
+    let verified = 0;
+    let featured = 0;
+    
+    storesSnapshot.forEach(doc => {
+      const store = doc.data();
+      total++;
+      if (store.status === 'active') active++;
+      if (store.status === 'inactive') inactive++;
+      if (store.isVerified) verified++;
+      if (store.isFeatured) featured++;
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        stats: {
+          total,
+          active,
+          inactive,
+          verified,
+          featured
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get store stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch store statistics'
+    });
+  }
+});
+
 module.exports = router;
