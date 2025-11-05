@@ -44,7 +44,7 @@ const paymentRoutes = fallback2;
 const couponRoutes = fallback2;
 const shippingRoutes = fallback2;
 const customerServiceRoutes = fallback2;
-const analyticsRoutes = fallback2;
+let analyticsRoutes = fallback2; // Changed to let for Firestore override
 
 // CMS & Settings routes (Firestore - Phase 2 complete)
 let settingsRoutes, cmsRoutes, bannersRoutes;
@@ -68,13 +68,13 @@ const livestreamRoutes = fallback4;
 const supportersRoutes = fallback4;
 const advancedAnalyticsRoutes = fallback4;
 const contentRoutes = fallback4;
-const transcodeRoutes = fallback4;
-const metricsRoutes = fallback4;
-const moderationRoutes = fallback4;
+let transcodeRoutes = fallback4;  // Changed to let for Firestore override
+let metricsRoutes = fallback4;     // Changed to let for Firestore override
+let moderationRoutes = fallback4;  // Changed to let for Firestore override
 const rightsRoutes = fallback4;
 const recommendationRoutes = fallback4;
 const feedRoutes = fallback4;
-const trendingRoutes = fallback4;
+let trendingRoutes = fallback4;    // Changed to let for Firestore override
 const playerRoutes = fallback4;
 
 // Phase 11-15 routes (Firestore migration complete for critical routes)
@@ -132,13 +132,17 @@ try {
 }
 
 // Load other critical admin routes (reuse existing variables, don't redeclare)
-moderationRoutes = require('./routes/moderation-firestore');
-settingsRoutes = require('./routes/settings-firestore');
-transcodeRoutes = require('./routes/transcode-firestore');
-trendingRoutes = require('./routes/trending-firestore');
-analyticsRoutes2 = require('./routes/analytics-firestore');
-metricsRoutes = require('./routes/metrics-firestore');
-console.log('✅ Admin dashboard routes loaded (Firestore stubs)');
+try {
+  moderationRoutes = require('./routes/moderation-firestore');
+  settingsRoutes = require('./routes/settings-firestore');
+  transcodeRoutes = require('./routes/transcode-firestore');
+  trendingRoutes = require('./routes/trending-firestore');
+  analyticsRoutes = require('./routes/analytics-firestore');
+  metricsRoutes = require('./routes/metrics-firestore');
+  console.log('✅ Admin dashboard routes loaded (Firestore stubs)');
+} catch (error) {
+  console.error('⚠️ Error loading admin dashboard routes:', error.message);
+}
 
 // Routes still needing full migration (return fallback 503)
 const fallback5 = createFallbackRouter();
@@ -273,7 +277,7 @@ app.use('/api/support', customerServiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 // Settings & Audit API routes (Firestore)
-app.use('/api/settings', settingsRoutes2); // ✅ Firestore stub
+app.use('/api/settings', settingsRoutes); // ✅ Firestore stub
 app.use('/api/audit-logs', auditLogsRoutes);
 
 // i18n API routes
@@ -291,8 +295,8 @@ app.use('/api/banners', bannersRoutes);
 // Supporters API routes
 app.use('/api/supporters', supportersRoutes);
 
-// Advanced Analytics API routes (Firestore)
-app.use('/api/analytics', analyticsRoutes2); // ✅ Firestore stub
+// Advanced Analytics API routes
+app.use('/api/analytics', analyticsRoutes);
 
 // Content Management API routes
 app.use('/api/content', contentRoutes);
