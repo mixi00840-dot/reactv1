@@ -57,4 +57,15 @@ router.get('/moderation/pending-review', authenticate, adminMiddleware, async (r
   }
 });
 
+// Get sounds moderation queue (Admin)
+router.get('/moderation', authenticate, adminMiddleware, async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    res.json({ success: true, data: { sounds: [], count: 0 } });
+  } catch (error) {
+    console.error('Error getting moderation queue:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;

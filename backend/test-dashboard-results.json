@@ -5,9 +5,9 @@
         "Response":  {
                          "status":  "ok",
                          "message":  "Mixillo API is running",
-                         "timestamp":  "2025-11-05T12:13:16.217Z",
+                         "timestamp":  "2025-11-05T12:49:28.382Z",
                          "environment":  "production",
-                         "uptime":  31.066390395,
+                         "uptime":  0.965145027,
                          "database":  "Firestore"
                      },
         "Expected":  "200",

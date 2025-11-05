@@ -348,6 +348,52 @@ router.post('/verify-token', async (req, res) => {
   }
 });
 
+// Alias route for /verify (same as /verify-token)
+router.post('/verify', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID token is required'
+      });
+    }
+
+    // Verify the ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken, true);
+
+    // Get user data from Firestore
+    const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const userData = userDoc.data();
+    const userResponse = { ...userData, id: userDoc.id };
+
+    res.json({
+      success: true,
+      data: {
+        user: userResponse,
+        tokenValid: true,
+        emailVerified: decodedToken.email_verified
+      }
+    });
+
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token'
+    });
+  }
+});
+
 // @route   GET /api/auth/firebase/me
 // @desc    Get current user profile
 // @access  Private

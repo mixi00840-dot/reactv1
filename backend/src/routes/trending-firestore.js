@@ -72,4 +72,48 @@ router.get('/analytics', authenticate, adminMiddleware, async (req, res) => {
   }
 });
 
+// Get trending history (Admin)
+router.get('/history', authenticate, adminMiddleware, async (req, res) => {
+  try {
+    res.json({ success: true, data: { history: [], count: 0 } });
+  } catch (error) {
+    console.error('Error getting trending history:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get trending weights (Admin)
+router.get('/weights', authenticate, adminMiddleware, async (req, res) => {
+  try {
+    res.json({ 
+      success: true, 
+      data: {
+        views: 0.3,
+        likes: 0.25,
+        comments: 0.25,
+        shares: 0.2
+      }
+    });
+  } catch (error) {
+    console.error('Error getting trending weights:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get trending thresholds (Admin)
+router.get('/thresholds', authenticate, adminMiddleware, async (req, res) => {
+  try {
+    res.json({ 
+      success: true, 
+      data: {
+        minViews: 1000,
+        minEngagement: 0.05
+      }
+    });
+  } catch (error) {
+    console.error('Error getting trending thresholds:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;
