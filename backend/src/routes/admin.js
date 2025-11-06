@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../utils/database'); // Firestore instance
-const { verifyFirebaseToken, requireAdmin } = require('../middleware/firebaseAuth');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -28,9 +28,9 @@ router.get('/health', async (req, res) => {
   });
 });
 
-// Apply Firebase auth and admin middleware to all routes AFTER health check
-router.use(verifyFirebaseToken);
-router.use(requireAdmin);
+// Apply auth and admin middleware to all routes AFTER health check
+router.use(authMiddleware);
+router.use(adminMiddleware);
 
 // @route   GET /api/admin/dashboard
 // @desc    Get admin dashboard statistics
@@ -149,47 +149,92 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
-// Note: User management routes are handled by /api/admin/users router
-// (mounted separately in app.js to avoid conflicts)
-
-// @route   GET /api/admin/users/search
-// @desc    Search users (must come before /users/:userId to avoid route conflict)
+// @route   GET /api/admin/users
+// @desc    Get all users with pagination and filters
 // @access  Admin
-router.get('/users/search', async (req, res) => {
+router.get('/users', async (req, res) => {
   try {
-    const { q, limit = 20 } = req.query;
-    if (!q || q.trim().length < 2) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Search query must be at least 2 characters' 
-      });
+    const {
+      page = 1,
+      limit = 20,
+      status,
+      role,
+      isVerified,
+      search
+    } = req.query;
+
+    // Ensure valid integers for pagination
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 20;
+
+    let query = db.collection('users');
+
+    // Apply filters
+    if (status) {
+      query = query.where('status', '==', status);
+    }
+    if (role) {
+      query = query.where('role', '==', role);
+    }
+    if (isVerified !== undefined) {
+      query = query.where('isVerified', '==', isVerified === 'true');
     }
 
-    const searchTerm = q.trim().toLowerCase();
-    const usersSnapshot = await db.collection('users').get();
+    // Get total count for pagination
+    const snapshot = await query.get();
+    const total = snapshot.size;
 
-    const users = [];
-    usersSnapshot.forEach(doc => {
+    // Apply pagination
+    const offset = (pageNum - 1) * limitNum;
+    const usersSnapshot = await query
+      .orderBy('createdAt', 'desc')
+      .limit(limitNum)
+      .offset(offset)
+      .get();
+
+    let users = usersSnapshot.docs.map(doc => {
       const userData = doc.data();
-      if (
-        (userData.username && userData.username.toLowerCase().includes(searchTerm)) ||
-        (userData.email && userData.email.toLowerCase().includes(searchTerm))
-      ) {
-        delete userData.password;
-        users.push({ id: doc.id, ...userData });
+      delete userData.password;
+      return {
+        id: doc.id,
+        ...userData
+      };
+    });
+
+    // Apply search filter (client-side since Firestore doesn't support full-text search)
+    if (search) {
+      const searchLower = search.toLowerCase();
+      users = users.filter(user =>
+        (user.username || '').toLowerCase().includes(searchLower) ||
+        (user.fullName || '').toLowerCase().includes(searchLower) ||
+        (user.email || '').toLowerCase().includes(searchLower)
+      );
+    }
+
+    res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
       }
     });
 
-    const limitedUsers = users.slice(0, parseInt(limit));
-    res.json({ success: true, data: { users: limitedUsers } });
   } catch (error) {
-    console.error('Admin search users error:', error);
-    res.status(500).json({ success: false, message: 'Server error during user search.' });
+    console.error('Get users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching users'
+    });
   }
 });
 
 // @route   GET /api/admin/users/:userId
-// @desc    Get detailed user information  
+// @desc    Get detailed user information
 // @access  Admin
 router.get('/users/:userId', async (req, res) => {
   try {
@@ -713,5 +758,93 @@ router.delete('/strikes/:strikeId', async (req, res) => {
     });
   }
 });
+
+// @route   GET /api/admin/uploads
+// @desc    Get all uploads with pagination and filters
+// @access  Admin
+router.get('/uploads', async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      type,
+      status,
+      search
+    } = req.query;
+
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 20;
+
+    let query = db.collection('uploads');
+
+    // Apply filters
+    if (type && type !== 'all') {
+      query = query.where('type', '==', type);
+    }
+    if (status) {
+      query = query.where('status', '==', status);
+    }
+
+    // Get total count
+    const snapshot = await query.get();
+    const total = snapshot.size;
+
+    // Apply pagination
+    const offset = (pageNum - 1) * limitNum;
+    const uploadsSnapshot = await query
+      .orderBy('createdAt', 'desc')
+      .limit(limitNum)
+      .offset(offset)
+      .get();
+
+    let uploads = uploadsSnapshot.docs.map(doc => ({
+      _id: doc.id,
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
+      updatedAt: doc.data().updatedAt?.toDate?.() || doc.data().updatedAt
+    }));
+
+    // Apply client-side search if provided
+    if (search) {
+      const searchLower = search.toLowerCase();
+      uploads = uploads.filter(upload =>
+        (upload.fileName || '').toLowerCase().includes(searchLower) ||
+        (upload.originalName || '').toLowerCase().includes(searchLower) ||
+        (upload.uploadedBy?.username || '').toLowerCase().includes(searchLower)
+      );
+    }
+
+    res.json({
+      success: true,
+      data: {
+        uploads,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get uploads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching uploads',
+      error: error.message
+    });
+  }
+});
+
+// Mount sub-routes for new features
+const storiesRouter = require('./admin/stories');
+const walletsRouter = require('./admin/wallets');
+const analyticsRouter = require('./admin/analytics');
+
+router.use('/stories', storiesRouter);
+router.use('/wallets', walletsRouter);
+router.use('/analytics', analyticsRouter);
 
 module.exports = router;
