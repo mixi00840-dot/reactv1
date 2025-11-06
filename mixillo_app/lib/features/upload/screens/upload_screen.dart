@@ -17,7 +17,8 @@ class UploadScreen extends StatefulWidget {
 
 class _UploadScreenState extends State<UploadScreen> with WidgetsBindingObserver {
   final CameraService _cameraService = CameraService();
-  final ImagePicker _picker = ImagePicker();
+  // ignore: unused_field
+  final ImagePicker _picker = ImagePicker(); // For future gallery access
   
   bool _isRecording = false;
   bool _isPaused = false;
@@ -215,6 +216,7 @@ class _UploadScreenState extends State<UploadScreen> with WidgetsBindingObserver
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (!_cameraService.isInitialized) {

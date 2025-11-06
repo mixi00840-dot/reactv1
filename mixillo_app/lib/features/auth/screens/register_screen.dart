@@ -46,9 +46,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_formKey.currentState!.validate()) {
       try {
         await context.read<AuthProvider>().register(
-          _emailController.text,
-          _passwordController.text,
-          _usernameController.text,
+          email: _emailController.text,
+          password: _passwordController.text,
+          username: _usernameController.text,
+          fullName: _usernameController.text, // Using username as fullName
         );
         
         if (mounted) {

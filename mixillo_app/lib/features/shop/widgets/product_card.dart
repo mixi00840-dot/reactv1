@@ -44,7 +44,7 @@ class ProductCard extends StatelessWidget {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Image.network(
-                      product.images.first,
+                      product.images.first.url,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
@@ -92,7 +92,7 @@ class ProductCard extends StatelessWidget {
                   children: [
                     // Product Name
                     Text(
-                      product.name,
+                      product.name ?? 'Unnamed Product',
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black,
                         fontSize: 14,

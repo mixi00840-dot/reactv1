@@ -60,7 +60,7 @@ class _FilterPanelState extends State<FilterPanel> {
         children: [
           // Header
           Padding(
-            padding: AppSpacing.screenPadding(),
+            padding: EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -188,7 +188,7 @@ class _FilterPanelState extends State<FilterPanel> {
         final filter = filters[index - 1];
         return _buildFilterItem(
           filter,
-          filter.displayName,
+          filter.name,
           filter.icon,
           selectedFilter?.id == filter.id,
           provider,

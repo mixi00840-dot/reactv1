@@ -111,7 +111,7 @@ class VideoModel {
       description: json['description'],
       title: json['title'],
       tags: List<String>.from(json['tags'] ?? []),
-      hashtags: (json['hashtags'] ?? []).map((h) => Hashtag.fromJson(h is Map ? h : {'tag': h.toString()})).toList(),
+            hashtags: (json['hashtags'] ?? []).map((h) => Hashtag.fromJson(h is Map ? Map<String, dynamic>.from(h) : {'tag': h.toString()})).toList(),
       mentions: (json['mentions'] ?? []).map((m) => Mention.fromJson(m)).toList(),
       location: json['location'] != null ? Location.fromJson(json['location']) : null,
       sound: json['sound'] != null || json['soundId'] != null 

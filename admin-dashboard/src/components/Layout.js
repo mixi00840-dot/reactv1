@@ -227,6 +227,11 @@ const menuItems = [
     path: '/api-settings',
   },
   {
+    text: 'Streaming Providers',
+    icon: <VideocamIcon />,
+    path: '/streaming-providers',
+  },
+  {
     text: 'Translations',
     icon: <TranslateIcon />,
     path: '/translations',

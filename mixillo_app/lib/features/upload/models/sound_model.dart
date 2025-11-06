@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// Sound Model - For camera sound/music selection
 class SoundModel {
   final String id;

@@ -228,7 +228,7 @@ class StoriesRepositoryImpl implements StoriesRepository {
         }
 
         return const Right(null);
-      } on AppException catch (e) {
+      } on AppException {
         // Fail silently for view tracking
         return const Right(null);
       }

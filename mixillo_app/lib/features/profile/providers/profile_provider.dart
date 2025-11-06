@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'dart:io';
 import '../../../core/services/api_service.dart';
-import '../models/user_settings_model.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();

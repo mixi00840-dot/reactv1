@@ -23,3 +23,5 @@ plugins {
 }
 
 include(":app")
+// Helper subproject to publish local ffmpeg-kit AARs into mavenLocal if needed
+// Removed vendoring helper module; using published FFmpeg plugin now

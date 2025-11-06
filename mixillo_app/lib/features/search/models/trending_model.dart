@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class TrendingHashtagModel {
   final String hashtag;
   final int videoCount;

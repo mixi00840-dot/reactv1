@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/pk_battle_model.dart';
-import '../../feed/models/video_model.dart';
-import '../../../core/widgets/custom_video_player.dart';
 
 class PKBattleVideoView extends StatelessWidget {
   final PKBattleHost host;

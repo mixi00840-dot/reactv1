@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../feed/models/video_model.dart';
-import '../../../presentation/screens/comments/comments_bottom_sheet.dart';
-import 'share_bottom_sheet.dart';
 
 class VideoActionsSidebar extends StatefulWidget {
   final VideoModel video;

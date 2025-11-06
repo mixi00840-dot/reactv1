@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import '../../../core/theme/app_colors.dart';
 import '../models/pk_battle_model.dart';
 import '../providers/pk_battle_provider.dart';
-import '../providers/live_streaming_provider.dart';
 import '../widgets/pk_battle_score_bar.dart';
 import '../widgets/pk_battle_timer.dart';
 import '../widgets/pk_battle_gift_panel.dart';

@@ -3,7 +3,6 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/routes/app_router.dart';
 import '../widgets/search_bar_widget.dart';
 import '../widgets/trending_hashtags.dart';
 import '../widgets/user_search_result.dart';
@@ -11,7 +10,6 @@ import '../widgets/sound_search_result.dart';
 import '../widgets/search_history_widget.dart';
 import '../models/trending_model.dart';
 import '../providers/search_provider.dart';
-import '../../feed/models/video_model.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});

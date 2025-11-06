@@ -63,6 +63,7 @@ import CommentsManagement from './pages/CommentsManagement';
 import TranslationsManagement from './pages/TranslationsManagement';
 import UploadManager from './pages/UploadManager';
 import CurrenciesManagement from './pages/CurrenciesManagement';
+import StreamingProviders from './pages/StreamingProviders';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -188,6 +189,7 @@ function App() {
                 
                 {/* System Configuration */}
                 <Route path="/api-settings" element={<APISettings />} />
+                <Route path="/streaming-providers" element={<StreamingProviders />} />
                 
                 {/* New Missing Pages */}
                 <Route path="/comments-management" element={<CommentsManagement />} />

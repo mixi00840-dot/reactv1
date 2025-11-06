@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class StoryModel {
   final String id;
   final String storyId;

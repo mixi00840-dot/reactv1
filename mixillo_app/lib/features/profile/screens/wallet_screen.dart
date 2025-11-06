@@ -11,8 +11,9 @@ class WalletScreen extends ConsumerStatefulWidget {
 }
 
 class _WalletScreenState extends ConsumerState<WalletScreen> {
-  TransactionType? _filterType;
-  TransactionStatus? _filterStatus;
+  // Future filter functionality
+  // TransactionType? _filterType;
+  // TransactionStatus? _filterStatus;
 
   @override
   Widget build(BuildContext context) {

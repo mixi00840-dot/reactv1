@@ -237,7 +237,7 @@ class _CartItemCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              item.product.images.first,
+              item.product.images.first.url,
               width: 80,
               height: 80,
               fit: BoxFit.cover,
@@ -260,7 +260,7 @@ class _CartItemCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.product.name,
+                  item.product.name ?? item.product.title,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

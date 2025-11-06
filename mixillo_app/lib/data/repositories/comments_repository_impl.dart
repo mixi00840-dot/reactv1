@@ -6,7 +6,6 @@ import '../../domain/entities/comment.dart';
 import '../../domain/repositories/comments_repository.dart';
 import '../datasources/comments_remote_datasource.dart';
 import '../datasources/comments_local_datasource.dart';
-import '../models/comment_model.dart';
 
 /// Implementation of CommentsRepository
 /// Handles comments data with offline-first strategy

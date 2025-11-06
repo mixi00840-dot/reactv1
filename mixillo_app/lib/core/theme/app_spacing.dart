@@ -101,14 +101,6 @@ class AppSpacing {
     );
   }
   
-  static EdgeInsets screenPadding() {
-    return const EdgeInsets.all(screenPadding);
-  }
-  
-  static EdgeInsets cardPadding() {
-    return const EdgeInsets.all(cardPadding);
-  }
-  
   static BorderRadius borderRadius(double radius) {
     return BorderRadius.circular(radius);
   }

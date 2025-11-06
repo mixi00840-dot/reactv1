@@ -10,7 +10,7 @@ class EnhancedProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Get current user ID from your auth provider
-    final currentUserId = 'user123'; // Replace with actual user ID
+    // Example: final currentUserId = 'user123';
 
     return Scaffold(
       appBar: AppBar(

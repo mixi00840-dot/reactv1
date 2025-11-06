@@ -82,8 +82,8 @@ class FeedProvider extends ChangeNotifier {
       // Optimistic update
       _videos[index] = video.copyWith(
         isLiked: !wasLiked,
-        stats: video.stats.copyWith(
-          likes: wasLiked ? video.stats.likes - 1 : video.stats.likes + 1,
+        metrics: video.metrics.copyWith(
+          likes: wasLiked ? video.metrics.likes - 1 : video.metrics.likes + 1,
         ),
       );
       notifyListeners();
@@ -94,8 +94,8 @@ class FeedProvider extends ChangeNotifier {
       // Update with server response
       _videos[index] = video.copyWith(
         isLiked: result['liked'] ?? !wasLiked,
-        stats: video.stats.copyWith(
-          likes: result['likeCount'] ?? video.stats.likes,
+        metrics: video.metrics.copyWith(
+          likes: result['likeCount'] ?? video.metrics.likes,
         ),
       );
       notifyListeners();
@@ -106,8 +106,8 @@ class FeedProvider extends ChangeNotifier {
         final video = _videos[index];
         _videos[index] = video.copyWith(
           isLiked: !video.isLiked,
-          stats: video.stats.copyWith(
-            likes: video.isLiked ? video.stats.likes - 1 : video.stats.likes + 1,
+          metrics: video.metrics.copyWith(
+            likes: video.isLiked ? video.metrics.likes - 1 : video.metrics.likes + 1,
           ),
         );
         notifyListeners();

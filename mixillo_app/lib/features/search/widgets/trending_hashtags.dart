@@ -39,8 +39,6 @@ class TrendingHashtags extends StatelessWidget {
   }
 
   Widget _buildHashtagCard(BuildContext context, TrendingHashtagModel hashtag) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     return GestureDetector(
       onTap: () {
         // Navigate to hashtag content

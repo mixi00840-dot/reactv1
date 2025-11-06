@@ -291,7 +291,7 @@ class _WalletScreenState extends State<WalletScreen> {
           child: Icon(icon, color: color, size: 20),
         ),
         title: Text(
-          _getTransactionTypeLabel(transaction.type),
+          _getTransactionTypeLabel(transaction.type.name),
           style: const TextStyle(fontWeight: FontWeight.w500),
         ),
         subtitle: Text(
@@ -303,7 +303,7 @@ class _WalletScreenState extends State<WalletScreen> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              '${isCredit ? '+' : '-'}${transaction.coins.toInt()} coins',
+              '${isCredit ? '+' : '-'}${(transaction.coins ?? 0).toInt()} coins',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -351,11 +351,11 @@ class _WalletScreenState extends State<WalletScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailRow('Type', _getTransactionTypeLabel(transaction.type)),
-            _buildDetailRow('Coins', '${transaction.coins.toInt()} coins'),
+            _buildDetailRow('Type', _getTransactionTypeLabel(transaction.type.name)),
+            _buildDetailRow('Coins', '${(transaction.coins ?? 0).toInt()} coins'),
             if (transaction.amount > 0)
               _buildDetailRow('Amount', '\$${transaction.amount.toStringAsFixed(2)}'),
-            _buildDetailRow('Status', transaction.status.toUpperCase()),
+            _buildDetailRow('Status', transaction.status.name.toUpperCase()),
             _buildDetailRow(
               'Date',
               DateFormat('MMM dd, yyyy • hh:mm a').format(transaction.createdAt),

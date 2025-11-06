@@ -5,7 +5,6 @@ import 'package:audioplayers/audioplayers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/premium_input_field.dart';
 import '../providers/sound_provider.dart';
 import '../models/sound_model.dart';
 
@@ -118,7 +117,7 @@ class _SoundPickerPanelState extends State<SoundPickerPanel>
         children: [
           // Header
           Padding(
-            padding: AppSpacing.screenPadding(),
+            padding: EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -138,7 +137,7 @@ class _SoundPickerPanelState extends State<SoundPickerPanel>
 
           // Search Bar
           Padding(
-            padding: AppSpacing.screenPadding(),
+            padding: EdgeInsets.all(AppSpacing.screenPadding),
             child: TextField(
               controller: _searchController,
               onChanged: _onSearchChanged,
@@ -258,7 +257,7 @@ class _SoundPickerPanelState extends State<SoundPickerPanel>
     }
 
     return ListView.builder(
-      padding: AppSpacing.screenPadding(),
+      padding: EdgeInsets.all(AppSpacing.screenPadding),
       itemCount: sounds.length,
       itemBuilder: (context, index) {
         final sound = sounds[index];
@@ -398,7 +397,7 @@ class _SoundPickerPanelState extends State<SoundPickerPanel>
 
   Widget _buildSelectedSoundInfo(SoundModel sound, SoundProvider provider) {
     return Container(
-      padding: AppSpacing.screenPadding(),
+      padding: EdgeInsets.all(AppSpacing.screenPadding),
       decoration: BoxDecoration(
         color: AppColors.primary.withOpacity(0.1),
         border: Border(

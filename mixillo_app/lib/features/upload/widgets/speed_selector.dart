@@ -17,7 +17,7 @@ class SpeedSelector extends StatelessWidget {
     required this.onClose,
   });
 
-  static const List<VideoSpeedModel> speeds = [
+  static final List<VideoSpeedModel> speeds = [
     VideoSpeedModel(speed: 0.25, label: '0.25x', icon: Icons.slow_motion_video),
     VideoSpeedModel(speed: 0.5, label: '0.5x', icon: Icons.speed),
     VideoSpeedModel(speed: 1.0, label: '1x', icon: Icons.play_circle),
@@ -43,7 +43,7 @@ class SpeedSelector extends StatelessWidget {
         children: [
           // Header
           Padding(
-            padding: AppSpacing.screenPadding(),
+            padding: EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

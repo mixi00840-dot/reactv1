@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import '../constants/api_constants.dart';
@@ -345,21 +345,6 @@ class ApiService {
   }
 
   // ==================== USERS ====================
-
-  /// Get user profile
-  Future<Map<String, dynamic>> getUserProfile(String userId) async {
-    try {
-      final response = await _dio.get('/users/$userId');
-
-      if (response.data['success'] == true) {
-        return response.data['data'];
-      }
-
-      throw Exception(response.data['message'] ?? 'Failed to load profile');
-    } on DioException catch (e) {
-      throw Exception(_handleDioError(e));
-    }
-  }
 
   /// Follow/Unfollow user
   Future<Map<String, dynamic>> toggleFollow(String userId) async {

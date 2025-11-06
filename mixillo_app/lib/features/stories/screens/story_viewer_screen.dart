@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:story_view/story_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../core/theme/app_colors.dart';
 import '../models/story_model.dart';
 import '../providers/stories_provider.dart';
 
@@ -21,7 +20,7 @@ class StoryViewerScreen extends StatefulWidget {
 }
 
 class _StoryViewerScreenState extends State<StoryViewerScreen> {
-  late StoryItemController _controller;
+  final StoryController _controller = StoryController();
   int _currentGroupIndex = 0;
   int _currentStoryIndex = 0;
 
@@ -29,7 +28,6 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   void initState() {
     super.initState();
     _currentGroupIndex = widget.initialIndex;
-    _controller = StoryItemController();
   }
 
   @override
@@ -45,40 +43,37 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
           url: story.mediaUrl,
           controller: _controller,
           duration: Duration(seconds: story.duration),
-          caption: Text(
-            story.caption ?? '',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-            ),
-          ),
+          caption: story.caption != null && story.caption!.isNotEmpty
+            ? Text(
+                story.caption!,
+                style: const TextStyle(color: Colors.white, fontSize: 17),
+              )
+            : null,
         );
       } else if (story.isVideo) {
         return StoryItem.pageVideo(
           story.mediaUrl,
           controller: _controller,
           duration: Duration(seconds: story.duration),
-          caption: Text(
-            story.caption ?? '',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-            ),
-          ),
+          caption: story.caption != null && story.caption!.isNotEmpty
+            ? Text(
+                story.caption!,
+                style: const TextStyle(color: Colors.white, fontSize: 17),
+              )
+            : null,
         );
       } else {
-        // Text story - use colored background
-        return StoryItem.pageProviderImage(
-          NetworkImage(story.mediaUrl), // Fallback to network image
+        // Text story - use colored background (deprecated method, use pageImage)
+        return StoryItem.pageImage(
+          url: story.mediaUrl,
           controller: _controller,
           duration: Duration(seconds: story.duration),
-          caption: Text(
-            story.caption ?? '',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-            ),
-          ),
+          caption: story.caption != null && story.caption!.isNotEmpty
+            ? Text(
+                story.caption!,
+                style: const TextStyle(color: Colors.white, fontSize: 17),
+              )
+            : null,
         );
       }
     }).toList();
@@ -119,7 +114,6 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                 setState(() {
                   _currentGroupIndex++;
                   _currentStoryIndex = 0;
-                  _controller = StoryItemController();
                 });
               } else {
                 // All stories viewed, go back

@@ -20,7 +20,9 @@ router.get('/best', adminOnly, getBestProvider);
 
 // Health checks
 router.post('/health-check-all', adminOnly, checkAllHealth);
+router.get('/health-check-all', adminOnly, checkAllHealth); // Support GET for mobile
 router.post('/:name/health-check', adminOnly, checkHealth);
+router.get('/:name/health', checkHealth); // Public health endpoint for mobile failover
 
 // CRUD operations
 router.get('/', adminOnly, getProviders);

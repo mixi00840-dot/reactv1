@@ -123,7 +123,8 @@ class _StoryGroupItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firstStory = group.stories.first;
+    // ignore: unused_local_variable
+    final firstStory = group.stories.first; // Reserved for thumbnail
     
     return InkWell(
       onTap: onTap,

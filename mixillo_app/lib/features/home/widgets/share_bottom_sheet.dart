@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/app_colors.dart';
-import '../screens/video_feed_screen.dart';
+import '../../feed/models/video_model.dart';
 
 class ShareBottomSheet extends StatelessWidget {
   final VideoModel video;
@@ -27,9 +27,10 @@ class ShareBottomSheet extends StatelessWidget {
   }
 
   void _shareToOtherApps() {
+    final username = video.creator.username;
     Share.share(
       'Check out this video on Mixillo! https://mixillo.app/video/${video.id}',
-      subject: 'Video by ${video.username}',
+      subject: 'Video by $username',
     );
   }
 

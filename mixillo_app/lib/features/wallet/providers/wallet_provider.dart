@@ -94,10 +94,13 @@ class WalletProvider extends ChangeNotifier {
       // Update wallet balance
       if (result['newBalance'] != null) {
         _wallet = WalletModel(
+          id: _wallet?.id ?? 'temp_${DateTime.now().millisecondsSinceEpoch}',
+          userId: _wallet?.userId ?? 'current_user',
           coins: result['newBalance'].toDouble(),
           balance: result['newBalance'].toDouble(),
           currency: _wallet?.currency ?? 'USD',
           lastUpdated: DateTime.now(),
+          createdAt: _wallet?.createdAt ?? DateTime.now(),
         );
       }
       

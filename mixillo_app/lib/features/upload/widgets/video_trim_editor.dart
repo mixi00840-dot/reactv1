@@ -1,13 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/services/api_service.dart';
-import '../../../core/widgets/premium_button.dart';
-import '../providers/camera_provider.dart';
 
 /// Video Trim Editor - TikTok-style video trimming
 class VideoTrimEditor extends StatefulWidget {
@@ -186,7 +183,7 @@ class _VideoTrimEditorState extends State<VideoTrimEditor> {
 
           // Trim Controls
           Container(
-            padding: AppSpacing.screenPadding(),
+            padding: EdgeInsets.all(AppSpacing.screenPadding),
             color: Colors.black,
             child: Column(
               children: [

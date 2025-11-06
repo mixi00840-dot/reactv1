@@ -9,7 +9,8 @@ class AgoraStreamingService implements StreamingServiceInterface {
   bool _isInitialized = false;
   bool _isStreaming = false;
   String? _currentStreamId;
-  String? _currentUserId;
+  // ignore: unused_field
+  String? _currentUserId; // Kept for future tracking/debugging
 
   @override
   Future<void> initialize(StreamingProviderConfig config) async {
@@ -200,11 +201,11 @@ class AgoraStreamingService implements StreamingServiceInterface {
       return {};
     }
 
-    // Get local video stats
-    final localStats = await _engine!.getLocalVideoStats();
-    
+    // Note: getLocalVideoStats may not be available in current Agora SDK
+    // Return basic streaming stats
     return {
-      'localVideoStats': localStats,
+      'isStreaming': _isStreaming,
+      'streamId': _currentStreamId,
       'provider': 'agora',
     };
   }

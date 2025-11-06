@@ -4,10 +4,8 @@ import 'package:camera/camera.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/premium_button.dart';
 import '../services/camera_service.dart';
 import '../providers/camera_provider.dart';
-import '../models/ar_filter_model.dart';
 import '../widgets/filter_panel.dart';
 import '../widgets/beauty_panel.dart';
 import '../widgets/speed_selector.dart';
@@ -49,7 +47,8 @@ class _PremiumCameraScreenState extends State<PremiumCameraScreen>
   late Animation<double> _captureScaleAnimation;
   
   static const int maxRecordingSeconds = 60;
-  static const List<int> timerOptions = [3, 5, 10];
+  // ignore: unused_field
+  static const List<int> timerOptions = [3, 5, 10]; // For future timer UI
   
   @override
   void initState() {
@@ -233,6 +232,7 @@ class _PremiumCameraScreenState extends State<PremiumCameraScreen>
     }
   }
   
+  // ignore: unused_element
   Future<void> _pauseRecording() async {
     try {
       await _cameraService.pauseVideoRecording();
@@ -244,6 +244,7 @@ class _PremiumCameraScreenState extends State<PremiumCameraScreen>
     }
   }
   
+  // ignore: unused_element
   Future<void> _resumeRecording() async {
     try {
       await _cameraService.resumeVideoRecording();
@@ -386,7 +387,7 @@ class _PremiumCameraScreenState extends State<PremiumCameraScreen>
   Widget _buildTopBar() {
     return SafeArea(
       child: Padding(
-        padding: AppSpacing.screenPadding(),
+        padding: EdgeInsets.all(AppSpacing.screenPadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -518,7 +519,7 @@ class _PremiumCameraScreenState extends State<PremiumCameraScreen>
             
             // Main Controls Row
             Padding(
-              padding: AppSpacing.screenPadding(),
+              padding: EdgeInsets.all(AppSpacing.screenPadding),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,

@@ -49,7 +49,7 @@ enum FilterType {
   beauty, // Beauty filters
   ar, // AR face filters
   background, // Background replacement
-  sticker, // Stickers/overlays
+  sticker; // Stickers/overlays
 
   static FilterType fromString(String value) {
     return FilterType.values.firstWhere(
@@ -67,7 +67,7 @@ enum FilterCategory {
   nature,
   animal,
   celebrity,
-  seasonal,
+  seasonal;
 
   static FilterCategory fromString(String value) {
     return FilterCategory.values.firstWhere(

@@ -356,18 +356,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final cartService = Provider.of<CartService>(context, listen: false);
 
-    // Create order data
-    final shippingAddress = {
-      'name': _nameController.text,
-      'phone': _phoneController.text,
-      'address': _addressController.text,
-      'city': _cityController.text,
-      'state': _stateController.text,
-      'zip': _zipController.text,
-    };
+    // Create order data (for future API integration)
+    // final shippingAddress = {
+    //   'name': _nameController.text,
+    //   'phone': _phoneController.text,
+    //   'address': _addressController.text,
+    //   'city': _cityController.text,
+    //   'state': _stateController.text,
+    //   'zip': _zipController.text,
+    // };
 
     // In a real app, send this to the backend
-    // final orderId = await apiService.createOrder(...)
+    // final orderId = await apiService.createOrder(shippingAddress, ...)
     
     final orderId = 'ORD-${DateTime.now().millisecondsSinceEpoch}';
     final trackingNumber = 'TRK-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';

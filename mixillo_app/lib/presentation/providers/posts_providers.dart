@@ -1,8 +1,5 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
 
-import '../../core/network/dio_client.dart';
 import '../../core/providers/app_providers.dart';
 import '../../data/datasources/posts_local_datasource.dart';
 import '../../data/datasources/posts_remote_datasource.dart';

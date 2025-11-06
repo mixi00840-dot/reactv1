@@ -22,7 +22,8 @@ class GiftAnimationService {
     int quantity = 1,
   }) async {
     // Create animation widget
-    final animation = GiftAnimationWidget(
+    late final GiftAnimationWidget animation;
+    animation = GiftAnimationWidget(
       gift: gift,
       senderName: senderName,
       quantity: quantity,

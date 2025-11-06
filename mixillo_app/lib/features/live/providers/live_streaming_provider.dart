@@ -91,26 +91,66 @@ class LiveStreamingProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      // Get stream configuration from backend
-      final streamData = await _apiService.startLivestream(
-        title: title,
-        isPrivate: isPrivate,
-      );
+      // Start health monitoring
+      _providerManager.startHealthMonitoring();
       
-      final streamId = streamData['streamId'] ?? '';
+      // Retry with automatic failover
+      int retryCount = 0;
+      const maxRetries = 3;
+      Map<String, dynamic>? streamData;
+      String streamId = '';
       
-      // Start stream using active provider
-      final service = _providerManager.currentService;
-      if (service == null) {
-        throw Exception('Streaming service not initialized');
+      while (retryCount < maxRetries) {
+        try {
+          // Get stream configuration from backend
+          streamData = await _apiService.startLivestream(
+            title: title,
+            isPrivate: isPrivate,
+          );
+          
+          streamId = streamData['streamId'] ?? '';
+          
+          // Start stream using active provider
+          final service = _providerManager.currentService;
+          if (service == null) {
+            throw Exception('Streaming service not initialized');
+          }
+          
+          await service.startStream(
+            streamId: streamId,
+            userId: userId,
+            title: title,
+            isPrivate: isPrivate,
+          );
+          
+          // Success - break retry loop
+          print('Stream started successfully with ${_activeProvider!.name}');
+          break;
+        } catch (e) {
+          retryCount++;
+          print('Stream start attempt $retryCount failed: $e');
+          
+          // Record error
+          await _providerManager.recordStreamingError(streamId);
+          
+          if (retryCount < maxRetries && !_providerManager.isHealthy) {
+            // Attempt failover
+            print('Attempting automatic failover...');
+            final failedOver = await _providerManager.failoverToNextProvider(
+              currentStreamId: streamId,
+            );
+            
+            if (!failedOver) {
+              throw Exception('All streaming providers failed');
+            }
+            
+            _activeProvider = _providerManager.activeProvider;
+            print('Retrying with ${_activeProvider?.name}...');
+          } else if (retryCount >= maxRetries) {
+            throw Exception('Max retry attempts reached: $e');
+          }
+        }
       }
-      
-      await service.startStream(
-        streamId: streamId,
-        userId: userId,
-        title: title,
-        isPrivate: isPrivate,
-      );
       
       _currentStream = LiveStreamModel.fromJson({
         'id': streamId,
@@ -119,7 +159,7 @@ class LiveStreamingProvider extends ChangeNotifier {
         'status': 'live',
         'isPrivate': isPrivate,
         'provider': _activeProvider!.name,
-        ...streamData,
+        ...?streamData,
       });
       
       _isStreaming = true;
@@ -130,6 +170,8 @@ class LiveStreamingProvider extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isStreaming = false;
+      _providerManager.stopHealthMonitoring();
       notifyListeners();
       print('Error starting stream: $e');
       return null;
@@ -153,15 +195,48 @@ class LiveStreamingProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final service = _providerManager.currentService;
-      if (service == null) {
-        throw Exception('Streaming service not initialized');
-      }
+      // Retry with automatic failover
+      int retryCount = 0;
+      const maxRetries = 3;
       
-      await service.joinStream(
-        streamId: streamId,
-        userId: userId,
-      );
+      while (retryCount < maxRetries) {
+        try {
+          final service = _providerManager.currentService;
+          if (service == null) {
+            throw Exception('Streaming service not initialized');
+          }
+          
+          await service.joinStream(
+            streamId: streamId,
+            userId: userId,
+          );
+          
+          print('Joined stream successfully with ${_activeProvider!.name}');
+          break;
+        } catch (e) {
+          retryCount++;
+          print('Stream join attempt $retryCount failed: $e');
+          
+          // Record error
+          await _providerManager.recordStreamingError(streamId);
+          
+          if (retryCount < maxRetries && !_providerManager.isHealthy) {
+            // Attempt failover
+            final failedOver = await _providerManager.failoverToNextProvider(
+              currentStreamId: streamId,
+            );
+            
+            if (!failedOver) {
+              throw Exception('All streaming providers failed');
+            }
+            
+            _activeProvider = _providerManager.activeProvider;
+            print('Retrying join with ${_activeProvider?.name}...');
+          } else if (retryCount >= maxRetries) {
+            throw Exception('Max retry attempts reached: $e');
+          }
+        }
+      }
       
       // Load stream details
       final streams = await _apiService.getLivestreams();
@@ -241,9 +316,10 @@ class LiveStreamingProvider extends ChangeNotifier {
       // If provider changed, notify listeners
       if (previousProvider != _activeProvider?.name) {
         print('Streaming provider changed: $previousProvider -> ${_activeProvider?.name}');
-        // If currently streaming, end current stream (provider changed)
+        // If currently streaming, attempt live migration
         if (_isStreaming && _currentStream != null) {
-          await endStream();
+          print('Attempting live stream migration to ${_activeProvider?.name}');
+          await _migrateActiveStream();
         }
       }
       
@@ -253,6 +329,37 @@ class LiveStreamingProvider extends ChangeNotifier {
       _error = e.toString();
       print('Error refreshing provider: $e');
       notifyListeners();
+    }
+  }
+
+  /// Migrate active stream to new provider
+  Future<void> _migrateActiveStream() async {
+    if (_currentStream == null) return;
+    
+    try {
+      final streamId = _currentStream!.id;
+      final userId = _currentStream!.userId;
+      
+      // Stop current stream without ending it on backend
+      final service = _providerManager.currentService;
+      if (service != null) {
+        try {
+          await service.leaveStream(streamId);
+        } catch (e) {
+          print('Error leaving old service: $e');
+        }
+      }
+      
+      // Reinitialize with new provider
+      final newService = _providerManager.currentService;
+      if (newService != null) {
+        await newService.startStream(streamId: streamId, userId: userId);
+        print('Stream migrated successfully to ${_activeProvider?.name}');
+      }
+    } catch (e) {
+      print('Error migrating stream: $e');
+      // If migration fails, end the stream
+      await endStream();
     }
   }
   
@@ -267,6 +374,7 @@ class LiveStreamingProvider extends ChangeNotifier {
   /// Dispose resources
   @override
   void dispose() {
+    _providerManager.stopHealthMonitoring();
     if (_isStreaming && _currentStream != null) {
       endStream();
     }

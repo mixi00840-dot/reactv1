@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../core/services/api_service.dart';
 import '../models/pk_battle_model.dart';
-import '../services/streaming_provider_manager.dart';
 
 class PKBattleProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
-  final StreamingProviderManager _streamingManager = StreamingProviderManager();
   
   PKBattleModel? _currentBattle;
   List<PKBattleModel> _activeBattles = [];

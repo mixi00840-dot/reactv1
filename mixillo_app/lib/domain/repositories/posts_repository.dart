@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import '../../core/error/failures.dart';
-import '../../core/usecase/usecase.dart';
 import '../entities/post.dart';
 
 /// Posts Repository Interface - Defines contract for data layer

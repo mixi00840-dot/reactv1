@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../screens/video_feed_screen.dart';
+import '../../feed/models/video_model.dart';
 
 class CommentBottomSheet extends StatefulWidget {
   final VideoModel video;
@@ -115,7 +115,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${widget.video.comments} Comments',
+                      '${widget.video.metrics.comments} Comments',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

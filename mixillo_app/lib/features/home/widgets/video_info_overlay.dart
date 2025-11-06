@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../feed/models/video_model.dart';
 
 class VideoInfoOverlay extends StatelessWidget {
@@ -86,10 +85,11 @@ class VideoInfoOverlay extends StatelessWidget {
           const SizedBox(height: 8),
           
           // Caption
-          _ExpandableText(
-            text: video.caption,
-            maxLines: 2,
-          ),
+          if (video.caption != null)
+            _ExpandableText(
+              text: video.caption!,
+              maxLines: 2,
+            ),
           
           if (video.hashtags.isNotEmpty) ...[
             const SizedBox(height: 8),

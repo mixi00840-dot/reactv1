@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lottie/lottie.dart';
 import '../../../core/theme/app_colors.dart';
 
 class OnboardingSuccessScreen extends StatefulWidget {
@@ -55,8 +54,6 @@ class _OnboardingSuccessScreenState extends State<OnboardingSuccessScreen> with 
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(

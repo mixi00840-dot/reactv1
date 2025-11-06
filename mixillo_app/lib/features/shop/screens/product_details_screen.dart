@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/product_model.dart';
 import '../services/cart_service.dart';
-import 'cart_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final ProductModel product;
@@ -49,7 +48,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     },
                     itemBuilder: (context, index) {
                       return Image.network(
-                        widget.product.images[index],
+                        widget.product.images[index].url,
                         fit: BoxFit.cover,
                       );
                     },
@@ -101,7 +100,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 children: [
                   // Product Name
                   Text(
-                    widget.product.name,
+                    widget.product.name ?? widget.product.title,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

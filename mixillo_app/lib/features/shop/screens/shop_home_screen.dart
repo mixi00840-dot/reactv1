@@ -33,74 +33,86 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   final List<ProductModel> _products = [
     ProductModel(
       id: '1',
+      title: 'Wireless Headphones',
       name: 'Wireless Headphones',
       description: 'Premium noise-canceling wireless headphones with 30-hour battery life',
       price: 89.99,
       originalPrice: 129.99,
-      sellerId: 'seller1',
-      sellerName: 'TechStore',
-      sellerAvatar: 'https://i.pravatar.cc/150?img=11',
+      storeId: 'seller1',
+      storeName: 'TechStore',
+      ownerId: 'seller1',
       images: [
-        'https://picsum.photos/400/400?random=1',
-        'https://picsum.photos/400/400?random=2',
+        ProductImage(url: 'https://picsum.photos/400/400?random=1', isPrimary: true),
+        ProductImage(url: 'https://picsum.photos/400/400?random=2'),
       ],
       category: 'Electronics',
       rating: 4.5,
       reviewCount: 128,
       stock: 45,
+      inventory: ProductInventory(quantity: 45, trackQuantity: true),
+      metrics: ProductMetrics(views: 0, favorites: 0, averageRating: 4.5, totalReviews: 128),
       variants: [
-        ProductVariant(id: 'v1', name: 'Black', type: 'color'),
-        ProductVariant(id: 'v2', name: 'White', type: 'color'),
+        ProductVariant(id: 'v1', name: 'Black', type: 'color', stock: VariantStock(quantity: 20)),
+        ProductVariant(id: 'v2', name: 'White', type: 'color', stock: VariantStock(quantity: 25)),
       ],
       isFeatured: true,
       isTrending: true,
     ),
     ProductModel(
       id: '2',
+      title: 'Smart Watch Pro',
       name: 'Smart Watch Pro',
       description: 'Advanced fitness tracker with heart rate monitor and GPS',
       price: 199.99,
-      sellerId: 'seller2',
-      sellerName: 'WearablesTech',
-      sellerAvatar: 'https://i.pravatar.cc/150?img=12',
-      images: ['https://picsum.photos/400/400?random=3'],
+      storeId: 'seller2',
+      storeName: 'WearablesTech',
+      ownerId: 'seller2',
+      images: [ProductImage(url: 'https://picsum.photos/400/400?random=3', isPrimary: true)],
       category: 'Electronics',
       rating: 4.8,
       reviewCount: 256,
       stock: 23,
+      inventory: ProductInventory(quantity: 23, trackQuantity: true),
+      metrics: ProductMetrics(views: 0, favorites: 0, averageRating: 4.8, totalReviews: 256),
       variants: [],
       isFeatured: true,
     ),
     ProductModel(
       id: '3',
+      title: 'Designer Backpack',
       name: 'Designer Backpack',
       description: 'Stylish and durable backpack perfect for travel',
       price: 49.99,
       originalPrice: 79.99,
-      sellerId: 'seller3',
-      sellerName: 'FashionHub',
-      sellerAvatar: 'https://i.pravatar.cc/150?img=13',
-      images: ['https://picsum.photos/400/400?random=4'],
+      storeId: 'seller3',
+      storeName: 'FashionHub',
+      ownerId: 'seller3',
+      images: [ProductImage(url: 'https://picsum.photos/400/400?random=4', isPrimary: true)],
       category: 'Fashion',
       rating: 4.3,
       reviewCount: 89,
       stock: 67,
+      inventory: ProductInventory(quantity: 67, trackQuantity: true),
+      metrics: ProductMetrics(views: 0, favorites: 0, averageRating: 4.3, totalReviews: 89),
       variants: [],
       isTrending: true,
     ),
     ProductModel(
       id: '4',
+      title: 'Organic Face Cream',
       name: 'Organic Face Cream',
       description: 'Natural ingredients for smooth and glowing skin',
       price: 29.99,
-      sellerId: 'seller4',
-      sellerName: 'BeautyNaturals',
-      sellerAvatar: 'https://i.pravatar.cc/150?img=14',
-      images: ['https://picsum.photos/400/400?random=5'],
+      storeId: 'seller4',
+      storeName: 'BeautyNaturals',
+      ownerId: 'seller4',
+      images: [ProductImage(url: 'https://picsum.photos/400/400?random=5', isPrimary: true)],
       category: 'Beauty',
       rating: 4.7,
       reviewCount: 342,
       stock: 156,
+      inventory: ProductInventory(quantity: 156, trackQuantity: true),
+      metrics: ProductMetrics(views: 0, favorites: 0, averageRating: 4.7, totalReviews: 342),
       variants: [],
     ),
   ];
@@ -122,7 +134,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       final query = _searchController.text.toLowerCase();
       products = products
           .where((p) =>
-              p.name.toLowerCase().contains(query) ||
+              (p.name?.toLowerCase() ?? '').contains(query) ||
               p.description.toLowerCase().contains(query))
           .toList();
     }
@@ -133,6 +145,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   List<ProductModel> get _featuredProducts =>
       _products.where((p) => p.isFeatured).toList();
 
+  // ignore: unused_element
   List<ProductModel> get _trendingProducts =>
       _products.where((p) => p.isTrending).toList();
 

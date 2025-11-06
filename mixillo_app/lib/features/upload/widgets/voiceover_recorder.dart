@@ -142,7 +142,7 @@ class _VoiceoverRecorderState extends State<VoiceoverRecorder> {
         children: [
           // Header
           Padding(
-            padding: AppSpacing.screenPadding(),
+            padding: EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -221,7 +221,7 @@ class _VoiceoverRecorderState extends State<VoiceoverRecorder> {
 
           // Controls
           Padding(
-            padding: AppSpacing.screenPadding(),
+            padding: EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -271,7 +271,7 @@ class _VoiceoverRecorderState extends State<VoiceoverRecorder> {
           // Save Button
           if (_recordingPath != null)
             Padding(
-              padding: AppSpacing.screenPadding(),
+              padding: EdgeInsets.all(AppSpacing.screenPadding),
               child: PremiumButton(
                 text: 'Use Voiceover',
                 variant: ButtonVariant.primary,

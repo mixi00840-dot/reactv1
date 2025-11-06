@@ -64,7 +64,7 @@ class AppTheme {
           color: AppColors.lightText,
           letterSpacing: 0,
         ),
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        // systemOverlayStyle: SystemUiOverlayStyle.dark,  // TODO: Fix import issue
       ),
       
       // Bottom Navigation Bar Theme
@@ -257,7 +257,7 @@ class AppTheme {
       ),
       
       // Dialog Theme
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.lightCard,
         elevation: 8,
         shape: RoundedRectangleBorder(
@@ -360,7 +360,7 @@ class AppTheme {
           color: AppColors.darkText,
           letterSpacing: 0,
         ),
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        // systemOverlayStyle: SystemUiOverlayStyle.light,  // TODO: Fix import issue
       ),
       
       // Bottom Navigation Bar Theme
@@ -553,7 +553,7 @@ class AppTheme {
       ),
       
       // Dialog Theme
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.darkCard,
         elevation: 8,
         shape: RoundedRectangleBorder(

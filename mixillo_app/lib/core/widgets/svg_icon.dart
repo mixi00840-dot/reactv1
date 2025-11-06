@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:io';
 
 /// SVG Icon Widget - Loads SVG from UI folder
 class SvgIcon extends StatelessWidget {

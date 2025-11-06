@@ -20,7 +20,8 @@ class BeautyPanel extends StatefulWidget {
 }
 
 class _BeautyPanelState extends State<BeautyPanel> {
-  final Map<BeautyType, double> _intensities = {};
+  // ignore: unused_field
+  final Map<BeautyType, double> _intensities = {}; // For future intensity tracking
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +42,7 @@ class _BeautyPanelState extends State<BeautyPanel> {
         children: [
           // Header
           Padding(
-            padding: AppSpacing.screenPadding(),
+            padding: EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -75,7 +76,7 @@ class _BeautyPanelState extends State<BeautyPanel> {
           Expanded(
             child: isEnabled
                 ? ListView(
-                    padding: AppSpacing.screenPadding(),
+                    padding: EdgeInsets.all(AppSpacing.screenPadding),
                     children: [
                       _buildBeautySlider(
                         BeautyType.smoothSkin,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
-import '../models/story_model.dart';
 
 class StoryCircleWidget extends StatelessWidget {
   final String? avatarUrl;

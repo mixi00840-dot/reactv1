@@ -93,14 +93,15 @@ class MixilloApp extends StatelessWidget {
             });
             
             return MaterialApp.router(
-            title: 'Mixillo',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system, // TODO: Add user preference
-            routerConfig: AppRouter.router,
-          );
-        },
+              title: 'Mixillo',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: ThemeMode.system, // TODO: Add user preference
+              routerConfig: AppRouter.router,
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../gifts/models/gift_model.dart';
 import '../../gifts/providers/gifts_provider.dart';
 import '../../gifts/widgets/gift_catalog_widget.dart';
 import '../models/pk_battle_model.dart';

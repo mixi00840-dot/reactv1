@@ -1,5 +1,4 @@
 import '../../../core/services/api_service.dart';
-import '../models/gift_model.dart';
 
 class GiftSendingService {
   final ApiService _apiService = ApiService();
