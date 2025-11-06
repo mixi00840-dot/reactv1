@@ -220,6 +220,9 @@ try {
   console.log('✅ Content routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Content routes error:', error.message);
+  console.error('⚠️ Content routes stack:', error.stack);
+  // Keep fallback router if load fails
+  contentRoutes = fallback4;
 }
 
 try {
@@ -235,6 +238,9 @@ try {
   console.log('✅ Feed routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Feed routes error:', error.message);
+  console.error('⚠️ Feed routes stack:', error.stack);
+  // Keep fallback router if load fails
+  feedRoutes = fallback4;
 }
 
 try {
@@ -463,7 +469,16 @@ app.use('/api/moderation', moderationRoutes); // ✅ Firestore stub
 // Rights Management API routes
 app.use('/api/rights', rightsRoutes);
 
-// Recommendation Engine API routes
+// Recommendation Engine API routes (Firestore)
+try {
+  recommendationRoutes = require('./routes/recommendations-firestore');
+  console.log('✅ Recommendations routes loaded (Firestore)');
+} catch (error) {
+  console.error('⚠️ Recommendations routes error:', error.message);
+  console.error('⚠️ Recommendations routes stack:', error.stack);
+  // Keep fallback router if load fails
+  recommendationRoutes = fallback4;
+}
 app.use('/api/recommendations', recommendationRoutes);
 
 // Personalized Feed API routes

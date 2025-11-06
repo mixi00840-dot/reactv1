@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_video_player.dart';
 import '../widgets/video_actions_sidebar.dart';
 import '../widgets/video_info_overlay.dart';
+import '../../feed/models/video_model.dart';
+import '../../feed/providers/feed_provider.dart';
+import '../../../presentation/screens/comments/comments_bottom_sheet.dart';
 
 class VideoFeedScreen extends StatefulWidget {
   const VideoFeedScreen({super.key});
@@ -13,49 +17,15 @@ class VideoFeedScreen extends StatefulWidget {
 class _VideoFeedScreenState extends State<VideoFeedScreen> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
-  
-  // Sample video data - Replace with API data
-  final List<VideoModel> _videos = [
-    VideoModel(
-      id: '1',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-      thumbnailUrl: 'https://via.placeholder.com/400x600',
-      username: '@sarah_designs',
-      caption: 'Creating magic with Flutter ✨ #flutterdev #coding #developer',
-      soundName: 'Original Sound - Sarah',
-      likes: 12500,
-      comments: 234,
-      shares: 89,
-      isFollowing: false,
-      userAvatar: 'https://i.pravatar.cc/150?img=1',
-    ),
-    VideoModel(
-      id: '2',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-      thumbnailUrl: 'https://via.placeholder.com/400x600',
-      username: '@tech_master',
-      caption: 'New app features 🚀 Coming soon! #app #tech #innovation',
-      soundName: 'Trending Sound - Tech Vibes',
-      likes: 8900,
-      comments: 156,
-      shares: 45,
-      isFollowing: true,
-      userAvatar: 'https://i.pravatar.cc/150?img=2',
-    ),
-    VideoModel(
-      id: '3',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      thumbnailUrl: 'https://via.placeholder.com/400x600',
-      username: '@creative_soul',
-      caption: 'Behind the scenes 🎬 #bts #creative #content',
-      soundName: 'Original Sound',
-      likes: 15600,
-      comments: 289,
-      shares: 112,
-      isFollowing: false,
-      userAvatar: 'https://i.pravatar.cc/150?img=3',
-    ),
-  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Load feed when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FeedProvider>().loadFeed(refresh: true);
+    });
+  }
 
   @override
   void dispose() {
@@ -67,19 +37,71 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: PageView.builder(
-        controller: _pageController,
-        scrollDirection: Axis.vertical,
-        itemCount: _videos.length,
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        itemBuilder: (context, index) {
-          return VideoPlayerItem(
-            video: _videos[index],
-            isActive: index == _currentIndex,
+      body: Consumer<FeedProvider>(
+        builder: (context, feedProvider, _) {
+          if (feedProvider.isLoading && feedProvider.videos.isEmpty) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+
+          if (feedProvider.error != null && feedProvider.videos.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Error loading feed',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => feedProvider.refresh(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (feedProvider.videos.isEmpty) {
+            return const Center(
+              child: Text(
+                'No videos available',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          return PageView.builder(
+            controller: _pageController,
+            scrollDirection: Axis.vertical,
+            itemCount: feedProvider.videos.length + (feedProvider.hasMore ? 1 : 0),
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              feedProvider.setCurrentVideoIndex(index);
+              
+              // Load more when near the end
+              if (index >= feedProvider.videos.length - 3 && feedProvider.hasMore) {
+                feedProvider.loadMore();
+              }
+            },
+            itemBuilder: (context, index) {
+              if (index >= feedProvider.videos.length) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
+              }
+
+              final video = feedProvider.videos[index];
+              return VideoPlayerItem(
+                video: video,
+                isActive: index == _currentIndex,
+                feedProvider: feedProvider,
+              );
+            },
           );
         },
       ),
@@ -90,11 +112,13 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
 class VideoPlayerItem extends StatefulWidget {
   final VideoModel video;
   final bool isActive;
+  final FeedProvider feedProvider;
 
   const VideoPlayerItem({
     super.key,
     required this.video,
     required this.isActive,
+    required this.feedProvider,
   });
 
   @override
@@ -108,7 +132,10 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     setState(() {
       _showLikeAnimation = true;
     });
-    
+
+    // Toggle like
+    widget.feedProvider.toggleLike(widget.video.id);
+
     // Hide animation after 1 second
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
@@ -117,6 +144,27 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         });
       }
     });
+  }
+
+  void _handleLike() {
+    widget.feedProvider.toggleLike(widget.video.id);
+  }
+
+  void _handleComment() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CommentsBottomSheet(contentId: widget.video.id),
+    );
+  }
+
+  void _handleShare() {
+    // TODO: Implement share functionality
+  }
+
+  void _handleFollow() {
+    widget.feedProvider.toggleFollow(widget.video.creator.id);
   }
 
   @override
@@ -194,40 +242,19 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
           ),
 
         // Video Info Overlay (bottom left)
-        VideoInfoOverlay(video: widget.video),
+        VideoInfoOverlay(
+          video: widget.video,
+          onFollowTap: _handleFollow,
+        ),
 
         // Actions Sidebar (bottom right)
-        VideoActionsSidebar(video: widget.video),
+        VideoActionsSidebar(
+          video: widget.video,
+          onLikeTap: _handleLike,
+          onCommentTap: _handleComment,
+          onShareTap: _handleShare,
+        ),
       ],
     );
   }
-}
-
-// Video Model
-class VideoModel {
-  final String id;
-  final String videoUrl;
-  final String thumbnailUrl;
-  final String username;
-  final String caption;
-  final String soundName;
-  final int likes;
-  final int comments;
-  final int shares;
-  final bool isFollowing;
-  final String userAvatar;
-
-  VideoModel({
-    required this.id,
-    required this.videoUrl,
-    required this.thumbnailUrl,
-    required this.username,
-    required this.caption,
-    required this.soundName,
-    required this.likes,
-    required this.comments,
-    required this.shares,
-    required this.isFollowing,
-    required this.userAvatar,
-  });
 }

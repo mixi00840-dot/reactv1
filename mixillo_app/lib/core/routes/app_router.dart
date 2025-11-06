@@ -14,6 +14,17 @@ import '../../features/auth/screens/verify_otp_screen.dart';
 import '../../features/auth/screens/reset_password_screen.dart';
 import '../../features/auth/screens/reset_success_screen.dart';
 import '../../features/home/screens/main_screen.dart';
+import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/settings_screen.dart';
+import '../../features/wallet/screens/wallet_screen.dart';
+import '../../features/wallet/screens/coin_purchase_screen.dart';
+import '../../features/search/screens/search_screen.dart';
+import '../../features/upload/screens/upload_screen.dart';
+import '../../features/messages/screens/messages_screen.dart';
+import '../../features/shop/screens/shop_home_screen.dart';
+import '../../features/live/screens/pk_battle_screen.dart';
+import '../../features/stories/screens/stories_feed_screen.dart';
+import '../../features/stories/screens/story_viewer_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -95,7 +106,82 @@ class AppRouter {
         builder: (context, state) => const MainScreen(),
       ),
       
-      // TODO: Add main feature routes (home feed, profile, search, upload, messages)
+      // Profile Routes
+      GoRoute(
+        path: '/profile/:userId',
+        builder: (context, state) {
+          final userId = state.pathParameters['userId'] ?? '';
+          return ProfileScreen(userId: userId);
+        },
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      
+      // Wallet Routes
+      GoRoute(
+        path: '/wallet',
+        builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: '/wallet/purchase',
+        builder: (context, state) => const CoinPurchaseScreen(),
+      ),
+      
+      // Search Routes
+      GoRoute(
+        path: '/search',
+        builder: (context, state) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: '/hashtag/:hashtag',
+        builder: (context, state) {
+          // TODO: Pass hashtag to SearchScreen when implemented
+          return const SearchScreen();
+        },
+      ),
+      
+      // Upload Routes
+      GoRoute(
+        path: '/upload',
+        builder: (context, state) => const UploadScreen(),
+      ),
+      
+      // Messages Routes
+      GoRoute(
+        path: '/messages',
+        builder: (context, state) => const MessagesScreen(),
+      ),
+      
+      // Shop Routes
+      GoRoute(
+        path: '/shop',
+        builder: (context, state) => const ShopHomeScreen(),
+      ),
+      
+      // Live Streaming & PK Battle Routes
+      GoRoute(
+        path: '/pk-battle/:battleId',
+        builder: (context, state) {
+          final battleId = state.pathParameters['battleId'] ?? '';
+          final isHost = state.uri.queryParameters['isHost'] == 'true';
+          return PKBattleScreen(
+            battleId: battleId,
+            isHost: isHost,
+          );
+        },
+      ),
+      
+      // Stories Routes
+      GoRoute(
+        path: '/stories',
+        builder: (context, state) => const StoriesFeedScreen(),
+      ),
     ],
   );
 }

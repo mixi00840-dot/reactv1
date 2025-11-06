@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../../core/theme/app_colors.dart';
+import '../widgets/video_trim_editor.dart';
 import 'post_details_screen.dart';
 
 class MediaEditorScreen extends StatefulWidget {
@@ -238,8 +239,26 @@ class _MediaEditorScreenState extends State<MediaEditorScreen> {
                       _buildEditOption(
                         icon: Icons.content_cut,
                         label: 'Trim',
-                        onTap: () {
-                          // Trim video
+                        onTap: () async {
+                          final trimmedPath = await Navigator.push<String>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoTrimEditor(
+                                videoPath: widget.mediaPath,
+                              ),
+                            ),
+                          );
+                          if (trimmedPath != null && mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MediaEditorScreen(
+                                  mediaPath: trimmedPath,
+                                  isVideo: true,
+                                ),
+                              ),
+                            );
+                          }
                         },
                       ),
                   ],

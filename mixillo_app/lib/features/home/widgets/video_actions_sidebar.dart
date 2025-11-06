@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../screens/video_feed_screen.dart';
-import 'comment_bottom_sheet.dart';
+import '../../feed/models/video_model.dart';
+import '../../../presentation/screens/comments/comments_bottom_sheet.dart';
 import 'share_bottom_sheet.dart';
 
 class VideoActionsSidebar extends StatefulWidget {
   final VideoModel video;
+  final VoidCallback? onLikeTap;
+  final VoidCallback? onCommentTap;
+  final VoidCallback? onShareTap;
 
   const VideoActionsSidebar({
     super.key,
     required this.video,
+    this.onLikeTap,
+    this.onCommentTap,
+    this.onShareTap,
   });
 
   @override
@@ -17,17 +23,12 @@ class VideoActionsSidebar extends StatefulWidget {
 }
 
 class _VideoActionsSidebarState extends State<VideoActionsSidebar> with SingleTickerProviderStateMixin {
-  bool _isLiked = false;
-  bool _isFollowing = false;
-  int _likeCount = 0;
   late AnimationController _likeAnimationController;
   late Animation<double> _likeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _isFollowing = widget.video.isFollowing;
-    _likeCount = widget.video.likes;
     
     _likeAnimationController = AnimationController(
       vsync: this,
@@ -48,52 +49,23 @@ class _VideoActionsSidebarState extends State<VideoActionsSidebar> with SingleTi
     super.dispose();
   }
 
-  void _toggleLike() {
-    setState(() {
-      _isLiked = !_isLiked;
-      _likeCount += _isLiked ? 1 : -1;
-    });
-    
-    if (_isLiked) {
+  void _handleLike() {
+    if (widget.video.isLiked) {
+      _likeAnimationController.reverse();
+    } else {
       _likeAnimationController.forward().then((_) {
         _likeAnimationController.reverse();
       });
     }
+    widget.onLikeTap?.call();
   }
 
-  void _toggleFollow() {
-    setState(() {
-      _isFollowing = !_isFollowing;
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isFollowing 
-              ? 'Following ${widget.video.username}'
-              : 'Unfollowed ${widget.video.username}',
-        ),
-        duration: const Duration(seconds: 1),
-        backgroundColor: AppColors.primary,
-      ),
-    );
+  void _handleComment() {
+    widget.onCommentTap?.call();
   }
 
-  void _showComments() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CommentBottomSheet(video: widget.video),
-    );
-  }
-
-  void _showShareOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ShareBottomSheet(video: widget.video),
-    );
+  void _handleShare() {
+    widget.onShareTap?.call();
   }
 
   String _formatCount(int count) {
@@ -112,66 +84,39 @@ class _VideoActionsSidebarState extends State<VideoActionsSidebar> with SingleTi
       bottom: 100,
       child: Column(
         children: [
-          // Profile Avatar with Follow Button
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  // Navigate to user profile
-                },
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2,
-                    ),
-                    image: DecorationImage(
-                      image: NetworkImage(widget.video.userAvatar),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+          // Profile Avatar
+          GestureDetector(
+            onTap: () {
+              // Navigate to user profile
+            },
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: 2,
+                ),
+                image: DecorationImage(
+                  image: NetworkImage(widget.video.creator.avatar.isNotEmpty 
+                      ? widget.video.creator.avatar 
+                      : 'https://via.placeholder.com/150'),
+                  fit: BoxFit.cover,
                 ),
               ),
-              if (!_isFollowing)
-                Positioned(
-                  bottom: -8,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: _toggleFollow,
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
           
           const SizedBox(height: 24),
           
           // Like Button
           _buildActionButton(
-            icon: _isLiked ? Icons.favorite : Icons.favorite_border,
-            iconColor: _isLiked ? AppColors.error : Colors.white,
-            count: _formatCount(_likeCount),
-            onTap: _toggleLike,
-            animation: _likeAnimation,
+            icon: widget.video.isLiked ? Icons.favorite : Icons.favorite_border,
+            iconColor: widget.video.isLiked ? AppColors.error : Colors.white,
+            count: _formatCount(widget.video.stats.likes),
+            onTap: _handleLike,
+            animation: widget.video.isLiked ? _likeAnimation : null,
           ),
           
           const SizedBox(height: 16),
@@ -180,8 +125,8 @@ class _VideoActionsSidebarState extends State<VideoActionsSidebar> with SingleTi
           _buildActionButton(
             icon: Icons.comment,
             iconColor: Colors.white,
-            count: _formatCount(widget.video.comments),
-            onTap: _showComments,
+            count: _formatCount(widget.video.stats.comments),
+            onTap: _handleComment,
           ),
           
           const SizedBox(height: 16),
@@ -190,8 +135,8 @@ class _VideoActionsSidebarState extends State<VideoActionsSidebar> with SingleTi
           _buildActionButton(
             icon: Icons.share,
             iconColor: Colors.white,
-            count: _formatCount(widget.video.shares),
-            onTap: _showShareOptions,
+            count: _formatCount(widget.video.stats.shares),
+            onTap: _handleShare,
           ),
           
           const SizedBox(height: 16),
@@ -210,33 +155,6 @@ class _VideoActionsSidebarState extends State<VideoActionsSidebar> with SingleTi
                 ),
               );
             },
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Rotating Sound Disc
-          GestureDetector(
-            onTap: () {
-              // Navigate to sound page
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.secondary,
-                  ],
-                ),
-              ),
-              child: const Icon(
-                Icons.music_note,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
           ),
         ],
       ),

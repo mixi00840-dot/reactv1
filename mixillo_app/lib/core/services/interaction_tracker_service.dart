@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../../../core/services/api_service.dart';
 
 /// Interaction Tracker Service
 /// Tracks user interactions for feed personalization
@@ -49,6 +50,11 @@ class InteractionTrackerService {
 
     await _recordInteraction(event);
 
+    // Immediately sync important views (watched > 3 seconds) to backend
+    if (durationSeconds >= 3) {
+      _syncViewToBackend(event);
+    }
+
     // Update preferences based on view duration
     if (durationSeconds >= 3) {
       // Considered a meaningful view
@@ -59,6 +65,33 @@ class InteractionTrackerService {
           await _updateHashtagPreference(hashtag, 0.01);
         }
       }
+    }
+  }
+
+  /// Sync view immediately to backend
+  Future<void> _syncViewToBackend(InteractionEvent event) async {
+    try {
+      final apiService = await _getApiService();
+      if (apiService != null) {
+        // Calculate completion rate (assume 30s average for now)
+        final completionRate = event.durationSeconds != null
+            ? (event.durationSeconds! / 30.0).clamp(0.0, 1.0)
+            : null;
+
+        await apiService.trackInteraction(
+          contentId: event.contentId,
+          interactionType: 'view',
+          watchTime: event.durationSeconds,
+          completionRate: completionRate,
+          metadata: {
+            'contentType': event.contentType,
+            'creatorId': event.creatorId,
+            'hashtags': event.hashtags,
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('Error syncing view to backend: $e');
     }
   }
 
@@ -79,6 +112,10 @@ class InteractionTrackerService {
     );
 
     await _recordInteraction(event);
+    
+    // Immediately sync likes to backend (important for recommendations)
+    _syncInteractionToBackend(event);
+    
     await _updateUserAffinity(creatorId, 0.05);
     await _updateContentTypePreference(contentType, 0.05);
 
@@ -86,6 +123,26 @@ class InteractionTrackerService {
       for (final hashtag in hashtags) {
         await _updateHashtagPreference(hashtag, 0.05);
       }
+    }
+  }
+
+  /// Sync interaction immediately to backend
+  Future<void> _syncInteractionToBackend(InteractionEvent event) async {
+    try {
+      final apiService = await _getApiService();
+      if (apiService != null) {
+        await apiService.trackInteraction(
+          contentId: event.contentId,
+          interactionType: event.type.name,
+          metadata: {
+            'contentType': event.contentType,
+            'creatorId': event.creatorId,
+            'hashtags': event.hashtags,
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('Error syncing interaction to backend: $e');
     }
   }
 
@@ -106,6 +163,10 @@ class InteractionTrackerService {
     );
 
     await _recordInteraction(event);
+    
+    // Immediately sync comments to backend (important for recommendations)
+    _syncInteractionToBackend(event);
+    
     await _updateUserAffinity(creatorId, 0.10);
     await _updateContentTypePreference(contentType, 0.08);
 
@@ -133,6 +194,10 @@ class InteractionTrackerService {
     );
 
     await _recordInteraction(event);
+    
+    // Immediately sync shares to backend (important for recommendations)
+    _syncInteractionToBackend(event);
+    
     await _updateUserAffinity(creatorId, 0.15);
     await _updateContentTypePreference(contentType, 0.12);
 
@@ -345,10 +410,59 @@ class InteractionTrackerService {
     debugPrint(
         'Syncing ${_sessionInteractions.length} interactions to backend');
 
-    // TODO: Implement actual API call to sync interactions
-    // For now, just log and clear
-    
-    _sessionInteractions.clear();
+    try {
+      final apiService = await _getApiService();
+      if (apiService == null) {
+        debugPrint('API service not available, skipping sync');
+        return;
+      }
+
+      // Sync each interaction
+      for (final entry in _sessionInteractions.entries) {
+        final events = entry.value;
+        for (final event in events) {
+          try {
+            // Calculate completion rate for views
+            double? completionRate;
+            if (event.type == InteractionEventType.view && event.durationSeconds != null) {
+              // Assume average content duration of 30 seconds for calculation
+              // In production, get actual content duration
+              completionRate = (event.durationSeconds! / 30.0).clamp(0.0, 1.0);
+            }
+
+            await apiService.trackInteraction(
+              contentId: event.contentId,
+              interactionType: event.type.name,
+              watchTime: event.durationSeconds,
+              completionRate: completionRate,
+              metadata: {
+                'contentType': event.contentType,
+                'creatorId': event.creatorId,
+                'hashtags': event.hashtags,
+              },
+            );
+          } catch (e) {
+            debugPrint('Error syncing interaction ${event.contentId}: $e');
+          }
+        }
+      }
+
+      _sessionInteractions.clear();
+      debugPrint('Successfully synced interactions to backend');
+    } catch (e) {
+      debugPrint('Error syncing to backend: $e');
+      // Keep interactions for retry
+    }
+  }
+
+  /// Get API service instance
+  Future<ApiService?> _getApiService() async {
+    try {
+      return ApiService();
+    } catch (e) {
+      debugPrint('Error getting API service: $e');
+      return null;
+    }
   }
 
   /// Get analytics summary

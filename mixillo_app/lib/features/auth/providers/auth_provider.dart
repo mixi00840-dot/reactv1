@@ -1,31 +1,60 @@
 import 'package:flutter/material.dart';
-import '../../../data/services/storage_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ApiService _apiService = ApiService();
+  
   bool _isAuthenticated = false;
   bool _isLoading = false;
-  String? _token;
-  String? _userId;
+  User? _user;
+  Map<String, dynamic>? _userProfile;
   
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
-  String? get token => _token;
-  String? get userId => _userId;
+  User? get user => _user;
+  Map<String, dynamic>? get userProfile => _userProfile;
+  String? get userId => _user?.uid;
   
   AuthProvider() {
     _checkAuthStatus();
+    // Listen to auth state changes
+    _auth.authStateChanges().listen((User? user) {
+      _user = user;
+      _isAuthenticated = user != null;
+      if (user != null) {
+        _loadUserProfile();
+      } else {
+        _userProfile = null;
+      }
+      notifyListeners();
+    });
   }
   
   Future<void> _checkAuthStatus() async {
     _isLoading = true;
     notifyListeners();
     
-    _token = await StorageService.getToken();
-    _userId = StorageService.getUserId();
-    _isAuthenticated = _token != null && _userId != null;
+    _user = _auth.currentUser;
+    _isAuthenticated = _user != null;
+    
+    if (_isAuthenticated) {
+      await _loadUserProfile();
+    }
     
     _isLoading = false;
     notifyListeners();
+  }
+  
+  Future<void> _loadUserProfile() async {
+    if (_user == null) return;
+    
+    try {
+      _userProfile = await _apiService.getUserProfile(_user!.uid);
+    } catch (e) {
+      print('Error loading user profile: $e');
+    }
   }
   
   Future<void> login(String email, String password) async {
@@ -33,14 +62,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      // TODO: Implement API call to backend
-      await Future.delayed(const Duration(seconds: 2)); // Simulated delay
+      final result = await _apiService.login(
+        email: email,
+        password: password,
+      );
       
-      // For now, just save dummy data
-      await StorageService.saveToken('dummy_token');
-      await StorageService.saveUserId('dummy_user_id');
-      
-      _isAuthenticated = true;
+      _user = result['user'] as User?;
+      _userProfile = result['profile'] as Map<String, dynamic>?;
+      _isAuthenticated = _user != null;
     } catch (e) {
       rethrow;
     } finally {
@@ -49,18 +78,30 @@ class AuthProvider extends ChangeNotifier {
     }
   }
   
-  Future<void> register(String email, String password, String username) async {
+  Future<void> register({
+    required String email,
+    required String password,
+    required String username,
+    required String fullName,
+    String? phone,
+    String? dateOfBirth,
+  }) async {
     _isLoading = true;
     notifyListeners();
     
     try {
-      // TODO: Implement API call to backend
-      await Future.delayed(const Duration(seconds: 2)); // Simulated delay
+      final result = await _apiService.register(
+        email: email,
+        password: password,
+        username: username,
+        fullName: fullName,
+        phone: phone,
+        dateOfBirth: dateOfBirth,
+      );
       
-      await StorageService.saveToken('dummy_token');
-      await StorageService.saveUserId('dummy_user_id');
-      
-      _isAuthenticated = true;
+      _user = result['user'] as User?;
+      _userProfile = result['profile'] as Map<String, dynamic>?;
+      _isAuthenticated = _user != null;
     } catch (e) {
       rethrow;
     } finally {
@@ -74,14 +115,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      await StorageService.clearAll();
+      await _apiService.logout();
+      _user = null;
+      _userProfile = null;
       _isAuthenticated = false;
-      _token = null;
-      _userId = null;
     } catch (e) {
       rethrow;
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+  
+  Future<void> refreshProfile() async {
+    if (_user != null) {
+      await _loadUserProfile();
       notifyListeners();
     }
   }

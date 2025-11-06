@@ -1,82 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../models/trending_model.dart';
+import '../providers/search_provider.dart';
 
 class TrendingHashtags extends StatelessWidget {
   const TrendingHashtags({super.key});
 
-  static final List<HashtagItem> _hashtags = [
-    HashtagItem(
-      tag: '#fyp',
-      postCount: 1250000000,
-      trending: true,
-      rank: 1,
-    ),
-    HashtagItem(
-      tag: '#viral',
-      postCount: 890000000,
-      trending: true,
-      rank: 2,
-    ),
-    HashtagItem(
-      tag: '#dance',
-      postCount: 567000000,
-      trending: false,
-      rank: 3,
-    ),
-    HashtagItem(
-      tag: '#comedy',
-      postCount: 445000000,
-      trending: true,
-      rank: 4,
-    ),
-    HashtagItem(
-      tag: '#music',
-      postCount: 389000000,
-      trending: false,
-      rank: 5,
-    ),
-    HashtagItem(
-      tag: '#fashion',
-      postCount: 278000000,
-      trending: true,
-      rank: 6,
-    ),
-    HashtagItem(
-      tag: '#food',
-      postCount: 234000000,
-      trending: false,
-      rank: 7,
-    ),
-    HashtagItem(
-      tag: '#fitness',
-      postCount: 198000000,
-      trending: false,
-      rank: 8,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _hashtags.length,
-        itemBuilder: (context, index) {
-          final hashtag = _hashtags[index];
-          return _buildHashtagCard(context, hashtag, isDark);
-        },
-      ),
+    return Consumer<SearchProvider>(
+      builder: (context, provider, _) {
+        final hashtags = provider.trendingHashtags;
+        
+        if (hashtags.isEmpty) {
+          return const SizedBox(
+            height: 100,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        
+        return SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: hashtags.length,
+            itemBuilder: (context, index) {
+              final hashtag = hashtags[index];
+              return _buildHashtagCard(context, hashtag);
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildHashtagCard(BuildContext context, HashtagItem hashtag, bool isDark) {
+  Widget _buildHashtagCard(BuildContext context, TrendingHashtagModel hashtag) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return GestureDetector(
       onTap: () {
         // Navigate to hashtag content
+        // context.push('/hashtag/${hashtag.hashtag.replaceAll('#', '')}');
       },
       child: Container(
         width: 140,
@@ -86,15 +54,21 @@ class TrendingHashtags extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              AppColors.primary.withOpacity(0.8),
-              AppColors.secondary.withOpacity(0.8),
-            ],
+            colors: hashtag.isTrending
+                ? [
+                    AppColors.primary.withOpacity(0.8),
+                    AppColors.secondary.withOpacity(0.8),
+                  ]
+                : [
+                    Colors.grey[800]!.withOpacity(0.8),
+                    Colors.grey[700]!.withOpacity(0.8),
+                  ],
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
+              color: (hashtag.isTrending ? AppColors.primary : Colors.grey)
+                  .withOpacity(0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -115,7 +89,7 @@ class TrendingHashtags extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      if (hashtag.trending) ...[
+                      if (hashtag.isTrending) ...[
                         const Icon(
                           Icons.local_fire_department,
                           color: Colors.white,
@@ -124,7 +98,7 @@ class TrendingHashtags extends StatelessWidget {
                         const SizedBox(width: 2),
                       ],
                       Text(
-                        '#${hashtag.rank}',
+                        '${hashtag.videoCount}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -134,7 +108,7 @@ class TrendingHashtags extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (hashtag.trending)
+                if (hashtag.isTrending)
                   const Icon(
                     Icons.trending_up,
                     color: Colors.white,
@@ -146,7 +120,7 @@ class TrendingHashtags extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  hashtag.tag,
+                  hashtag.hashtag,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -156,7 +130,7 @@ class TrendingHashtags extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${_formatCount(hashtag.postCount)} posts',
+                  '${_formatCount(hashtag.videoCount)} videos',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 11,
@@ -183,6 +157,7 @@ class TrendingHashtags extends StatelessWidget {
   }
 }
 
+// Legacy model for backward compatibility
 class HashtagItem {
   final String tag;
   final int postCount;

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
-import '../screens/video_feed_screen.dart';
+import '../../feed/models/video_model.dart';
 
 class VideoInfoOverlay extends StatelessWidget {
   final VideoModel video;
+  final VoidCallback? onFollowTap;
 
   const VideoInfoOverlay({
     super.key,
     required this.video,
+    this.onFollowTap,
   });
 
   @override
@@ -25,11 +27,12 @@ class VideoInfoOverlay extends StatelessWidget {
           GestureDetector(
             onTap: () {
               // Navigate to user profile
+              context.push('/profile/${video.creator.id}');
             },
             child: Row(
               children: [
                 Text(
-                  video.username,
+                  video.creator.username,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -42,26 +45,37 @@ class VideoInfoOverlay extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (video.creator.verified) ...[
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.verified,
+                    color: Colors.blue,
+                    size: 16,
+                  ),
+                ],
                 const SizedBox(width: 8),
                 if (!video.isFollowing)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 1.5,
+                  GestureDetector(
+                    onTap: onFollowTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
                       ),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'Follow',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'Follow',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -77,28 +91,22 @@ class VideoInfoOverlay extends StatelessWidget {
             maxLines: 2,
           ),
           
-          const SizedBox(height: 12),
-          
-          // Sound Info
-          GestureDetector(
-            onTap: () {
-              // Navigate to sound page with all videos using this sound
-            },
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.music_note,
-                  color: Colors.white,
-                  size: 16,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
+          if (video.hashtags.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: video.hashtags.take(3).map((hashtag) {
+                return GestureDetector(
+                  onTap: () {
+                    // Navigate to hashtag page
+                    context.push('/hashtag/$hashtag');
+                  },
                   child: Text(
-                    video.soundName,
+                    '#$hashtag',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                       shadows: [
                         Shadow(
                           color: Colors.black,
@@ -106,13 +114,11 @@ class VideoInfoOverlay extends StatelessWidget {
                         ),
                       ],
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                );
+              }).toList(),
             ),
-          ),
+          ],
         ],
       ),
     );

@@ -1,6 +1,6 @@
 class ApiConstants {
-  // Base URL - Update this to match your backend
-  static const String baseUrl = 'http://localhost:5000';
+  // Base URL - Production backend
+  static const String baseUrl = 'https://mixillo-backend-52242135857.europe-west1.run.app';
   
   // API Version
   static const String apiVersion = '/api';
@@ -100,4 +100,13 @@ class ApiConstants {
   // Analytics Endpoints
   static const String analytics = '/analytics';
   static const String userAnalytics = '/analytics/user';
+  
+  // Recommendation Endpoints
+  static const String recommendations = '/recommendations';
+  static const String refreshRecommendations = '/recommendations/refresh';
+  static const String recommendationPreferences = '/recommendations/preferences';
+  
+  // Interaction Tracking Endpoints
+  static const String trackInteraction = '/feed/interaction';
+  static const String notInterested = '/feed/not-interested';
 }
