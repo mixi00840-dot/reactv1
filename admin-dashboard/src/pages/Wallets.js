@@ -52,12 +52,8 @@ const Wallets = () => {
   const fetchWallets = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/wallets?limit=100`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setWallets(response?.wallets || response?.data?.wallets || []);
+      const response = await api.get(`/api/admin/wallets?limit=100`);
+      setWallets(response?.wallets || []);
     } catch (error) {
       console.error('Error fetching wallets:', error);
     } finally {
@@ -67,11 +63,7 @@ const Wallets = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/wallets/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.get(`/api/admin/wallets/stats`);
       setStats(response || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -85,15 +77,13 @@ const Wallets = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await api.post(
-        `/api/wallets/${selectedWallet.user}/adjust`,
+      await api.put(
+        `/api/admin/wallets/${selectedWallet.id}/adjust`,
         {
           amount: parseFloat(adjustAmount),
           type: type,
           reason: adjustReason || `Admin ${type} adjustment`
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       
       fetchWallets();

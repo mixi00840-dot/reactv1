@@ -79,7 +79,7 @@ function Users() {
 
   useEffect(() => {
     fetchUsers();
-  }, [filters, pagination.currentPage]);
+  }, [filters.search, filters.status, filters.verified, filters.featured, filters.sortBy, filters.sortOrder, pagination.currentPage]);
 
   const fetchUsers = async () => {
     try {
@@ -90,9 +90,25 @@ function Users() {
         ...filters,
       });
 
-  const response = await api.get(`/api/admin/users?${params}`);
-  setUsers(response?.data?.users || response?.users || []);
-  setPagination(response?.data?.pagination || response?.pagination || { currentPage: 1, totalPages: 1, totalUsers: 0 });
+      const response = await api.get(`/api/admin/users?${params}`);
+      
+      // Map _id to id for DataGrid
+      const usersData = (response?.data?.users || response?.users || []).map(user => ({
+        ...user,
+        id: user._id || user.id
+      }));
+      
+      console.log('✅ Users data with id:', usersData.slice(0, 2)); // Log first 2 users to verify
+      
+      setUsers(usersData);
+      
+      // Update pagination without triggering infinite loop
+      const newPagination = response?.data?.pagination || response?.pagination || {};
+      setPagination(prev => ({
+        currentPage: prev.currentPage, // Keep the current page that triggered this fetch
+        totalPages: newPagination.pages || newPagination.totalPages || 1,
+        totalUsers: newPagination.total || newPagination.totalUsers || 0
+      }));
     } catch (error) {
       console.error('Fetch users error:', error);
       toast.error('Failed to fetch users');
@@ -418,7 +434,7 @@ function Users() {
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h6">
-              Users ({pagination.totalUsers.toLocaleString()})
+              Users ({(pagination?.totalUsers || 0).toLocaleString()})
             </Typography>
             <Button
               variant="contained"
@@ -441,7 +457,6 @@ function Users() {
                   pageSize={20}
                   rowsPerPageOptions={[20]}
                   disableSelectionOnClick
-                  getRowId={(row) => row._id}
                   hideFooterPagination
                   hideFooter
                 />

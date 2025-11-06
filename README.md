@@ -316,6 +316,50 @@ This project is licensed under the MIT License.
 
 For support, email support@mixillo.com or create an issue in the repository.
 
+## 🧪 Testing
+
+This project includes a comprehensive automated test suite with **105 tests** covering backend APIs, data models, and frontend components.
+
+### Quick Test Commands
+
+```powershell
+# Run all tests (backend + frontend)
+.\run-all-tests.ps1
+
+# Backend tests only
+cd backend
+npm test                    # All tests
+npm run test:coverage       # With coverage
+npm run test:integration    # Integration tests
+npm run test:unit           # Unit tests
+
+# Frontend tests only
+cd admin-dashboard
+npm test                    # Interactive mode
+npm run test:coverage       # With coverage
+npm run test:ci             # CI mode
+```
+
+### Test Coverage
+
+- **Backend Integration Tests**: 49 tests (Users, Sellers, Products, Orders, Uploads)
+- **Backend Unit Tests**: 33 tests (User, Product, Order models)
+- **Frontend Component Tests**: 23 tests (Dashboard, Users, UploadManager)
+
+### Testing Documentation
+
+- 📚 [Full Testing Guide](TESTING_GUIDE.md) - Complete testing documentation
+- 📊 [Test Suite Summary](TEST_SUITE_COMPLETE.md) - Detailed overview of all tests
+- ⚡ [Quick Reference](TESTING_QUICK_REFERENCE.md) - Common test commands
+
+### CI/CD
+
+Tests run automatically via GitHub Actions on:
+- Push to `main` or `develop` branches
+- Pull requests to `main` or `develop`
+
+View test results in the GitHub Actions tab.
+
 ---
 
 Built with ❤️ for the Mixillo community

@@ -96,12 +96,6 @@ router.post('/search',
   productController.searchProducts
 );
 
-// GET /api/products/stats - Global product stats (admin dashboard)
-router.get('/stats',
-  optionalAuthMiddleware,
-  productController.getGlobalStats
-);
-
 // GET /api/products/:id - Get single product by ID or slug
 router.get('/:id',
   optionalAuthMiddleware,
@@ -153,6 +147,12 @@ router.patch('/:id/inventory',
 );
 
 // Analytics routes
+
+// GET /api/products/stats - Global product stats (admin dashboard)
+router.get('/stats',
+  optionalAuthMiddleware,
+  productController.getGlobalStats
+);
 
 // GET /api/products/:id/analytics - Get product analytics (store owner/admin only)
 router.get('/:id/analytics',

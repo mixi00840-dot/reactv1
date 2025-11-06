@@ -108,12 +108,6 @@ router.get('/',
   storeController.getStores
 );
 
-// GET /api/stores/stats - Global store stats (admin dashboard)
-router.get('/stats',
-  optionalAuthMiddleware,
-  storeController.getGlobalStats
-);
-
 // GET /api/stores/:id - Get single store by ID or slug
 router.get('/:id',
   optionalAuthMiddleware,
@@ -147,6 +141,12 @@ router.patch('/:id/settings',
 );
 
 // Store dashboard and analytics routes
+
+// GET /api/stores/stats - Global store stats (admin dashboard)
+router.get('/stats',
+  optionalAuthMiddleware,
+  storeController.getGlobalStats
+);
 
 // GET /api/stores/:id/dashboard - Get store dashboard data (store owner only)
 router.get('/:id/dashboard',

@@ -52,8 +52,11 @@ const Stories = () => {
   const fetchStories = async () => {
     setLoading(true);
     try {
-      const statusFilter = tabValue === 0 ? 'all' : tabValue === 1 ? 'active' : 'expired';
-      const payload = await api.get(`/api/stories?status=${statusFilter}&limit=100`);
+      const statusFilter = tabValue === 0 ? '' : tabValue === 1 ? 'active' : 'expired';
+      const url = statusFilter 
+        ? `/api/admin/stories?status=${statusFilter}&limit=100`
+        : `/api/admin/stories?limit=100`;
+      const payload = await api.get(url);
       setStories(payload?.stories || []);
     } catch (error) {
       console.error('Error fetching stories:', error);
@@ -64,7 +67,7 @@ const Stories = () => {
 
   const fetchStats = async () => {
     try {
-      const payload = await api.get('/api/stories/stats');
+      const payload = await api.get('/api/admin/stories/stats');
       setStats(payload || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -75,7 +78,7 @@ const Stories = () => {
     if (!window.confirm('Are you sure you want to delete this story?')) return;
 
     try {
-      await api.delete(`/api/stories/${storyId}`);
+      await api.delete(`/api/admin/stories/${storyId}`);
       alert('Story deleted successfully');
       fetchStories();
       fetchStats();

@@ -1,0 +1,792 @@
+{
+  "timestamp": "2025-11-05T14:01:11.568Z",
+  "backend_url": "https://mixillo-backend-52242135857.europe-west1.run.app",
+  "summary": {
+    "total": 78,
+    "successful": 22,
+    "failed": 56,
+    "successRate": "28.21%"
+  },
+  "results": [
+    {
+      "category": "Authentication",
+      "endpoint": "/api/auth/login",
+      "method": "post",
+      "status": 200,
+      "responseTime": "1083ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:56:58.492Z"
+    },
+    {
+      "category": "Authentication",
+      "endpoint": "/api/auth/verify",
+      "method": "get",
+      "status": 404,
+      "responseTime": "196ms",
+      "success": false,
+      "error": "API endpoint not found",
+      "timestamp": "2025-11-05T13:56:58.947Z"
+    },
+    {
+      "category": "Users",
+      "endpoint": "/api/users",
+      "method": "get",
+      "status": 200,
+      "responseTime": "263ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:56:59.465Z"
+    },
+    {
+      "category": "Users",
+      "endpoint": "/api/users?page=1&limit=10",
+      "method": "get",
+      "status": 200,
+      "responseTime": "259ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:56:59.976Z"
+    },
+    {
+      "category": "Users",
+      "endpoint": "/api/users?search=test",
+      "method": "get",
+      "status": 200,
+      "responseTime": "277ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:00.518Z"
+    },
+    {
+      "category": "Users",
+      "endpoint": "/api/users/stats",
+      "method": "get",
+      "status": 200,
+      "responseTime": "304ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:01.086Z"
+    },
+    {
+      "category": "Users",
+      "endpoint": "/api/users?status=banned",
+      "method": "get",
+      "status": 200,
+      "responseTime": "309ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:01.660Z"
+    },
+    {
+      "category": "Users",
+      "endpoint": "/api/users?verified=true",
+      "method": "get",
+      "status": 200,
+      "responseTime": "217ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:02.142Z"
+    },
+    {
+      "category": "Users",
+      "endpoint": "/api/users",
+      "method": "post",
+      "status": 404,
+      "responseTime": "187ms",
+      "success": false,
+      "error": "API endpoint not found",
+      "timestamp": "2025-11-05T13:57:02.581Z"
+    },
+    {
+      "category": "Sellers",
+      "endpoint": "/api/sellers/applications",
+      "method": "get",
+      "status": 200,
+      "responseTime": "364ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:03.208Z"
+    },
+    {
+      "category": "Sellers",
+      "endpoint": "/api/sellers/applications?status=pending",
+      "method": "get",
+      "status": 200,
+      "responseTime": "273ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:03.744Z"
+    },
+    {
+      "category": "Sellers",
+      "endpoint": "/api/sellers/applications?status=approved",
+      "method": "get",
+      "status": 200,
+      "responseTime": "253ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:04.254Z"
+    },
+    {
+      "category": "Sellers",
+      "endpoint": "/api/sellers/applications?status=rejected",
+      "method": "get",
+      "status": 200,
+      "responseTime": "261ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:04.775Z"
+    },
+    {
+      "category": "Sellers",
+      "endpoint": "/api/sellers/stats",
+      "method": "get",
+      "status": 200,
+      "responseTime": "321ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:05.349Z"
+    },
+    {
+      "category": "Products",
+      "endpoint": "/api/products",
+      "method": "get",
+      "status": 200,
+      "responseTime": "217ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:05.820Z"
+    },
+    {
+      "category": "Products",
+      "endpoint": "/api/products?page=1&limit=10",
+      "method": "get",
+      "status": 200,
+      "responseTime": "230ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:06.315Z"
+    },
+    {
+      "category": "Products",
+      "endpoint": "/api/products?status=active",
+      "method": "get",
+      "status": 200,
+      "responseTime": "317ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:06.885Z"
+    },
+    {
+      "category": "Products",
+      "endpoint": "/api/products/stats",
+      "method": "get",
+      "status": 404,
+      "responseTime": "237ms",
+      "success": false,
+      "error": "Product not found",
+      "timestamp": "2025-11-05T13:57:07.384Z"
+    },
+    {
+      "category": "Stores",
+      "endpoint": "/api/stores",
+      "method": "get",
+      "status": 200,
+      "responseTime": "325ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:07.970Z"
+    },
+    {
+      "category": "Stores",
+      "endpoint": "/api/stores?status=active",
+      "method": "get",
+      "status": 200,
+      "responseTime": "212ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:08.444Z"
+    },
+    {
+      "category": "Stores",
+      "endpoint": "/api/stores/stats",
+      "method": "get",
+      "status": 404,
+      "responseTime": "209ms",
+      "success": false,
+      "error": "Store not found",
+      "timestamp": "2025-11-05T13:57:08.907Z"
+    },
+    {
+      "category": "Orders",
+      "endpoint": "/api/orders",
+      "method": "get",
+      "status": 200,
+      "responseTime": "283ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:09.444Z"
+    },
+    {
+      "category": "Orders",
+      "endpoint": "/api/orders?status=pending",
+      "method": "get",
+      "status": 500,
+      "responseTime": "456ms",
+      "success": false,
+      "error": "Error fetching orders",
+      "timestamp": "2025-11-05T13:57:10.161Z"
+    },
+    {
+      "category": "Orders",
+      "endpoint": "/api/orders/stats",
+      "method": "get",
+      "status": 200,
+      "responseTime": "197ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:10.622Z"
+    },
+    {
+      "category": "Videos",
+      "endpoint": "/api/transcode/queue",
+      "method": "get",
+      "status": 200,
+      "responseTime": "196ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:11.073Z"
+    },
+    {
+      "category": "Videos",
+      "endpoint": "/api/transcode/stats",
+      "method": "get",
+      "status": 200,
+      "responseTime": "195ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:11.522Z"
+    },
+    {
+      "category": "Stories",
+      "endpoint": "/api/stories",
+      "method": "get",
+      "status": 200,
+      "responseTime": "191ms",
+      "success": true,
+      "error": null,
+      "timestamp": "2025-11-05T13:57:11.969Z"
+    },
+    {
+      "category": "Stories",
+      "endpoint": "/api/stories?status=active",
+      "method": "get",
+      "status": 429,
+      "responseTime": "239ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:16.510Z"
+    },
+    {
+      "category": "Comments",
+      "endpoint": "/api/comments",
+      "method": "get",
+      "status": 429,
+      "responseTime": "242ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:21.322Z"
+    },
+    {
+      "category": "Comments",
+      "endpoint": "/api/comments?flagged=true",
+      "method": "get",
+      "status": 429,
+      "responseTime": "253ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:26.135Z"
+    },
+    {
+      "category": "Sounds",
+      "endpoint": "/api/sounds",
+      "method": "get",
+      "status": 429,
+      "responseTime": "243ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:30.850Z"
+    },
+    {
+      "category": "Sounds",
+      "endpoint": "/api/sounds/trending",
+      "method": "get",
+      "status": 429,
+      "responseTime": "248ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:35.453Z"
+    },
+    {
+      "category": "Gifts",
+      "endpoint": "/api/monetization/gifts",
+      "method": "get",
+      "status": 429,
+      "responseTime": "254ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:41.495Z"
+    },
+    {
+      "category": "Gifts",
+      "endpoint": "/api/monetization/gifts/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "179ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:46.213Z"
+    },
+    {
+      "category": "Moderation",
+      "endpoint": "/api/moderation/queue",
+      "method": "get",
+      "status": 429,
+      "responseTime": "174ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:50.847Z"
+    },
+    {
+      "category": "Moderation",
+      "endpoint": "/api/moderation/reports",
+      "method": "get",
+      "status": 429,
+      "responseTime": "272ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:57:55.401Z"
+    },
+    {
+      "category": "Moderation",
+      "endpoint": "/api/moderation/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "277ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:00.234Z"
+    },
+    {
+      "category": "Moderation",
+      "endpoint": "/api/moderation/flagged",
+      "method": "get",
+      "status": 429,
+      "responseTime": "347ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:05.044Z"
+    },
+    {
+      "category": "Trending",
+      "endpoint": "/api/trending/hashtags",
+      "method": "get",
+      "status": 429,
+      "responseTime": "183ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:09.554Z"
+    },
+    {
+      "category": "Trending",
+      "endpoint": "/api/trending/sounds",
+      "method": "get",
+      "status": 429,
+      "responseTime": "199ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:14.161Z"
+    },
+    {
+      "category": "Trending",
+      "endpoint": "/api/trending/videos",
+      "method": "get",
+      "status": 429,
+      "responseTime": "247ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:18.871Z"
+    },
+    {
+      "category": "Wallets",
+      "endpoint": "/api/wallets",
+      "method": "get",
+      "status": 429,
+      "responseTime": "244ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:23.479Z"
+    },
+    {
+      "category": "Wallets",
+      "endpoint": "/api/wallets/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "171ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:28.110Z"
+    },
+    {
+      "category": "Wallets",
+      "endpoint": "/api/wallets/transactions",
+      "method": "get",
+      "status": 429,
+      "responseTime": "230ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:32.791Z"
+    },
+    {
+      "category": "Payments",
+      "endpoint": "/api/payments",
+      "method": "get",
+      "status": 429,
+      "responseTime": "245ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:37.508Z"
+    },
+    {
+      "category": "Payments",
+      "endpoint": "/api/payments/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "250ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:42.218Z"
+    },
+    {
+      "category": "Monetization",
+      "endpoint": "/api/monetization/coins",
+      "method": "get",
+      "status": 429,
+      "responseTime": "170ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:46.839Z"
+    },
+    {
+      "category": "Monetization",
+      "endpoint": "/api/monetization/packages",
+      "method": "get",
+      "status": 429,
+      "responseTime": "244ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:51.537Z"
+    },
+    {
+      "category": "Monetization",
+      "endpoint": "/api/monetization/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "238ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:58:56.145Z"
+    },
+    {
+      "category": "Analytics",
+      "endpoint": "/api/analytics/dashboard",
+      "method": "get",
+      "status": 429,
+      "responseTime": "154ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:00.862Z"
+    },
+    {
+      "category": "Analytics",
+      "endpoint": "/api/analytics/users",
+      "method": "get",
+      "status": 429,
+      "responseTime": "241ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:05.547Z"
+    },
+    {
+      "category": "Analytics",
+      "endpoint": "/api/analytics/content",
+      "method": "get",
+      "status": 429,
+      "responseTime": "180ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:10.174Z"
+    },
+    {
+      "category": "Analytics",
+      "endpoint": "/api/analytics/revenue",
+      "method": "get",
+      "status": 429,
+      "responseTime": "164ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:14.680Z"
+    },
+    {
+      "category": "Metrics",
+      "endpoint": "/api/metrics/summary",
+      "method": "get",
+      "status": 429,
+      "responseTime": "160ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:19.101Z"
+    },
+    {
+      "category": "Metrics",
+      "endpoint": "/api/metrics/realtime",
+      "method": "get",
+      "status": 429,
+      "responseTime": "345ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:23.896Z"
+    },
+    {
+      "category": "Metrics",
+      "endpoint": "/api/metrics/engagement",
+      "method": "get",
+      "status": 429,
+      "responseTime": "249ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:28.607Z"
+    },
+    {
+      "category": "Settings",
+      "endpoint": "/api/settings",
+      "method": "get",
+      "status": 429,
+      "responseTime": "238ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:33.213Z"
+    },
+    {
+      "category": "Settings",
+      "endpoint": "/api/settings/app",
+      "method": "get",
+      "status": 429,
+      "responseTime": "195ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:37.821Z"
+    },
+    {
+      "category": "Settings",
+      "endpoint": "/api/settings/features",
+      "method": "get",
+      "status": 429,
+      "responseTime": "246ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:42.531Z"
+    },
+    {
+      "category": "CMS",
+      "endpoint": "/api/cms/pages",
+      "method": "get",
+      "status": 429,
+      "responseTime": "206ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:47.036Z"
+    },
+    {
+      "category": "CMS",
+      "endpoint": "/api/cms/banners",
+      "method": "get",
+      "status": 429,
+      "responseTime": "182ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:51.647Z"
+    },
+    {
+      "category": "Banners",
+      "endpoint": "/api/banners",
+      "method": "get",
+      "status": 429,
+      "responseTime": "196ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T13:59:56.298Z"
+    },
+    {
+      "category": "Banners",
+      "endpoint": "/api/banners?position=home",
+      "method": "get",
+      "status": 429,
+      "responseTime": "250ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:01.065Z"
+    },
+    {
+      "category": "Notifications",
+      "endpoint": "/api/notifications",
+      "method": "get",
+      "status": 429,
+      "responseTime": "244ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:05.878Z"
+    },
+    {
+      "category": "Notifications",
+      "endpoint": "/api/notifications/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "187ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:10.530Z"
+    },
+    {
+      "category": "Livestreams",
+      "endpoint": "/api/livestreams",
+      "method": "get",
+      "status": 429,
+      "responseTime": "201ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:15.094Z"
+    },
+    {
+      "category": "Livestreams",
+      "endpoint": "/api/livestreams?status=live",
+      "method": "get",
+      "status": 429,
+      "responseTime": "244ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:19.804Z"
+    },
+    {
+      "category": "Livestreams",
+      "endpoint": "/api/livestreams/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "251ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:24.412Z"
+    },
+    {
+      "category": "Coupons",
+      "endpoint": "/api/coupons",
+      "method": "get",
+      "status": 429,
+      "responseTime": "239ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:29.123Z"
+    },
+    {
+      "category": "Coupons",
+      "endpoint": "/api/coupons?status=active",
+      "method": "get",
+      "status": 429,
+      "responseTime": "244ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:33.833Z"
+    },
+    {
+      "category": "Coupons",
+      "endpoint": "/api/coupons/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "182ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:38.441Z"
+    },
+    {
+      "category": "Shipping",
+      "endpoint": "/api/shipping/zones",
+      "method": "get",
+      "status": 429,
+      "responseTime": "246ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:43.152Z"
+    },
+    {
+      "category": "Shipping",
+      "endpoint": "/api/shipping/methods",
+      "method": "get",
+      "status": 429,
+      "responseTime": "240ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:47.863Z"
+    },
+    {
+      "category": "Shipping",
+      "endpoint": "/api/shipping/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "242ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:52.675Z"
+    },
+    {
+      "category": "Support",
+      "endpoint": "/api/customer-service/tickets",
+      "method": "get",
+      "status": 429,
+      "responseTime": "181ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:00:57.283Z"
+    },
+    {
+      "category": "Support",
+      "endpoint": "/api/customer-service/tickets?status=open",
+      "method": "get",
+      "status": 429,
+      "responseTime": "234ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:01:01.989Z"
+    },
+    {
+      "category": "Support",
+      "endpoint": "/api/customer-service/stats",
+      "method": "get",
+      "status": 429,
+      "responseTime": "163ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:01:06.620Z"
+    },
+    {
+      "category": "Support",
+      "endpoint": "/api/customer-service/faqs",
+      "method": "get",
+      "status": 429,
+      "responseTime": "218ms",
+      "success": false,
+      "error": "Request failed with status code 429",
+      "timestamp": "2025-11-05T14:01:11.284Z"
+    }
+  ]
+}

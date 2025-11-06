@@ -1,122 +1,241 @@
-{{{{{
+{{{{{{
 
   "indexes": [
 
     {  "indexes": [
 
-      "collectionGroup": "stories",
+      "collectionGroup": "users",
 
       "queryScope": "COLLECTION",    {  "indexes": [
 
       "fields": [
 
-        { "fieldPath": "status", "order": "ASCENDING" },      "collectionGroup": "orders",
+        { "fieldPath": "status", "order": "ASCENDING" },      "collectionGroup": "stories",
 
-        { "fieldPath": "expiresAt", "order": "DESCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
 
-        { "fieldPath": "createdAt", "order": "DESCENDING" }      "queryScope": "COLLECTION",    {  "indexes": [  "indexes": [
+      ]      "queryScope": "COLLECTION",    {  "indexes": [
+
+    },
+
+    {      "fields": [
+
+      "collectionGroup": "users",
+
+      "queryScope": "COLLECTION",        { "fieldPath": "status", "order": "ASCENDING" },      "collectionGroup": "orders",
+
+      "fields": [
+
+        { "fieldPath": "role", "order": "ASCENDING" },        { "fieldPath": "expiresAt", "order": "DESCENDING" },
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+      ]        { "fieldPath": "createdAt", "order": "DESCENDING" }      "queryScope": "COLLECTION",    {  "indexes": [  "indexes": [
+
+    },
+
+    {      ]
+
+      "collectionGroup": "users",
+
+      "queryScope": "COLLECTION",    },      "fields": [
+
+      "fields": [
+
+        { "fieldPath": "isVerified", "order": "ASCENDING" },    {
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+      ]      "collectionGroup": "stories",        { "fieldPath": "userId", "order": "ASCENDING" },      "collectionGroup": "orders",
+
+    },
+
+    {      "queryScope": "COLLECTION",
+
+      "collectionGroup": "uploads",
+
+      "queryScope": "COLLECTION",      "fields": [        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+      "fields": [
+
+        { "fieldPath": "type", "order": "ASCENDING" },        { "fieldPath": "userId", "order": "ASCENDING" },
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+      ]        { "fieldPath": "status", "order": "ASCENDING" },      ]      "queryScope": "COLLECTION",    {    {
+
+    },
+
+    {        { "fieldPath": "expiresAt", "order": "DESCENDING" }
+
+      "collectionGroup": "uploads",
+
+      "queryScope": "COLLECTION",      ]    },
+
+      "fields": [
+
+        { "fieldPath": "status", "order": "ASCENDING" },    },
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+      ]    {    {      "fields": [
+
+    },
+
+    {      "collectionGroup": "wallets",
+
+      "collectionGroup": "uploads",
+
+      "queryScope": "COLLECTION",      "queryScope": "COLLECTION",      "collectionGroup": "orders",
+
+      "fields": [
+
+        { "fieldPath": "type", "order": "ASCENDING" },      "fields": [
+
+        { "fieldPath": "status", "order": "ASCENDING" },
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }        { "fieldPath": "status", "order": "ASCENDING" },      "queryScope": "COLLECTION",        { "fieldPath": "userId", "order": "ASCENDING" },      "collectionGroup": "products",      "collectionGroup": "products",
 
       ]
 
-    },      "fields": [
+    },        { "fieldPath": "balance", "order": "DESCENDING" }
 
     {
 
-      "collectionGroup": "stories",        { "fieldPath": "userId", "order": "ASCENDING" },      "collectionGroup": "orders",
+      "collectionGroup": "sellerApplications",      ]      "fields": [
 
       "queryScope": "COLLECTION",
 
-      "fields": [        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      "fields": [    },
+
+        { "fieldPath": "status", "order": "ASCENDING" },
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }    {        { "fieldPath": "storeId", "order": "ASCENDING" },        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+      ]
+
+    },      "collectionGroup": "orders",
+
+    {
+
+      "collectionGroup": "products",      "queryScope": "COLLECTION",        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+      "queryScope": "COLLECTION",
+
+      "fields": [      "fields": [
+
+        { "fieldPath": "status", "order": "ASCENDING" },
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }        { "fieldPath": "userId", "order": "ASCENDING" },      ]      ]      "queryScope": "COLLECTION",      "queryScope": "COLLECTION",
+
+      ]
+
+    },        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+    {
+
+      "collectionGroup": "stores",      ]    },
+
+      "queryScope": "COLLECTION",
+
+      "fields": [    },
+
+        { "fieldPath": "status", "order": "ASCENDING" },
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }    {    {    },
+
+      ]
+
+    },      "collectionGroup": "orders",
+
+    {
+
+      "collectionGroup": "orders",      "queryScope": "COLLECTION",      "collectionGroup": "orders",
+
+      "queryScope": "COLLECTION",
+
+      "fields": [      "fields": [
+
+        { "fieldPath": "status", "order": "ASCENDING" },
+
+        { "fieldPath": "createdAt", "order": "DESCENDING" }        { "fieldPath": "storeId", "order": "ASCENDING" },      "queryScope": "COLLECTION",    {      "fields": [      "fields": [
+
+      ]
+
+    },        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+    {
+
+      "collectionGroup": "stories",      ]      "fields": [
+
+      "queryScope": "COLLECTION",
+
+      "fields": [    },
+
+        { "fieldPath": "status", "order": "ASCENDING" },
+
+        { "fieldPath": "expiresAt", "order": "DESCENDING" }    {        { "fieldPath": "status", "order": "ASCENDING" },      "collectionGroup": "orders",
+
+      ]
+
+    },      "collectionGroup": "orders",
+
+    {
+
+      "collectionGroup": "wallets",      "queryScope": "COLLECTION",        { "fieldPath": "createdAt", "order": "DESCENDING" }
+
+      "queryScope": "COLLECTION",
+
+      "fields": [      "fields": [
 
         { "fieldPath": "userId", "order": "ASCENDING" },
 
-        { "fieldPath": "status", "order": "ASCENDING" },      ]      "queryScope": "COLLECTION",    {    {
+        { "fieldPath": "createdAt", "order": "DESCENDING" }        { "fieldPath": "status", "order": "ASCENDING" },      ]      "queryScope": "COLLECTION",        { "fieldPath": "status", "order": "ASCENDING" },        { "fieldPath": "storeId", "order": "ASCENDING" },
 
-        { "fieldPath": "expiresAt", "order": "DESCENDING" }
+      ]
 
-      ]    },
+    },        { "fieldPath": "createdAt", "order": "DESCENDING" }
 
-    },
+    {
 
-    {    {      "fields": [
+      "collectionGroup": "transactions",      ]    },
 
-      "collectionGroup": "wallets",
+      "queryScope": "COLLECTION",
 
-      "queryScope": "COLLECTION",      "collectionGroup": "orders",
+      "fields": [    },
 
-      "fields": [
+        { "fieldPath": "walletId", "order": "ASCENDING" },
 
-        { "fieldPath": "status", "order": "ASCENDING" },      "queryScope": "COLLECTION",        { "fieldPath": "userId", "order": "ASCENDING" },      "collectionGroup": "products",      "collectionGroup": "products",
+        { "fieldPath": "createdAt", "order": "DESCENDING" }    {    {      "fields": [
 
-        { "fieldPath": "balance", "order": "DESCENDING" }
+      ]
 
-      ]      "fields": [
+    },      "collectionGroup": "products",
 
-    },
+    {
 
-    {        { "fieldPath": "storeId", "order": "ASCENDING" },        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      "collectionGroup": "transactions",      "queryScope": "COLLECTION",      "collectionGroup": "products",
 
-      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
 
-      "queryScope": "COLLECTION",        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      "fields": [      "fields": [
 
-      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
 
-        { "fieldPath": "userId", "order": "ASCENDING" },      ]      ]      "queryScope": "COLLECTION",      "queryScope": "COLLECTION",
-
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-
-      ]    },
-
-    },
-
-    {    {    },
-
-      "collectionGroup": "orders",
-
-      "queryScope": "COLLECTION",      "collectionGroup": "orders",
-
-      "fields": [
-
-        { "fieldPath": "storeId", "order": "ASCENDING" },      "queryScope": "COLLECTION",    {      "fields": [      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },        { "fieldPath": "storeId", "order": "ASCENDING" },      "queryScope": "COLLECTION",        { "fieldPath": "storeId", "order": "ASCENDING" },        { "fieldPath": "createdAt", "order": "DESCENDING" }        { "fieldPath": "createdAt", "order": "DESCENDING" }
 
         { "fieldPath": "createdAt", "order": "DESCENDING" }
 
-      ]      "fields": [
+      ]        { "fieldPath": "status", "order": "ASCENDING" }
 
-    },
+    }
 
-    {        { "fieldPath": "status", "order": "ASCENDING" },      "collectionGroup": "orders",
+  ],      ]      "fields": [
 
-      "collectionGroup": "orders",
+  "fieldOverrides": []
 
-      "queryScope": "COLLECTION",        { "fieldPath": "createdAt", "order": "DESCENDING" }
+}    },
 
-      "fields": [
-
-        { "fieldPath": "status", "order": "ASCENDING" },      ]      "queryScope": "COLLECTION",        { "fieldPath": "status", "order": "ASCENDING" },        { "fieldPath": "storeId", "order": "ASCENDING" },
-
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-
-      ]    },
-
-    },
-
-    {    {      "fields": [
-
-      "collectionGroup": "products",
-
-      "queryScope": "COLLECTION",      "collectionGroup": "products",
-
-      "fields": [
-
-        { "fieldPath": "storeId", "order": "ASCENDING" },      "queryScope": "COLLECTION",        { "fieldPath": "storeId", "order": "ASCENDING" },        { "fieldPath": "createdAt", "order": "DESCENDING" }        { "fieldPath": "createdAt", "order": "DESCENDING" }
-
-        { "fieldPath": "status", "order": "ASCENDING" }
-
-      ]      "fields": [
-
-    },
 
     {        { "fieldPath": "storeId", "order": "ASCENDING" },        { "fieldPath": "createdAt", "order": "DESCENDING" }
 

@@ -56,6 +56,7 @@ import Banners from './pages/Banners';
 import Tags from './pages/Tags';
 import Explorer from './pages/Explorer';
 import Featured from './pages/Featured';
+import Transactions from './pages/Transactions';
 
 // New Missing Pages
 import CommentsManagement from './pages/CommentsManagement';
@@ -168,6 +169,7 @@ function App() {
                 <Route path="/moderation" element={<Moderation />} />
                 <Route path="/monetization" element={<Monetization />} />
                 <Route path="/wallets" element={<Wallets />} />
+                <Route path="/transactions" element={<Transactions />} />
                 <Route path="/notifications" element={<Notifications />} />
                 
                 {/* Content & Economy Management */}
