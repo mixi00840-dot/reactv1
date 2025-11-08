@@ -1,0 +1,42 @@
+steps:
+  # Build the container image using Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/mixillo/cloud-run-source-deploy/mixillo-backend:$BUILD_ID'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/mixillo/cloud-run-source-deploy/mixillo-backend:latest'
+      - '.'
+  
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'europe-west1-docker.pkg.dev/mixillo/cloud-run-source-deploy/mixillo-backend:$BUILD_ID'
+  
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'europe-west1-docker.pkg.dev/mixillo/cloud-run-source-deploy/mixillo-backend:latest'
+  
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'mixillo-backend'
+      - '--image=europe-west1-docker.pkg.dev/mixillo/cloud-run-source-deploy/mixillo-backend:$BUILD_ID'
+      - '--region=europe-west1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--set-secrets=MONGODB_URI=MONGODB_URI:2,JWT_SECRET=JWT_SECRET:latest,JWT_REFRESH_SECRET=JWT_REFRESH_SECRET:latest'
+      - '--set-env-vars=NODE_ENV=production,DATABASE_MODE=mongodb'
+
+images:
+  - 'europe-west1-docker.pkg.dev/mixillo/cloud-run-source-deploy/mixillo-backend:$BUILD_ID'
+  - 'europe-west1-docker.pkg.dev/mixillo/cloud-run-source-deploy/mixillo-backend:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

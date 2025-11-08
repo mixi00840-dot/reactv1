@@ -6,12 +6,9 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
-const connectDB = require('./utils/database');
-
-// MongoDB support (Migration to MongoDB)
+// MongoDB support (Migration to MongoDB COMPLETE - Firestore removed)
 const { connectMongoDB, getConnectionStatus } = require('./utils/mongodb');
-// MIGRATION COMPLETE: Default to MongoDB-only mode
-const DB_MODE = process.env.DATABASE_MODE || 'mongodb';
+const DB_MODE = 'mongodb'; // Hardcoded to mongodb - migration complete
 console.log(`🗄️  DATABASE MODE: ${DB_MODE.toUpperCase()}`);
 
 // Import core routes (migrated to Firestore)
@@ -411,18 +408,17 @@ app.use(morgan('combined'));
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Health check route
-// Initialize MongoDB if in dual or mongodb mode
-if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
-  connectMongoDB().then(() => {
-    console.log(`✅ MongoDB initialized for ${DB_MODE} mode`);
-  }).catch(error => {
-    console.error('❌ MongoDB connection error:', error.message);
-  });
-}
+// Initialize MongoDB connection
+connectMongoDB().then(() => {
+  console.log(`✅ MongoDB initialized and ready`);
+}).catch(error => {
+  console.error('❌ MongoDB connection error:', error.message);
+  // Note: Server will still start to allow health checks, but API calls will fail
+});
 
+// Health check route
 app.get('/health', (req, res) => {
-  const mongoStatus = (DB_MODE === 'mongodb' || DB_MODE === 'dual') ? getConnectionStatus() : null;
+  const mongoStatus = getConnectionStatus();
   
   res.status(200).json({
     status: 'ok',
@@ -430,22 +426,23 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
-    database: DB_MODE === 'dual' ? 'Dual (Firestore + MongoDB)' : DB_MODE === 'mongodb' ? 'MongoDB' : 'Firestore',
-    databaseMode: DB_MODE,
-    mongodb: mongoStatus ? {
+    database: 'MongoDB',
+    mongodb: {
       connected: mongoStatus.isConnected,
       database: mongoStatus.database
-    } : null
+    }
   });
 });
 
 // Database health check
 app.get('/api/health/db', (req, res) => {
-  // Firestore is always available (no connection state to check)
-  res.status(200).json({
-    status: 'ok',
-    database: 'Firestore',
-    message: 'Firestore client ready'
+  const mongoStatus = getConnectionStatus();
+  
+  res.status(mongoStatus.isConnected ? 200 : 503).json({
+    status: mongoStatus.isConnected ? 'ok' : 'error',
+    database: 'MongoDB',
+    connected: mongoStatus.isConnected,
+    message: mongoStatus.isConnected ? 'MongoDB connected' : 'MongoDB disconnected'
   });
 });
 
