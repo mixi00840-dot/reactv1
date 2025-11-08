@@ -4,8 +4,7 @@ const MultiHostSessionSchema = new mongoose.Schema({
   livestreamId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Livestream',
-    required: true,
-    index: true
+    required: true
   },
   
   hosts: [{

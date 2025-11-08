@@ -83,8 +83,7 @@ const ProductSchema = new mongoose.Schema({
   // Categorization
   category: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-    index: true
+    ref: 'Category'
   },
   
   subcategory: String,

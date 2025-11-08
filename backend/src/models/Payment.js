@@ -42,8 +42,7 @@ const paymentSchema = new mongoose.Schema({
   idempotencyKey: {
     type: String,
     unique: true,
-    sparse: true,
-    index: true
+    sparse: true
   },
   completedAt: Date,
   failedAt: Date,

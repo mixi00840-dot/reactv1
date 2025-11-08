@@ -32,8 +32,7 @@ const SoundSchema = new mongoose.Schema({
   // Creator
   uploadedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    index: true
+    ref: 'User'
   },
   
   isOriginal: {
