@@ -103,7 +103,7 @@ const APISettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const payload = await api.get('/api/settings/api-keys');
+      const payload = await api.get('/api/settings/mongodb/api-keys');
       if (payload?.settings) {
         setSettings({ ...settings, ...payload.settings });
       }
@@ -115,7 +115,7 @@ const APISettings = () => {
   const handleSave = async (section) => {
     setSaving(true);
     try {
-      await api.put(`/api/settings/api-keys/${section}`, { settings: settings[section] });
+      await api.put(`/api/settings/mongodb/api-keys/${section}`, { settings: settings[section] });
       setMessage('Settings saved successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {

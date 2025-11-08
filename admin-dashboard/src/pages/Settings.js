@@ -100,8 +100,11 @@ const Settings = () => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const payload = await api.get('/api/settings');
-      if (payload?.settings) {
+      const payload = await api.get('/api/settings/mongodb');
+      // Use sectioned data if available, otherwise fall back to direct settings
+      if (payload?.sections) {
+        setSettings(prev => ({ ...prev, ...payload.sections }));
+      } else if (payload?.settings) {
         setSettings(payload.settings);
       } else if (payload) {
         setSettings(payload);
@@ -116,7 +119,7 @@ const Settings = () => {
   const handleSave = async (section) => {
     setSaving(true);
     try {
-      await api.put(`/api/settings/${section}`, { settings: settings[section] });
+      await api.put(`/api/settings/mongodb/${section}`, { settings: settings[section] });
       setSuccessMessage(`${section.charAt(0).toUpperCase() + section.slice(1)} settings saved successfully!`);
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {

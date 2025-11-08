@@ -59,9 +59,32 @@ router.get('/', verifyJWT, requireAdmin, async (req, res) => {
     const settings = await Setting.find(query)
       .populate('updatedBy', 'username fullName');
 
+    // Transform to section-based structure for dashboard
+    const sectioned = {
+      general: {},
+      email: {},
+      payment: {},
+      moderation: {},
+      features: {},
+      notifications: {},
+      security: {},
+      'api-keys': {}
+    };
+    
+    settings.forEach(setting => {
+      const parts = setting.key.split('.');
+      if (parts.length === 2) {
+        const [section, key] = parts;
+        if (sectioned[section]) {
+          sectioned[section][key] = setting.value;
+        }
+      }
+    });
+
     res.json({
       success: true,
-      data: { settings }
+      data: { settings },
+      sections: sectioned // Include structured version for dashboard
     });
 
   } catch (error) {
@@ -110,6 +133,32 @@ router.get('/:key', verifyJWT, requireAdmin, async (req, res) => {
  */
 router.put('/:key', verifyJWT, requireAdmin, async (req, res) => {
   try {
+    // Check if key looks like a section (general, email, payment, etc.)
+    const sectionKeys = ['general', 'email', 'payment', 'moderation', 'features', 'notifications', 'security', 'api-keys'];
+    
+    if (sectionKeys.includes(req.params.key) && req.body.settings) {
+      // Bulk update for section
+      const sectionData = req.body.settings;
+      const updates = [];
+      
+      for (const [settingKey, settingValue] of Object.entries(sectionData)) {
+        const fullKey = `${req.params.key}.${settingKey}`;
+        const result = await Setting.setSetting(fullKey, settingValue, {
+          type: typeof settingValue,
+          category: req.params.key,
+          updatedBy: req.userId
+        });
+        updates.push(result);
+      }
+      
+      return res.json({
+        success: true,
+        data: { settings: updates },
+        message: `${req.params.key} settings updated successfully`
+      });
+    }
+    
+    // Single key update
     const { value, description, category, isPublic } = req.body;
 
     const setting = await Setting.setSetting(req.params.key, value, {
