@@ -13,7 +13,7 @@ console.log(`🗄️  DATABASE MODE: ${DB_MODE.toUpperCase()}`);
 
 // Import core routes (MongoDB)
 const authRoutes = require('./routes/auth-mongodb'); // MongoDB auth with JWT
-const sellerRoutes = require('./routes/sellers-mongodb'); // MongoDB sellers
+// const sellerRoutes = require('./routes/sellers'); // TODO: Migrate to MongoDB - currently uses Firestore
 const adminRoutes = require('./routes/admin-mongodb'); // MongoDB admin
 
 // Create fallback router for unmigrated features
@@ -538,7 +538,7 @@ if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
 // MongoDB Routes
 app.use('/api/auth', authRoutes); // JWT authentication
 app.use('/api/users', require('./routes/users-mongodb')); // MongoDB user routes
-app.use('/api/sellers', sellerRoutes);
+// app.use('/api/sellers', sellerRoutes); // TODO: Migrate to MongoDB - currently uses Firestore
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/users', require('./routes/admin/users')); // Admin user management
 
