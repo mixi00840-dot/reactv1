@@ -4,10 +4,10 @@ const socketIO = require('socket.io');
 console.log('🚀 Starting Mixillo API server...');
 console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`🔗 Port: ${process.env.PORT || 5000}, Host: ${process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'}`);
-console.log(`🗄️  Database: Firestore`);
+console.log(`🗄️  Database: MongoDB`);
 
-// Import app
-const app = require('./app');
+// Import MongoDB app (not Firestore!)
+const app = require('./app-with-mongodb');
 
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';

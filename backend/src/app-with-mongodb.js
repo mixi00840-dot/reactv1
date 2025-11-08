@@ -17,24 +17,45 @@ const path = require('path');
 require('dotenv').config();
 
 // Import database connectors
-const firestoreDb = require('./utils/database'); // Firestore
 const { connectMongoDB, getConnectionStatus } = require('./utils/mongodb'); // MongoDB
-const { dualDb } = require('./middleware/dualDatabase'); // Dual database manager
 
-// Get database mode from environment
-const DB_MODE = process.env.DATABASE_MODE || 'firebase';
+// Get database mode from environment (force MongoDB-only)
+const DB_MODE = process.env.DATABASE_MODE || 'mongodb';
 
 console.log(`\n🗄️  DATABASE MODE: ${DB_MODE.toUpperCase()}`);
 
-// Import all existing routes (Firebase/Firestore)
-const authRoutes = require('./routes/auth');
-const authFirebaseRoutes = require('./routes/authFirebase');
-const usersFirestoreRoutes = require('./routes/users-firestore');
+// MongoDB-only mode - No Firebase imports
 
-// Import new MongoDB routes
+// Import all MongoDB routes
 const authMongoRoutes = require('./routes/auth-mongodb');
 const usersMongoRoutes = require('./routes/users-mongodb');
 const contentMongoRoutes = require('./routes/content-mongodb');
+const adminMongoRoutes = require('./routes/admin-mongodb');
+const productsMongoRoutes = require('./routes/products-mongodb');
+const storesMongoRoutes = require('./routes/stores-mongodb');
+const ordersMongoRoutes = require('./routes/orders-mongodb');
+const walletsMongoRoutes = require('./routes/wallets-mongodb');
+const giftsMongoRoutes = require('./routes/gifts-mongodb');
+const storiesMongoRoutes = require('./routes/stories-mongodb');
+const notificationsMongoRoutes = require('./routes/notifications-mongodb');
+const messagingMongoRoutes = require('./routes/messaging-mongodb');
+const commentsMongoRoutes = require('./routes/comments-mongodb');
+const searchMongoRoutes = require('./routes/search-mongodb');
+const settingsMongoRoutes = require('./routes/settings-mongodb');
+const analyticsMongoRoutes = require('./routes/analytics-mongodb');
+const moderationMongoRoutes = require('./routes/moderation-mongodb');
+const streamingMongoRoutes = require('./routes/streaming-mongodb');
+const uploadsMongoRoutes = require('./routes/uploads-mongodb');
+const paymentsMongoRoutes = require('./routes/payments-mongodb');
+const trendingMongoRoutes = require('./routes/trending-mongodb');
+const metricsMongoRoutes = require('./routes/metrics-mongodb');
+const soundsMongoRoutes = require('./routes/sounds-mongodb');
+const reportsMongoRoutes = require('./routes/reports-mongodb');
+const recommendationsMongoRoutes = require('./routes/recommendations-mongodb');
+const feedMongoRoutes = require('./routes/feed-mongodb');
+const categoriesMongoRoutes = require('./routes/categories-mongodb');
+const cartMongoRoutes = require('./routes/cart-mongodb');
+const livestreamingMongoRoutes = require('./routes/livestreaming-mongodb');
 
 // ... (rest of existing route imports)
 
@@ -120,48 +141,34 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// Initialize databases based on mode
+// Initialize MongoDB database
 const initDatabases = async () => {
-  if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
-    try {
-      await connectMongoDB();
-      console.log('✅ MongoDB initialized for', DB_MODE, 'mode');
-    } catch (error) {
-      console.error('❌ MongoDB initialization failed:', error.message);
-      if (DB_MODE === 'mongodb') {
-        throw error; // MongoDB-only mode requires MongoDB
-      }
-    }
-  }
-  
-  if (DB_MODE === 'firebase' || DB_MODE === 'dual') {
-    console.log('✅ Firebase/Firestore initialized for', DB_MODE, 'mode');
-  }
-  
-  if (DB_MODE === 'dual') {
-    await dualDb.initialize();
-    console.log('✅ Dual database manager initialized');
+  try {
+    await connectMongoDB();
+    console.log('✅ MongoDB connected successfully');
+  } catch (error) {
+    console.error('❌ MongoDB connection failed:', error.message);
+    throw error;
   }
 };
 
-// Health check endpoint - Enhanced with database info
+// Health check endpoint - MongoDB-only
 app.get('/health', (req, res) => {
   const mongoStatus = getConnectionStatus();
   
   res.json({
+    success: true,
     status: 'ok',
     message: 'Mixillo API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
-    database: {
-      mode: DB_MODE,
-      firebase: DB_MODE === 'firebase' || DB_MODE === 'dual' ? 'connected' : 'disabled',
-      mongodb: mongoStatus.isConnected ? 'connected' : 'disconnected',
-      mongoDetails: DB_MODE === 'mongodb' || DB_MODE === 'dual' ? {
-        database: mongoStatus.database,
-        host: mongoStatus.host
-      } : null
+    database: 'MongoDB',
+    databaseMode: 'mongodb',
+    mongodb: {
+      connected: mongoStatus.isConnected,
+      database: mongoStatus.database,
+      host: mongoStatus.host
     }
   });
 });
@@ -187,49 +194,107 @@ app.get('/database-status', (req, res) => {
   });
 });
 
-// API ROUTES
+// API ROUTES - MongoDB Only
 
-// Authentication Routes - Support both Firebase and MongoDB
-if (DB_MODE === 'firebase' || DB_MODE === 'dual') {
-  app.use('/api/auth', authRoutes); // Legacy JWT auth
-  app.use('/api/auth/firebase', authFirebaseRoutes); // Firebase Auth
-}
+// Authentication Routes
+app.use('/api/auth/mongodb', authMongoRoutes);
+app.use('/api/auth', authMongoRoutes); // Default to MongoDB
 
-if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
-  app.use('/api/auth/mongodb', authMongoRoutes); // MongoDB Auth (JWT)
-}
+// User Routes
+app.use('/api/users/mongodb', usersMongoRoutes);
+app.use('/api/users', usersMongoRoutes); // Default to MongoDB
 
-// User Routes - Support both
-if (DB_MODE === 'firebase' || DB_MODE === 'dual') {
-  app.use('/api/users/firestore', usersFirestoreRoutes); // Firestore users (backward compatibility)
-}
-
-if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
-  app.use('/api/users/mongodb', usersMongoRoutes); // MongoDB users
-}
-
-// Default users route (based on mode)
-if (DB_MODE === 'mongodb') {
-  app.use('/api/users', usersMongoRoutes);
-} else {
-  app.use('/api/users', usersFirestoreRoutes); // Firebase default
-}
+// Admin Routes
+app.use('/api/admin/mongodb', adminMongoRoutes);
+app.use('/api/admin', adminMongoRoutes); // Default to MongoDB
 
 // Content Routes
-if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
-  app.use('/api/content/mongodb', contentMongoRoutes); // MongoDB content
-}
+app.use('/api/content/mongodb', contentMongoRoutes);
+app.use('/api/content', contentMongoRoutes); // Default to MongoDB
 
-// Default content route
-if (DB_MODE === 'mongodb') {
-  app.use('/api/content', contentMongoRoutes);
-} else if (DB_MODE === 'firebase' || DB_MODE === 'dual') {
-  const contentFirestoreRoutes = require('./routes/content-firestore');
-  app.use('/api/content', contentFirestoreRoutes);
-}
+// E-commerce Routes
+app.use('/api/products/mongodb', productsMongoRoutes);
+app.use('/api/products', productsMongoRoutes); // Default to MongoDB
 
-// All other existing routes continue to work...
-// (Load all your existing routes here)
+app.use('/api/stores/mongodb', storesMongoRoutes);
+app.use('/api/stores', storesMongoRoutes); // Default to MongoDB
+
+app.use('/api/orders/mongodb', ordersMongoRoutes);
+app.use('/api/orders', ordersMongoRoutes); // Default to MongoDB
+
+// Finance Routes
+app.use('/api/wallets/mongodb', walletsMongoRoutes);
+app.use('/api/wallets', walletsMongoRoutes); // Default to MongoDB
+
+// Social & Content Routes
+app.use('/api/stories/mongodb', storiesMongoRoutes);
+app.use('/api/stories', storiesMongoRoutes); // Default to MongoDB
+
+app.use('/api/comments/mongodb', commentsMongoRoutes);
+app.use('/api/comments', commentsMongoRoutes); // Default to MongoDB
+
+app.use('/api/gifts/mongodb', giftsMongoRoutes);
+app.use('/api/gifts', giftsMongoRoutes); // Default to MongoDB
+
+// Communication Routes
+app.use('/api/notifications/mongodb', notificationsMongoRoutes);
+app.use('/api/notifications', notificationsMongoRoutes); // Default to MongoDB
+
+app.use('/api/messaging/mongodb', messagingMongoRoutes);
+app.use('/api/messaging', messagingMongoRoutes); // Default to MongoDB
+
+// Utility Routes
+app.use('/api/search/mongodb', searchMongoRoutes);
+app.use('/api/search', searchMongoRoutes); // Default to MongoDB
+
+app.use('/api/settings/mongodb', settingsMongoRoutes);
+app.use('/api/settings', settingsMongoRoutes); // Default to MongoDB
+
+app.use('/api/analytics/mongodb', analyticsMongoRoutes);
+app.use('/api/analytics', analyticsMongoRoutes); // Default to MongoDB
+
+app.use('/api/moderation/mongodb', moderationMongoRoutes);
+app.use('/api/moderation', moderationMongoRoutes); // Default to MongoDB
+
+app.use('/api/streaming/mongodb', streamingMongoRoutes);
+app.use('/api/streaming', streamingMongoRoutes); // Default to MongoDB
+
+app.use('/api/uploads/mongodb', uploadsMongoRoutes);
+app.use('/api/uploads', uploadsMongoRoutes); // Default to MongoDB
+
+// Payment & Transaction Routes
+app.use('/api/payments/mongodb', paymentsMongoRoutes);
+app.use('/api/payments', paymentsMongoRoutes);
+
+// Discovery & Recommendation Routes
+app.use('/api/trending/mongodb', trendingMongoRoutes);
+app.use('/api/trending', trendingMongoRoutes);
+
+app.use('/api/recommendations/mongodb', recommendationsMongoRoutes);
+app.use('/api/recommendations', recommendationsMongoRoutes);
+
+app.use('/api/feed/mongodb', feedMongoRoutes);
+app.use('/api/feed', feedMongoRoutes);
+
+// Media & Content Routes
+app.use('/api/sounds/mongodb', soundsMongoRoutes);
+app.use('/api/sounds', soundsMongoRoutes);
+
+app.use('/api/categories/mongodb', categoriesMongoRoutes);
+app.use('/api/categories', categoriesMongoRoutes);
+
+app.use('/api/livestreaming/mongodb', livestreamingMongoRoutes);
+app.use('/api/livestreaming', livestreamingMongoRoutes);
+
+// System Routes
+app.use('/api/metrics/mongodb', metricsMongoRoutes);
+app.use('/api/metrics', metricsMongoRoutes);
+
+app.use('/api/reports/mongodb', reportsMongoRoutes);
+app.use('/api/reports', reportsMongoRoutes);
+
+app.use('/api/cart/mongodb', cartMongoRoutes);
+app.use('/api/cart', cartMongoRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
