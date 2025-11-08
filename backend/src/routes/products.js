@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
     } = req.query;
 
     const skip = (page - 1) * limit;
-    let query = { status: 'active', isPublished: true };
+    let query = { isActive: true }; // Changed from status and isPublished
 
     if (category) query.category = category;
     if (storeId) query.storeId = storeId;
@@ -49,7 +49,10 @@ router.get('/', async (req, res) => {
 
     // Text search if search query provided
     if (search) {
-      query.$text = { $search: search };
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
     }
 
     const products = await Product.find(query)
@@ -58,7 +61,8 @@ router.get('/', async (req, res) => {
       .skip(skip)
       .populate('storeId', 'name logo rating')
       .populate('sellerId', 'username fullName')
-      .populate('category', 'name slug');
+      .populate('category', 'name slug')
+      .lean(); // Use lean for better performance
 
     const total = await Product.countDocuments(query);
 

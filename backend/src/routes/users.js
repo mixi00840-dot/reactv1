@@ -99,6 +99,51 @@ router.put('/profile', verifyJWT, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/users
+ * @desc    Get all users (with pagination)
+ * @access  Public
+ */
+router.get('/', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, role, isVerified } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build query
+    const query = { isActive: true };
+    if (role) query.role = role;
+    if (isVerified !== undefined) query.isVerified = isVerified === 'true';
+
+    const users = await User.find(query)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await User.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching users'
+    });
+  }
+});
+
+/**
  * @route   GET /api/users/search
  * @desc    Search users
  * @access  Public

@@ -107,7 +107,7 @@ async function runTests() {
     'POST',
     '/api/auth/mongodb/login',
     {
-      email: 'admin@mixillo.com',
+      identifier: 'admin', // Can be username or email
       password: 'password123'
     }
   );

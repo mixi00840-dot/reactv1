@@ -328,6 +328,19 @@ app.get('/api/health/db', (req, res) => {
   });
 });
 
+// MongoDB health check endpoint (alternative path)
+app.get('/health/mongodb', (req, res) => {
+  const mongoStatus = getConnectionStatus();
+  
+  res.status(mongoStatus.isConnected ? 200 : 503).json({
+    status: mongoStatus.isConnected ? 'healthy' : 'unhealthy',
+    database: 'MongoDB',
+    connected: mongoStatus.isConnected,
+    database_name: mongoStatus.database,
+    message: mongoStatus.isConnected ? 'MongoDB is connected' : 'MongoDB is disconnected'
+  });
+});
+
 // API routes
 
 // ============================================
