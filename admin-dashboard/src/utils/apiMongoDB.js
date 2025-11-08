@@ -333,20 +333,25 @@ const mongoAPI = {
   
   orders: {
     getAll: async (params = {}) => {
-      const response = await apiClient.get('/orders/mongodb', { params });
+      const response = await apiClient.get('/orders/admin/all', { params });
       return response.data;
     },
 
     getById: async (orderId) => {
-      const response = await apiClient.get(`/orders/mongodb/${orderId}`);
+      const response = await apiClient.get(`/orders/admin/${orderId}`);
       return response.data;
     },
 
     updateStatus: async (orderId, status, note) => {
-      const response = await apiClient.put(`/orders/mongodb/${orderId}/status`, {
+      const response = await apiClient.put(`/orders/admin/${orderId}/status`, {
         status,
         note,
       });
+      return response.data;
+    },
+
+    getStats: async () => {
+      const response = await apiClient.get('/orders/admin/stats');
       return response.data;
     },
   },

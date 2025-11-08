@@ -350,5 +350,176 @@ router.get('/', verifyJWT, validationRules.pagination(), handleValidationErrors,
   }
 });
 
+// ==================== ADMIN ENDPOINTS ====================
+const { requireAdmin: requireAdminMiddleware } = require('../middleware/adminMiddleware');
+
+/**
+ * @route   GET /api/payments/admin/all
+ * @desc    Get all payments (Admin)
+ * @access  Admin
+ */
+router.get('/admin/all', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 20, 
+      search,
+      status 
+    } = req.query;
+    const skip = (page - 1) * limit;
+
+    let query = {};
+    
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    if (search) {
+      query.$or = [
+        { transactionId: { $regex: search, $options: 'i' } },
+        { paymentMethod: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const payments = await Payment.find(query)
+      .populate('userId', 'username email avatar')
+      .populate('orderId', 'orderNumber')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .lean();
+
+    const total = await Payment.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        payments,
+        transactions: payments, // Alias for backward compatibility
+        pagination: {
+          total,
+          totalPages: Math.ceil(total / limit),
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get all payments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching payments'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/payments/admin/analytics
+ * @desc    Get payment analytics (Admin)
+ * @access  Admin
+ */
+router.get('/admin/analytics', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const [
+      totalPayments,
+      completedPayments,
+      pendingPayments,
+      failedPayments,
+      todayPayments,
+      revenueData
+    ] = await Promise.all([
+      Payment.countDocuments(),
+      Payment.countDocuments({ status: 'completed' }),
+      Payment.countDocuments({ status: 'pending' }),
+      Payment.countDocuments({ status: 'failed' }),
+      Payment.countDocuments({
+        createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+      }),
+      Payment.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            total: { $sum: '$amount' }
+          }
+        }
+      ])
+    ]);
+
+    const totalRevenue = revenueData.find(r => r._id === 'completed')?.total || 0;
+    const todayRevenue = await Payment.aggregate([
+      {
+        $match: {
+          status: 'completed',
+          createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const successRate = totalPayments > 0 
+      ? ((completedPayments / totalPayments) * 100).toFixed(1)
+      : 0;
+
+    res.json({
+      success: true,
+      data: {
+        totalRevenue,
+        todayRevenue: todayRevenue[0]?.total || 0,
+        totalTransactions: totalPayments,
+        completedTransactions: completedPayments,
+        pendingTransactions: pendingPayments,
+        failedTransactions: failedPayments,
+        successRate: parseFloat(successRate)
+      }
+    });
+
+  } catch (error) {
+    console.error('Get payment analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching payment analytics'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/payments/admin/:id
+ * @desc    Get payment details (Admin)
+ * @access  Admin
+ */
+router.get('/admin/:id', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id)
+      .populate('userId', 'username email avatar phone')
+      .populate('orderId', 'orderNumber items total');
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { payment }
+    });
+
+  } catch (error) {
+    console.error('Get payment details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching payment details'
+    });
+  }
+});
+
 module.exports = router;
 

@@ -268,4 +268,193 @@ router.put('/:id/status', verifyJWT, async (req, res) => {
   }
 });
 
+// ==================== ADMIN ENDPOINTS ====================
+const { requireAdmin: requireAdminMiddleware } = require('../middleware/adminMiddleware');
+
+/**
+ * @route   GET /api/orders/admin/all
+ * @desc    Get all orders (Admin)
+ * @access  Admin
+ */
+router.get('/admin/all', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 20, 
+      search,
+      status,
+      paymentStatus 
+    } = req.query;
+    const skip = (page - 1) * limit;
+
+    let query = {};
+    
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    if (paymentStatus && paymentStatus !== 'all') {
+      query.paymentStatus = paymentStatus;
+    }
+
+    if (search) {
+      query.$or = [
+        { orderNumber: { $regex: search, $options: 'i' } },
+        { 'shippingAddress.fullName': { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const orders = await Order.find(query)
+      .populate('userId', 'username email avatar')
+      .populate('sellerId', 'username storeName')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .lean();
+
+    const total = await Order.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        orders,
+        pagination: {
+          total,
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get all orders error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching orders'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/orders/admin/stats
+ * @desc    Get order statistics (Admin)
+ * @access  Admin
+ */
+router.get('/admin/stats', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const [
+      totalOrders,
+      pendingOrders,
+      processingOrders,
+      deliveredOrders,
+      cancelledOrders,
+      todayOrders,
+      totalRevenue
+    ] = await Promise.all([
+      Order.countDocuments(),
+      Order.countDocuments({ status: 'pending' }),
+      Order.countDocuments({ status: 'processing' }),
+      Order.countDocuments({ status: 'delivered' }),
+      Order.countDocuments({ status: 'cancelled' }),
+      Order.countDocuments({
+        createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+      }),
+      Order.aggregate([
+        { $match: { paymentStatus: 'paid' } },
+        { $group: { _id: null, total: { $sum: '$total' } } }
+      ])
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        total: totalOrders,
+        pending: pendingOrders,
+        processing: processingOrders,
+        delivered: deliveredOrders,
+        cancelled: cancelledOrders,
+        today: todayOrders,
+        revenue: totalRevenue[0]?.total || 0
+      }
+    });
+
+  } catch (error) {
+    console.error('Get order stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching order statistics'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/orders/admin/:id/status
+ * @desc    Update order status (Admin)
+ * @access  Admin
+ */
+router.put('/admin/:id/status', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const { status, note } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    await order.updateStatus(status, note || `Status updated by admin to ${status}`, req.userId);
+
+    res.json({
+      success: true,
+      data: { order },
+      message: `Order status updated to ${status}`
+    });
+
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating order status'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/orders/admin/:id
+ * @desc    Get order details (Admin)
+ * @access  Admin
+ */
+router.get('/admin/:id', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('userId', 'username email avatar phone')
+      .populate('sellerId', 'username storeName email')
+      .populate('items.productId', 'name images price');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { order }
+    });
+
+  } catch (error) {
+    console.error('Get order details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching order details'
+    });
+  }
+});
+
 module.exports = router;

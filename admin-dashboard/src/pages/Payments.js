@@ -52,22 +52,22 @@ function Payments() {
   const fetchPayments = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
+      const params = {
         page: currentPage,
         limit: 20,
         ...(searchTerm && { search: searchTerm }),
         ...(statusFilter !== 'all' && { status: statusFilter }),
-      });
+      };
 
-      const response = await api.get(`/api/payments?${params}`);
-      const paymentsData = response?.data?.payments || response?.payments || response?.data?.transactions || response?.transactions || (Array.isArray(response) ? response : []);
+      const response = await api.get('/api/payments/admin/all', { params });
+      const paymentsData = response?.data?.payments || response?.data?.transactions || [];
       setPayments(Array.isArray(paymentsData) ? paymentsData : []);
-      const pagination = response?.data?.pagination || response?.pagination || {};
-      setTotalPages(pagination.totalPages || 0);
+      const pagination = response?.data?.pagination || {};
+      setTotalPages(pagination.totalPages || pagination.pages || 0);
     } catch (error) {
       console.error('Error fetching payments:', error);
-      setPayments([]); // Ensure it's always an array
-      // toast.error('Failed to fetch payments');
+      toast.error('Failed to fetch payments');
+      setPayments([]);
     } finally {
       setLoading(false);
     }
@@ -75,11 +75,15 @@ function Payments() {
 
   const fetchPaymentStats = async () => {
     try {
-      const response = await api.get('/api/payments/analytics');
-      setStats(response?.data || response || {});
+      const response = await api.get('/api/payments/admin/analytics');
+      setStats(response?.data || {
+        totalRevenue: 0,
+        todayRevenue: 0,
+        totalTransactions: 0,
+        successRate: 0,
+      });
     } catch (error) {
       console.error('Error fetching payment stats:', error);
-      setStats({}); // Ensure it's always an object
     }
   };
 
