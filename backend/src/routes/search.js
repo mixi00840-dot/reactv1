@@ -168,5 +168,88 @@ router.get('/suggestions', async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/search/users
+ * @desc    Search users only
+ * @access  Public
+ */
+router.get('/users', async (req, res) => {
+  try {
+    const { q, limit = 20 } = req.query;
+
+    if (!q || q.trim().length === 0) {
+      return res.json({
+        success: true,
+        data: { users: [] }
+      });
+    }
+
+    const users = await User.find({
+      $or: [
+        { username: { $regex: q, $options: 'i' } },
+        { fullName: { $regex: q, $options: 'i' } },
+        { bio: { $regex: q, $options: 'i' } }
+      ],
+      isActive: true
+    })
+    .select('username fullName profilePicture bio followers isVerified')
+    .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { users }
+    });
+
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error searching users'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/search/content
+ * @desc    Search content only
+ * @access  Public
+ */
+router.get('/content', async (req, res) => {
+  try {
+    const { q, limit = 20 } = req.query;
+
+    if (!q || q.trim().length === 0) {
+      return res.json({
+        success: true,
+        data: { content: [] }
+      });
+    }
+
+    const content = await Content.find({
+      $or: [
+        { caption: { $regex: q, $options: 'i' } },
+        { hashtags: { $in: [new RegExp(q, 'i')] } }
+      ],
+      isPublic: true
+    })
+    .populate('creator', 'username fullName profilePicture isVerified')
+    .select('caption videoUrl thumbnailUrl views likes comments createdAt')
+    .sort({ views: -1 })
+    .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { content }
+    });
+
+  } catch (error) {
+    console.error('Search content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error searching content'
+    });
+  }
+});
+
 module.exports = router;
 

@@ -168,9 +168,14 @@ console.log('⚠️ Uploads routes using fallback (Firestore removed)');
 // paymentRoutes already set to fallback2 above
 console.log('⚠️ Payments routes using fallback (Firestore removed)');
 
-// Load gifts routes
-giftsRoutes = createFallbackRouter();
-console.log('⚠️ Gifts routes using fallback (Firestore removed)');
+// Load gifts routes (MongoDB migrated)
+try {
+  giftsRoutes = require('./routes/gifts');
+  console.log('✅ Gifts routes loaded (MongoDB)');
+} catch (error) {
+  console.warn('⚠️ Gifts routes fallback:', error.message);
+  giftsRoutes = createFallbackRouter();
+}
 
 // Routes still needing full migration (return fallback 503)
 const fallback5 = createFallbackRouter();

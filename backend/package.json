@@ -24,6 +24,7 @@
     "seed:supporters": "node src/scripts/seedSupporters.js",
     "seed:analytics": "node src/scripts/seedAnalytics.js",
     "test-api": "node src/scripts/testAPI.js",
+    "test:e2e": "node src/scripts/e2eTests.js",
     "test:comprehensive": "node src/scripts/testComprehensive.js",
     "worker:transcode": "node src/workers/transcodeWorker.js",
     "worker:metrics": "node src/workers/eventAggregationWorker.js"
