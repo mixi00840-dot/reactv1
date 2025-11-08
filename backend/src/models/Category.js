@@ -64,8 +64,7 @@ const CategorySchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
-CategorySchema.index({ slug: 1 }, { unique: true });
+// Indexes (slug already has unique index from schema)
 CategorySchema.index({ parentId: 1, sortOrder: 1 });
 CategorySchema.index({ isActive: 1, isFeatured: -1 });
 

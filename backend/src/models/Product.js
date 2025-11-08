@@ -4,15 +4,13 @@ const ProductSchema = new mongoose.Schema({
   storeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Store',
-    required: true,
-    index: true
+    required: true
   },
   
   sellerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   
   // Basic Info
@@ -208,7 +206,7 @@ const ProductSchema = new mongoose.Schema({
   toObject: { virtuals: true, getters: true }
 });
 
-// Indexes
+// Indexes (slug already has unique index from schema)
 ProductSchema.index({ storeId: 1, status: 1 });
 ProductSchema.index({ sellerId: 1, status: 1 });
 ProductSchema.index({ category: 1, status: 1 });
@@ -216,7 +214,6 @@ ProductSchema.index({ status: 1, isPublished: 1 });
 ProductSchema.index({ createdAt: -1 });
 ProductSchema.index({ rating: -1, salesCount: -1 });
 ProductSchema.index({ price: 1 });
-ProductSchema.index({ slug: 1 });
 
 // Text index for search
 ProductSchema.index({

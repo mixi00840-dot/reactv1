@@ -5,8 +5,7 @@ const CartSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   
   items: [{
@@ -48,8 +47,7 @@ const CartSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index
-CartSchema.index({ userId: 1 }, { unique: true });
+// Index (userId already has unique index from schema)
 CartSchema.index({ 'items.productId': 1 });
 
 // Method to add item

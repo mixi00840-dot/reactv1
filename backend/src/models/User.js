@@ -210,10 +210,7 @@ const UserSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes for performance
-UserSchema.index({ email: 1 });
-UserSchema.index({ username: 1 });
-UserSchema.index({ firebaseUid: 1 });
+// Indexes for performance (email, username, firebaseUid already have unique indexes from schema)
 UserSchema.index({ role: 1, status: 1 });
 UserSchema.index({ createdAt: -1 });
 UserSchema.index({ isVerified: 1, isFeatured: 1 });

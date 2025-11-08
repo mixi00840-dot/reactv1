@@ -4,8 +4,7 @@ const ContentRecommendationSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   
   recommendedContent: [{
@@ -30,8 +29,7 @@ const ContentRecommendationSchema = new mongoose.Schema({
   },
   
   expiresAt: {
-    type: Date,
-    index: true
+    type: Date
   },
   
   version: {

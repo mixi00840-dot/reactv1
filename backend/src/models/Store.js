@@ -5,8 +5,7 @@ const StoreSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   
   // Basic Info
@@ -168,10 +167,8 @@ const StoreSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
-StoreSchema.index({ sellerId: 1 }, { unique: true });
+// Indexes (sellerId and slug already have unique indexes from schema)
 StoreSchema.index({ status: 1, isVerified: 1 });
-StoreSchema.index({ slug: 1 }, { unique: true });
 StoreSchema.index({ rating: -1, totalSales: -1 });
 
 // Text index for search

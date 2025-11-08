@@ -41,7 +41,7 @@ const PageSchema = new mongoose.Schema({
   timestamps: true
 });
 
-PageSchema.index({ slug: 1 }, { unique: true });
+// Indexes (slug already has unique index from schema)
 PageSchema.index({ type: 1, isPublished: 1 });
 
 const Page = mongoose.model('Page', PageSchema);

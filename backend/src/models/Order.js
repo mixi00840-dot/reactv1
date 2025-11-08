@@ -11,8 +11,7 @@ const OrderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   
   // Items
@@ -120,8 +119,7 @@ const OrderSchema = new mongoose.Schema({
   paymentStatus: {
     type: String,
     enum: ['pending', 'paid', 'failed', 'refunded', 'partially_refunded'],
-    default: 'pending',
-    index: true
+    default: 'pending'
   },
   
   // Order Status
@@ -174,13 +172,11 @@ const OrderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Compound indexes
+// Compound indexes (orderNumber and paymentStatus already have indexes from schema)
 OrderSchema.index({ userId: 1, createdAt: -1 });
 OrderSchema.index({ 'items.storeId': 1, createdAt: -1 });
 OrderSchema.index({ sellerId: 1, status: 1 });
 OrderSchema.index({ status: 1, createdAt: -1 });
-OrderSchema.index({ paymentStatus: 1 });
-OrderSchema.index({ orderNumber: 1 }, { unique: true });
 
 // Pre-save hook to generate order number
 OrderSchema.pre('save', function(next) {
