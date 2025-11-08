@@ -12,9 +12,9 @@ const DB_MODE = 'mongodb'; // MongoDB only - no Firebase/Firestore
 console.log(`🗄️  DATABASE MODE: ${DB_MODE.toUpperCase()}`);
 
 // Import core routes (MongoDB)
-const authRoutes = require('./routes/auth');
-const sellerRoutes = require('./routes/sellers');
-const adminRoutes = require('./routes/admin');
+const authRoutes = require('./routes/auth-mongodb'); // MongoDB auth with JWT
+const sellerRoutes = require('./routes/sellers-mongodb'); // MongoDB sellers
+const adminRoutes = require('./routes/admin-mongodb'); // MongoDB admin
 
 // Create fallback router for unmigrated features
 const createFallbackRouter = () => {
@@ -25,12 +25,12 @@ const createFallbackRouter = () => {
   return fallbackRouter;
 };
 
-// E-commerce routes (Firestore - Phase 2 complete)
+// E-commerce routes (MongoDB)
 let productRoutes, storeRoutes;
-let orderRoutes; // Will be set to Firestore version below
+let orderRoutes;
 try {
-  productRoutes = require('./routes/products');
-  storeRoutes = require('./routes/stores');
+  productRoutes = require('./routes/products-mongodb');
+  storeRoutes = require('./routes/stores-mongodb');
 } catch (error) {
   console.error('⚠️  E-commerce routes have missing methods:', error.message);
   const fallback = createFallbackRouter();
@@ -98,18 +98,18 @@ let cartRoutes_firestore, categoriesRoutes_firestore, contentRoutes_firestore;
 let commentsRoutes_firestore, feedRoutes_firestore, messagingRoutes_firestore;
 let streamingRoutes_firestore, playerRoutes_firestore, uploadsRoutes_firestore, paymentsRoutes_firestore;
 
-// Load migrated Firestore routes (these work without MongoDB)
+// Load migrated MongoDB routes
 try {
-  storiesRoutes = require('./routes/stories'); // ✅ Migrated to Firestore
-  console.log('✅ Stories routes loaded (Firestore)');
+  storiesRoutes = require('./routes/stories-mongodb'); // ✅ MongoDB stories
+  console.log('✅ Stories routes loaded (MongoDB)');
 } catch (error) {
   console.error('⚠️ Stories routes error:', error.message);
   storiesRoutes = createFallbackRouter();
 }
 
 try {
-  walletsRoutes = require('./routes/wallets-firestore'); // ✅ Migrated to Firestore
-  console.log('✅ Wallets routes loaded (Firestore)');
+  walletsRoutes = require('./routes/wallets-mongodb'); // ✅ MongoDB wallets
+  console.log('✅ Wallets routes loaded (MongoDB)');
 } catch (error) {
   console.error('⚠️ Wallets routes error:', error.message);
   walletsRoutes = createFallbackRouter();
@@ -537,7 +537,7 @@ if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
 
 // MongoDB Routes
 app.use('/api/auth', authRoutes); // JWT authentication
-app.use('/api/users', require('./routes/users')); // User routes
+app.use('/api/users', require('./routes/users-mongodb')); // MongoDB user routes
 app.use('/api/sellers', sellerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/users', require('./routes/admin/users')); // Admin user management
