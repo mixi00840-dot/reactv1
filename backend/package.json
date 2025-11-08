@@ -2,10 +2,9 @@
   "name": "mixillo-backend",
   "version": "1.0.0",
   "description": "Backend API for Mixillo User Management System",
-  "main": "src/server-simple.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node src/server-simple.js",
-    "start:original": "node src/server.js",
+    "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "install:clean": "rm -rf node_modules package-lock.json && npm install",
     "test": "jest",
@@ -31,7 +30,7 @@
     "mixillo",
     "user-management",
     "express",
-    "firestore",
+    "mongodb",
     "jwt"
   ],
   "author": "Your Name",
@@ -39,7 +38,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.920.0",
     "@aws-sdk/s3-request-presigner": "^3.920.0",
-    "@google-cloud/firestore": "^7.7.0",
+    
     "axios": "^1.13.1",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.0.0",
