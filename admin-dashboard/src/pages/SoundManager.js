@@ -72,28 +72,30 @@ const SoundManager = () => {
   const fetchSounds = async () => {
     setLoading(true);
     try {
-      let endpoint = '';
+      let endpoint = '/api/sounds/mongodb';
+      const params = { limit: filters.limit, page: filters.page };
       
-      if (selectedTab === 0) {
-        endpoint = '/api/sounds/moderation/pending-review';
-      } else if (selectedTab === 1) {
-        endpoint = '/api/sounds/trending';
-      } else {
-        endpoint = '/api/sounds/search';
+      if (selectedTab === 1) {
+        // Trending sounds
+        endpoint = '/api/sounds/mongodb/trending';
+      }
+      
+      if (filters.search) {
+        params.search = filters.search;
+      }
+      if (filters.category !== 'all') {
+        params.category = filters.category;
       }
 
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== 'all' && value !== '') {
-          params.append(key, value);
-        }
-      });
-
-      const payload = await api.get(`${endpoint}?${params}`);
-      setSounds(payload?.sounds || []);
-      setTotalPages(Math.ceil((payload?.total || 0) / filters.limit));
+      const response = await api.get(endpoint, { params });
+      const soundsData = response?.data?.sounds || response?.sounds || [];
+      setSounds(soundsData);
+      setTotalPages(Math.ceil((response?.data?.total || soundsData.length) / filters.limit));
+      console.log('✅ Sounds fetched:', soundsData.length);
     } catch (error) {
       console.error('Error fetching sounds:', error);
+      toast.error('Failed to fetch sounds');
+      setSounds([]);
     } finally {
       setLoading(false);
     }
@@ -101,10 +103,22 @@ const SoundManager = () => {
 
   const fetchStats = async () => {
     try {
-      const payload = await api.get('/api/sounds/admin/stats');
-      setStats(payload);
+      const response = await api.get('/api/sounds/mongodb');
+      const soundsData = response?.data?.sounds || response?.sounds || [];
+      setStats({
+        totalSounds: soundsData.length,
+        pendingReview: soundsData.filter(s => s.status === 'pending').length,
+        approved: soundsData.filter(s => s.status === 'approved').length,
+        trending: soundsData.filter(s => s.isTrending).length
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
+      setStats({
+        totalSounds: 0,
+        pendingReview: 0,
+        approved: 0,
+        trending: 0
+      });
     }
   };
 
@@ -141,12 +155,13 @@ const SoundManager = () => {
 
   const handleViewDetails = async (soundId) => {
     try {
-      const payload = await api.get(`/api/sounds/${soundId}`);
-      setSelectedSound(payload?.sound || payload);
+      const response = await api.get(`/api/sounds/mongodb/${soundId}`);
+      setSelectedSound(response?.data?.sound || response?.sound || response);
       setDetailsOpen(true);
+      console.log('✅ Sound details loaded');
     } catch (error) {
       console.error('Error fetching sound details:', error);
-      alert('Failed to load sound details');
+      toast.error('Failed to load sound details');
     }
   };
 

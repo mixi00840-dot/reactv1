@@ -64,15 +64,15 @@ const Gifts = () => {
   const fetchGifts = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/admin/gifts`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.get('/api/gifts/mongodb');
       const data = response?.data?.gifts || response?.gifts || response?.data || response;
       setGifts(Array.isArray(data) ? data : []);
+      console.log('✅ Gifts fetched:', data.length);
     } catch (error) {
       console.error('Error fetching gifts:', error);
+      toast.error('Failed to fetch gifts');
+      // Fallback to empty array on error
+      setGifts([]);
     } finally {
       setLoading(false);
     }
@@ -80,35 +80,34 @@ const Gifts = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/admin/gifts/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response?.data || response || {});
+      const response = await api.get('/api/gifts/mongodb/stats/overview');
+      setStats(response?.data || response || {
+        totalGifts: 0,
+        totalRevenue: 0,
+        giftsSentToday: 0,
+        popularGift: 'N/A'
+      });
+      console.log('✅ Stats fetched:', response?.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
+      // Set default stats on error
+      setStats({
+        totalGifts: gifts.length,
+        totalRevenue: 0,
+        giftsSentToday: 0,
+        popularGift: 'N/A'
+      });
     }
   };
 
   const handleSaveGift = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
       if (editingGift) {
-        await api.put(
-          `/api/admin/gifts/${editingGift._id}`,
-          giftForm,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert('Gift updated successfully');
+        await api.put(`/api/gifts/mongodb/${editingGift._id}`, giftForm);
+        toast.success('Gift updated successfully');
       } else {
-        await api.post(
-          `/api/admin/gifts`,
-          giftForm,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert('Gift created successfully');
+        await api.post('/api/gifts/mongodb', giftForm);
+        toast.success('Gift created successfully');
       }
 
       setGiftDialog(false);
@@ -126,7 +125,7 @@ const Gifts = () => {
       fetchStats();
     } catch (error) {
       console.error('Error saving gift:', error);
-      alert('Failed to save gift');
+      toast.error(error.message || 'Failed to save gift');
     }
   };
 
@@ -148,17 +147,13 @@ const Gifts = () => {
     if (!window.confirm('Are you sure you want to delete this gift?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await api.delete(
-        `/api/admin/gifts/${giftId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert('Gift deleted successfully');
+      await api.delete(`/api/gifts/mongodb/${giftId}`);
+      toast.success('Gift deleted successfully');
       fetchGifts();
       fetchStats();
     } catch (error) {
       console.error('Error deleting gift:', error);
-      alert('Failed to delete gift');
+      toast.error('Failed to delete gift');
     }
   };
 

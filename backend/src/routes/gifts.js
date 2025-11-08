@@ -75,6 +75,193 @@ router.get('/popular', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/gifts/:id
+ * @desc    Get gift by ID
+ * @access  Public
+ */
+router.get('/:id', async (req, res) => {
+  try {
+    const gift = await Gift.findById(req.params.id);
+
+    if (!gift) {
+      return res.status(404).json({
+        success: false,
+        message: 'Gift not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { gift }
+    });
+
+  } catch (error) {
+    console.error('Get gift error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching gift'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/gifts
+ * @desc    Create new gift (Admin only)
+ * @access  Admin
+ */
+router.post('/', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { name, description, price, icon, animation, category, rarity, creatorEarningsPercent } = req.body;
+
+    const gift = new Gift({
+      name,
+      description,
+      price,
+      icon,
+      animation,
+      category: category || 'standard',
+      rarity: rarity || 'common',
+      creatorEarningsPercent: creatorEarningsPercent || 70,
+      isActive: true,
+      isAvailable: true
+    });
+
+    await gift.save();
+
+    res.status(201).json({
+      success: true,
+      data: { gift },
+      message: 'Gift created successfully'
+    });
+
+  } catch (error) {
+    console.error('Create gift error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating gift',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/gifts/:id
+ * @desc    Update gift (Admin only)
+ * @access  Admin
+ */
+router.put('/:id', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { name, description, price, icon, animation, category, rarity, creatorEarningsPercent, isActive } = req.body;
+
+    const gift = await Gift.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        description,
+        price,
+        icon,
+        animation,
+        category,
+        rarity,
+        creatorEarningsPercent,
+        isActive,
+        updatedAt: new Date()
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!gift) {
+      return res.status(404).json({
+        success: false,
+        message: 'Gift not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { gift },
+      message: 'Gift updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update gift error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating gift',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/gifts/:id
+ * @desc    Delete gift (Admin only)
+ * @access  Admin
+ */
+router.delete('/:id', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const gift = await Gift.findByIdAndDelete(req.params.id);
+
+    if (!gift) {
+      return res.status(404).json({
+        success: false,
+        message: 'Gift not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Gift deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete gift error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting gift'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/gifts/stats/overview
+ * @desc    Get gift statistics (Admin only)
+ * @access  Admin
+ */
+router.get('/stats/overview', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const [totalGifts, transactions, topGift] = await Promise.all([
+      Gift.countDocuments(),
+      GiftTransaction.find({ status: 'completed' }),
+      Gift.findOne().sort({ timesSent: -1 }).select('name timesSent')
+    ]);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const giftsSentToday = transactions.filter(t => new Date(t.createdAt) >= today).length;
+    const totalRevenue = transactions.reduce((sum, t) => sum + (t.totalCost || 0), 0);
+
+    res.json({
+      success: true,
+      data: {
+        totalGifts,
+        totalRevenue: totalRevenue.toFixed(2),
+        giftsSentToday,
+        popularGift: topGift?.name || 'N/A'
+      }
+    });
+
+  } catch (error) {
+    console.error('Get gift stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching gift statistics'
+    });
+  }
+});
+
+/**
  * @route   POST /api/gifts/send
  * @desc    Send gift to another user (TRANSACTIONAL - RACE CONDITION SAFE)
  * @access  Private
