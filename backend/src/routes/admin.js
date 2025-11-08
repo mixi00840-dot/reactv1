@@ -420,6 +420,48 @@ router.get('/users/:userId/followers', verifyJWT, requireAdmin, async (req, res)
 });
 
 /**
+ * @route   GET /api/admin/users/:userId/following
+ * @desc    Get users being followed by this user
+ * @access  Admin
+ */
+router.get('/users/:userId/following', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const Follow = require('../models/Follow');
+    
+    const following = await Follow.find({ followerId: req.params.userId })
+      .populate('followingId', 'username fullName avatar isVerified')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await Follow.countDocuments({ followerId: req.params.userId });
+
+    res.json({
+      success: true,
+      data: {
+        following: following.map(f => f.followingId),
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user following error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching following'
+    });
+  }
+});
+
+/**
  * @route   GET /api/admin/wallets/:userId/transactions
  * @desc    Get user wallet transactions
  * @access  Admin

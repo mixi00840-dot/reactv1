@@ -70,8 +70,8 @@ function UserWalletTab({ userId }) {
         setWallet(walletResponse.data.wallet || walletResponse.data);
       }
 
-      // Fetch transactions
-      const transResponse = await mongoAPI.get(`/api/wallets/mongodb/${userId}/transactions`);
+      // Fetch transactions - use admin route for better access
+      const transResponse = await mongoAPI.get(`/api/admin/mongodb/wallets/${userId}/transactions`);
       if (transResponse.success) {
         setTransactions(transResponse.data.transactions || []);
       }

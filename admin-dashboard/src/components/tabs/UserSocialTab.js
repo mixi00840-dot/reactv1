@@ -56,7 +56,7 @@ function UserSocialTab({ userId }) {
     setLoading(true);
     try {
       if (subTab === 0) {
-        const response = await mongoAPI.get(`/api/users/mongodb/${userId}/followers`, {
+        const response = await mongoAPI.get(`/api/admin/mongodb/users/${userId}/followers`, {
           params: { page, limit: 20 }
         });
         if (response.success) {
@@ -66,7 +66,7 @@ function UserSocialTab({ userId }) {
           generateMockFollowers();
         }
       } else if (subTab === 1) {
-        const response = await mongoAPI.get(`/api/users/mongodb/${userId}/following`, {
+        const response = await mongoAPI.get(`/api/admin/mongodb/users/${userId}/following`, {
           params: { page, limit: 20 }
         });
         if (response.success) {
