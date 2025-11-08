@@ -351,6 +351,7 @@ if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
     // MongoDB Finance
     app.use('/api/wallets/mongodb', require('./routes/wallets'));
     app.use('/api/gifts/mongodb', require('./routes/gifts'));
+    app.use('/api/currencies/mongodb', require('./routes/currencies'));
     
     // MongoDB Live Streaming
     app.use('/api/streaming/mongodb', require('./routes/livestreaming'));
