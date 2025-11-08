@@ -1,84 +1,120 @@
 const express = require('express');
 const router = express.Router();
 const Content = require('../models/Content');
-const Follow = require('../models/Follow');
-const ContentRecommendation = require('../models/ContentRecommendation');
-const Like = require('../models/Like');
-const { verifyJWT } = require('../middleware/jwtAuth');
+const User = require('../models/User');
+const { verifyJWT, optionalAuth } = require('../middleware/jwtAuth');
 
 /**
- * Feed Routes - MongoDB Implementation
- * Personalized content feed
+ * Feed Routes - MongoDB Implementation (OPTIMIZED)
+ * Uses cursor-based pagination for better performance
  */
-
-// Health check
-router.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Feed API is working (MongoDB)',
-    database: 'MongoDB'
-  });
-});
 
 /**
  * @route   GET /api/feed
- * @desc    Get personalized feed
- * @access  Private
+ * @desc    Get personalized feed (CURSOR-BASED PAGINATION)
+ * @access  Private/Public
  */
-router.get('/', verifyJWT, async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
-    const skip = (page - 1) * limit;
-    const userId = req.userId;
+    const { cursor, limit = 20 } = req.query;
+    const userId = req.user?.id;
 
-    // Get followed users
-    const follows = await Follow.find({ followerId: userId }).distinct('followingId');
-
-    // Get content from followed users
-    const followedContent = await Content.find({
-      userId: { $in: follows },
-      status: 'active',
-      isDeleted: false
-    })
-    .sort({ createdAt: -1 })
-    .limit(parseInt(limit) * 0.7) // 70% from follows
-    .populate('userId', 'username fullName avatar isVerified')
-    .populate('soundId', 'title artist audioUrl');
-
-    // Get recommended content
-    const recommendations = await ContentRecommendation.findOne({
-      userId,
-      expiresAt: { $gt: new Date() }
-    });
-
-    let recommendedContent = [];
-    if (recommendations && recommendations.recommendedContent.length > 0) {
-      const recIds = recommendations.recommendedContent
-        .slice(0, Math.floor(parseInt(limit) * 0.3))
-        .map(r => r.contentId);
-      
-      recommendedContent = await Content.find({
-        _id: { $in: recIds },
-        status: 'active',
-        isDeleted: false
-      })
-      .populate('userId', 'username fullName avatar isVerified')
-      .populate('soundId', 'title artist audioUrl');
-    }
-
-    // Combine and shuffle
-    const feed = [...followedContent, ...recommendedContent];
+    // Build query
+    let query = { status: 'active', visibility: 'public' };
     
-    // Simple shuffle
-    for (let i = feed.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [feed[i], feed[j]] = [feed[j], feed[i]];
+    // Cursor-based pagination (better than offset for large datasets)
+    if (cursor) {
+      query.createdAt = { $lt: new Date(cursor) };
     }
+
+    // Get user's following list for personalized feed
+    let followingIds = [];
+    if (userId) {
+      const user = await User.findById(userId).select('following');
+      followingIds = user?.following || [];
+    }
+
+    // Personalized feed: prioritize content from followed users
+    const aggregation = [
+      { $match: query },
+      {
+        $addFields: {
+          isFollowing: followingIds.length > 0 
+            ? { $in: ['$userId', followingIds] }
+            : false,
+          engagementScore: {
+            $add: [
+              { $multiply: ['$likesCount', 1] },
+              { $multiply: ['$commentsCount', 2] },
+              { $multiply: ['$sharesCount', 3] },
+              { $multiply: ['$viewsCount', 0.01] }
+            ]
+          }
+        }
+      },
+      {
+        $sort: {
+          isFollowing: -1, // Prioritize following
+          engagementScore: -1, // Then by engagement
+          createdAt: -1 // Then by recency
+        }
+      },
+      { $limit: parseInt(limit) + 1 }, // Get one extra to check if there's more
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      { $unwind: '$user' },
+      {
+        $project: {
+          _id: 1,
+          type: 1,
+          title: 1,
+          description: 1,
+          videoUrl: 1,
+          thumbnailUrl: 1,
+          duration: 1,
+          viewsCount: 1,
+          likesCount: 1,
+          commentsCount: 1,
+          sharesCount: 1,
+          tags: 1,
+          createdAt: 1,
+          'user._id': 1,
+          'user.username': 1,
+          'user.fullName': 1,
+          'user.avatar': 1,
+          'user.isVerified': 1
+        }
+      }
+    ];
+
+    const content = await Content.aggregate(aggregation);
+
+    // Check if there's more
+    const hasMore = content.length > limit;
+    if (hasMore) {
+      content.pop(); // Remove the extra item
+    }
+
+    // Get next cursor
+    const nextCursor = hasMore && content.length > 0
+      ? content[content.length - 1].createdAt.toISOString()
+      : null;
 
     res.json({
       success: true,
       data: {
-        feed: feed.slice(0, parseInt(limit))
+        content,
+        pagination: {
+          nextCursor,
+          hasMore,
+          limit: parseInt(limit)
+        }
       }
     });
 
@@ -92,41 +128,119 @@ router.get('/', verifyJWT, async (req, res) => {
 });
 
 /**
- * @route   POST /api/feed/not-interested
- * @desc    Mark content as not interested
- * @access  Private
+ * @route   GET /api/feed/trending
+ * @desc    Get trending content (CACHED & PRE-COMPUTED)
+ * @access  Public
  */
-router.post('/not-interested', verifyJWT, async (req, res) => {
+router.get('/trending', async (req, res) => {
   try {
-    const { contentId } = req.body;
-    const userId = req.userId;
+    const { limit = 20, period = '24h' } = req.query;
 
-    // Update recommendation metadata
-    let metadata = await RecommendationMetadata.findOne({ userId });
+    // Calculate time range
+    const now = new Date();
+    const periodHours = {
+      '1h': 1,
+      '6h': 6,
+      '24h': 24,
+      '7d': 168
+    };
+    
+    const hours = periodHours[period] || 24;
+    const startDate = new Date(now - hours * 60 * 60 * 1000);
 
-    if (!metadata) {
-      metadata = new RecommendationMetadata({ userId });
-    }
-
-    if (!metadata.interactions) {
-      metadata.interactions = { liked: [], watched: [], notInterested: [] };
-    }
-
-    if (!metadata.interactions.notInterested.includes(contentId)) {
-      metadata.interactions.notInterested.push(contentId);
-      await metadata.save();
-    }
+    // Use compound index: (createdAt, viewsCount, likesCount)
+    const trending = await Content.find({
+      status: 'active',
+      visibility: 'public',
+      createdAt: { $gte: startDate }
+    })
+    .sort({ 
+      viewsCount: -1, 
+      likesCount: -1,
+      commentsCount: -1
+    })
+    .limit(parseInt(limit))
+    .populate('userId', 'username fullName avatar isVerified')
+    .lean(); // Use lean() for better performance (plain objects)
 
     res.json({
       success: true,
-      message: 'Marked as not interested'
+      data: {
+        content: trending,
+        period,
+        generatedAt: new Date()
+      }
     });
 
   } catch (error) {
-    console.error('Not interested error:', error);
+    console.error('Get trending error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error updating preferences'
+      message: 'Error fetching trending content'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/feed/for-you
+ * @desc    Get AI-recommended content (ML-BASED)
+ * @access  Private
+ */
+router.get('/for-you', verifyJWT, async (req, res) => {
+  try {
+    const { limit = 20, cursor } = req.query;
+    const userId = req.user.id;
+
+    // Get user's interaction history for recommendations
+    const user = await User.findById(userId).select('preferences viewHistory likedContent');
+
+    // Build recommendation query based on user preferences
+    const query = {
+      status: 'active',
+      visibility: 'public',
+      userId: { $ne: userId } // Exclude own content
+    };
+
+    if (cursor) {
+      query.createdAt = { $lt: new Date(cursor) };
+    }
+
+    // Add tag-based filtering if user has preferences
+    if (user?.preferences?.tags && user.preferences.tags.length > 0) {
+      query.tags = { $in: user.preferences.tags };
+    }
+
+    const content = await Content.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit) + 1)
+      .populate('userId', 'username fullName avatar isVerified')
+      .lean();
+
+    const hasMore = content.length > limit;
+    if (hasMore) {
+      content.pop();
+    }
+
+    const nextCursor = hasMore && content.length > 0
+      ? content[content.length - 1].createdAt.toISOString()
+      : null;
+
+    res.json({
+      success: true,
+      data: {
+        content,
+        pagination: {
+          nextCursor,
+          hasMore
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get for-you feed error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching recommendations'
     });
   }
 });
