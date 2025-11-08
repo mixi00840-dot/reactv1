@@ -1,4 +1,4 @@
-const { LiveStream } = require('../models/LiveStream');
+const LiveStream = require('../models/Livestream');
 const { StreamProvider } = require('../models/StreamProvider');
 const { User } = require('../models/User');
 const crypto = require('crypto');

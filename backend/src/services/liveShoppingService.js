@@ -1,5 +1,5 @@
 const LiveShoppingSession = require('../models/LiveShoppingSession');
-const LiveStream = require('../models/LiveStream');
+const LiveStream = require('../models/Livestream');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Notification = require('../models/Notification');

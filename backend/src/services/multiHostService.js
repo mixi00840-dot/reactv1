@@ -1,5 +1,5 @@
 const MultiHostSession = require('../models/MultiHostSession');
-const LiveStream = require('../models/LiveStream');
+const LiveStream = require('../models/Livestream');
 const Notification = require('../models/Notification');
 
 /**

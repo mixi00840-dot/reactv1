@@ -1,5 +1,5 @@
 const webrtcService = require('../services/webrtcService');
-const LiveStream = require('../models/LiveStream');
+const Livestream = require('../models/Livestream');
 const PKBattle = require('../models/PKBattle');
 const MultiHostSession = require('../models/MultiHostSession');
 

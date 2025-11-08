@@ -14,7 +14,9 @@ gcloud run deploy mixillo-backend `
   --region europe-west1 `
   --platform managed `
   --allow-unauthenticated `
-  --env-vars-file .env.yaml `
+  --port 8080 `
+  --set-secrets MONGODB_URI=MONGODB_URI:2,JWT_SECRET=JWT_SECRET:latest,JWT_REFRESH_SECRET=JWT_REFRESH_SECRET:latest `
+  --set-env-vars NODE_ENV=production,DATABASE_MODE=mongodb `
   --max-instances 10 `
   --memory 512Mi `
   --timeout 300

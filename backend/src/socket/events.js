@@ -1,14 +1,16 @@
+/**
+ * Socket.io Event Handlers (MongoDB Only)
+ * Handles real-time WebSocket events for messaging,
+ * typing indicators, presence, and notifications
+ */
+
 const jwt = require('jsonwebtoken');
-const { getDb } = require('../utils/database');
+const User = require('../models/User');
 const MessagingService = require('../services/messagingService');
 
 /**
- * Socket.io Event Handlers
- * 
- * Handles real-time WebSocket events for messaging,
- * typing indicators, presence, and notifications.
+ * Socket authentication middleware
  */
-
 const socketAuth = async (socket, next) => {
   try {
     const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
@@ -18,16 +20,14 @@ const socketAuth = async (socket, next) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const db = getDb();
-    const userDoc = await db.collection('users').doc(decoded.userId).get();
+    const user = await User.findById(decoded.userId || decoded.id).select('-password');
     
-    if (!userDoc.exists) {
+    if (!user) {
       return next(new Error('User not found'));
     }
     
-    const user = { id: userDoc.id, ...userDoc.data() };
-    socket.userId = user.id;
-    socket.user = user;
+    socket.userId = user._id.toString();
+    socket.user = user.toObject();
     next();
     
   } catch (error) {
@@ -35,6 +35,9 @@ const socketAuth = async (socket, next) => {
   }
 };
 
+/**
+ * Setup Socket.IO event handlers
+ */
 const setupSocketHandlers = (io) => {
   // Authentication middleware
   io.use(socketAuth);
@@ -48,177 +51,189 @@ const setupSocketHandlers = (io) => {
     // Emit user online status
     io.emit('user:online', { userId: socket.userId });
     
-    // Handle typing indicator
-    socket.on('typing:start', async (data) => {
-      try {
-        const { conversationId } = data;
-        
-        await MessagingService.setTyping(
-          conversationId,
-          socket.userId,
-          true,
-          io
-        );
-        
-      } catch (error) {
-        console.error('Error handling typing start:', error);
-      }
-    });
-    
-    socket.on('typing:stop', async (data) => {
-      try {
-        const { conversationId } = data;
-        
-        await MessagingService.setTyping(
-          conversationId,
-          socket.userId,
-          false,
-          io
-        );
-        
-      } catch (error) {
-        console.error('Error handling typing stop:', error);
-      }
-    });
-    
-    // Handle message read receipts
-    socket.on('message:read', async (data) => {
-      try {
-        const { conversationId } = data;
-        
-        await MessagingService.markAsRead(
-          conversationId,
-          socket.userId,
-          io
-        );
-        
-      } catch (error) {
-        console.error('Error handling message read:', error);
-      }
-    });
-    
-    // Handle joining conversation rooms
-    socket.on('conversation:join', (data) => {
+    // Handle typing indicators
+    socket.on('typing:start', (data) => {
       const { conversationId } = data;
-      socket.join(`conversation_${conversationId}`);
-      console.log(`User ${socket.userId} joined conversation ${conversationId}`);
-    });
-    
-    socket.on('conversation:leave', (data) => {
-      const { conversationId } = data;
-      socket.leave(`conversation_${conversationId}`);
-      console.log(`User ${socket.userId} left conversation ${conversationId}`);
-    });
-    
-    // Handle user presence
-    socket.on('presence:update', async (data) => {
-      try {
-        const { status } = data; // online, away, busy, offline
-        
-        // Update user status
-        await User.findByIdAndUpdate(socket.userId, {
-          'presence.status': status,
-          'presence.lastSeen': new Date()
-        });
-        
-        // Broadcast to friends/followers
-        io.emit('user:presence', {
-          userId: socket.userId,
-          status
-        });
-        
-      } catch (error) {
-        console.error('Error updating presence:', error);
-      }
-    });
-    
-    // Handle live stream events
-    socket.on('stream:join', (data) => {
-      const { streamId } = data;
-      socket.join(`stream_${streamId}`);
-      
-      // Notify stream owner
-      io.to(`stream_${streamId}`).emit('viewer:joined', {
+      socket.to(`conversation_${conversationId}`).emit('user:typing', {
         userId: socket.userId,
-        username: socket.user.username
+        conversationId
       });
     });
     
-    socket.on('stream:leave', (data) => {
-      const { streamId } = data;
-      socket.leave(`stream_${streamId}`);
-      
-      // Notify stream owner
-      io.to(`stream_${streamId}`).emit('viewer:left', {
+    socket.on('typing:stop', (data) => {
+      const { conversationId } = data;
+      socket.to(`conversation_${conversationId}`).emit('user:stopped_typing', {
+        userId: socket.userId,
+        conversationId
+      });
+    });
+    
+    // Handle message events
+    socket.on('message:send', async (data) => {
+      try {
+        const { conversationId, content, type = 'text' } = data;
+        
+        // Create message using messaging service
+        const message = await MessagingService.sendMessage({
+          senderId: socket.userId,
+          conversationId,
+          content,
+          type
+        });
+        
+        // Emit to conversation participants
+        io.to(`conversation_${conversationId}`).emit('message:new', message);
+        
+        // Send acknowledgment
+        socket.emit('message:sent', { messageId: message._id });
+      } catch (error) {
+        socket.emit('message:error', { error: error.message });
+      }
+    });
+    
+    // Handle message read status
+    socket.on('message:read', async (data) => {
+      try {
+        const { messageId, conversationId } = data;
+        
+        // Update read status
+        await MessagingService.markAsRead(messageId, socket.userId);
+        
+        // Emit read status to conversation
+        io.to(`conversation_${conversationId}`).emit('message:read_status', {
+          messageId,
+          userId: socket.userId,
+          readAt: new Date()
+        });
+      } catch (error) {
+        socket.emit('error', { error: error.message });
+      }
+    });
+    
+    // Join conversation room
+    socket.on('conversation:join', (data) => {
+      const { conversationId } = data;
+      socket.join(`conversation_${conversationId}`);
+      socket.emit('conversation:joined', { conversationId });
+    });
+    
+    // Leave conversation room
+    socket.on('conversation:leave', (data) => {
+      const { conversationId } = data;
+      socket.leave(`conversation_${conversationId}`);
+      socket.emit('conversation:left', { conversationId });
+    });
+    
+    // Handle call events
+    socket.on('call:initiate', (data) => {
+      const { recipientId, callType, offer } = data;
+      io.to(`user_${recipientId}`).emit('call:incoming', {
+        callerId: socket.userId,
+        callType,
+        offer
+      });
+    });
+    
+    socket.on('call:answer', (data) => {
+      const { callerId, answer } = data;
+      io.to(`user_${callerId}`).emit('call:answered', {
+        userId: socket.userId,
+        answer
+      });
+    });
+    
+    socket.on('call:reject', (data) => {
+      const { callerId } = data;
+      io.to(`user_${callerId}`).emit('call:rejected', {
         userId: socket.userId
       });
     });
     
-    socket.on('stream:comment', (data) => {
-      const { streamId, text } = data;
+    socket.on('call:end', (data) => {
+      const { otherUserId } = data;
+      io.to(`user_${otherUserId}`).emit('call:ended', {
+        userId: socket.userId
+      });
+    });
+    
+    // Handle ICE candidates for WebRTC
+    socket.on('call:ice_candidate', (data) => {
+      const { otherUserId, candidate } = data;
+      io.to(`user_${otherUserId}`).emit('call:ice_candidate', {
+        userId: socket.userId,
+        candidate
+      });
+    });
+    
+    // Handle livestream events
+    socket.on('livestream:join', (data) => {
+      const { livestreamId } = data;
+      socket.join(`livestream_${livestreamId}`);
+      socket.emit('livestream:joined', { livestreamId });
       
-      // Broadcast comment to all stream viewers
-      io.to(`stream_${streamId}`).emit('stream:comment', {
+      // Notify others of new viewer
+      socket.to(`livestream_${livestreamId}`).emit('livestream:viewer_joined', {
+        userId: socket.userId,
+        viewerCount: io.sockets.adapter.rooms.get(`livestream_${livestreamId}`)?.size || 0
+      });
+    });
+    
+    socket.on('livestream:leave', (data) => {
+      const { livestreamId } = data;
+      socket.leave(`livestream_${livestreamId}`);
+      
+      // Notify others of viewer leaving
+      socket.to(`livestream_${livestreamId}`).emit('livestream:viewer_left', {
+        userId: socket.userId,
+        viewerCount: io.sockets.adapter.rooms.get(`livestream_${livestreamId}`)?.size || 0
+      });
+    });
+    
+    socket.on('livestream:comment', (data) => {
+      const { livestreamId, comment } = data;
+      io.to(`livestream_${livestreamId}`).emit('livestream:new_comment', {
         userId: socket.userId,
         username: socket.user.username,
         avatar: socket.user.avatar,
-        text,
+        comment,
         timestamp: new Date()
       });
     });
     
-    socket.on('stream:gift', (data) => {
-      const { streamId, giftId, amount } = data;
-      
-      // Broadcast gift to all stream viewers
-      io.to(`stream_${streamId}`).emit('stream:gift', {
-        userId: socket.userId,
-        username: socket.user.username,
-        avatar: socket.user.avatar,
-        giftId,
-        amount,
+    socket.on('livestream:gift', (data) => {
+      const { livestreamId, gift } = data;
+      io.to(`livestream_${livestreamId}`).emit('livestream:gift_received', {
+        senderId: socket.userId,
+        senderName: socket.user.username,
+        gift,
         timestamp: new Date()
       });
     });
     
-    // Handle story view events
-    socket.on('story:viewing', (data) => {
-      const { storyId, userId } = data;
-      
-      // Notify story owner
-      io.to(`user_${userId}`).emit('story:viewed', {
-        storyId,
-        viewerId: socket.userId
+    // Handle presence
+    socket.on('presence:update', (data) => {
+      const { status } = data; // online, away, busy, offline
+      socket.broadcast.emit('user:presence', {
+        userId: socket.userId,
+        status,
+        lastSeen: new Date()
       });
     });
     
     // Handle disconnect
-    socket.on('disconnect', async () => {
+    socket.on('disconnect', () => {
       console.log(`User disconnected: ${socket.userId}`);
       
-      try {
-        // Update last seen
-        await User.findByIdAndUpdate(socket.userId, {
-          'presence.status': 'offline',
-          'presence.lastSeen': new Date()
-        });
-        
-        // Emit user offline status
-        io.emit('user:offline', {
-          userId: socket.userId,
-          lastSeen: new Date()
-        });
-        
-      } catch (error) {
-        console.error('Error handling disconnect:', error);
-      }
-    });
-    
-    // Error handling
-    socket.on('error', (error) => {
-      console.error('Socket error:', error);
+      // Emit user offline status
+      io.emit('user:offline', {
+        userId: socket.userId,
+        lastSeen: new Date()
+      });
     });
   });
 };
 
-module.exports = { setupSocketHandlers };
+module.exports = {
+  setupSocketHandlers,
+  socketAuth
+};

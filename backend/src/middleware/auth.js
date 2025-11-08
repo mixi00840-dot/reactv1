@@ -1,5 +1,10 @@
+/**
+ * JWT Authentication Middleware (MongoDB Only)
+ * Complete JWT-based authentication using MongoDB User model
+ */
+
 const jwt = require('jsonwebtoken');
-const db = require('../utils/database'); // Firestore instance
+const User = require('../models/User');
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -15,7 +20,7 @@ const generateRefreshToken = (userId) => {
   });
 };
 
-// Middleware to verify JWT token
+// Middleware to verify JWT token (MongoDB)
 const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization');
@@ -39,32 +44,30 @@ const authMiddleware = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Find user in Firestore
+    // Find user in MongoDB
     const userId = decoded.userId || decoded.id;
-    const userDoc = await db.collection('users').doc(userId).get();
+    const user = await User.findById(userId).select('-password');
     
-    if (!userDoc.exists) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Token is valid but user not found.'
       });
     }
     
-    const userData = userDoc.data();
-    
     // Check if user is active
-    if (userData.status === 'banned' || userData.status === 'suspended') {
+    if (user.status === 'banned' || user.status === 'suspended') {
       return res.status(403).json({
         success: false,
-        message: `Account is ${userData.status}. Contact support for assistance.`
+        message: `Account is ${user.status}. Contact support for assistance.`
       });
     }
     
     // Attach user to request (with id for compatibility)
     req.user = {
-      ...userData,
-      id: userDoc.id,
-      _id: userDoc.id // For backward compatibility
+      ...user.toObject(),
+      id: user._id.toString(),
+      _id: user._id.toString()
     };
     next();
   } catch (error) {
@@ -274,7 +277,7 @@ const apiKeyMiddleware = (req, res, next) => {
     });
   }
   
-  // Validate API key (implement your API key validation logic)
+  // Validate API key
   if (apiKey !== process.env.API_KEY) {
     return res.status(401).json({
       success: false,
@@ -323,10 +326,11 @@ const optionalAuthMiddleware = async (req, res, next) => {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select('-password');
+      const user = await User.findById(decoded.userId || decoded.id).select('-password');
       
       if (user && user.status === 'active') {
-        req.user = user;
+        req.user = user.toObject();
+        req.user.id = user._id.toString();
       }
     }
   } catch (error) {

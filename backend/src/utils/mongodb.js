@@ -43,8 +43,9 @@ const connectMongoDB = async () => {
     await mongoose.connect(MONGODB_URI, {
       // Modern connection options (mongoose 6+)
       maxPoolSize: 10, // Maintain up to 10 socket connections
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      serverSelectionTimeoutMS: 30000, // Keep trying to send operations for 30 seconds (increased for Cloud Run cold start)
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      connectTimeoutMS: 30000, // Give MongoDB 30 seconds to establish connection
     });
 
     isConnected = true;

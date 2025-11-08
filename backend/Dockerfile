@@ -23,8 +23,8 @@ COPY src ./src
 # Create uploads directories (ephemeral in container; prefer S3 for persistence)
 RUN mkdir -p uploads/avatars uploads/documents uploads/products uploads/sounds uploads/stores uploads/temp uploads/videos || true
 
-# Expose port
-EXPOSE 5000
+# Expose port (Cloud Run sets PORT env var, default to 8080)
+EXPOSE 8080
 
 # Use tini as entrypoint for proper signal handling
 ENTRYPOINT ["/usr/bin/tini", "--"]

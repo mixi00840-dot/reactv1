@@ -82,14 +82,20 @@ process.on('SIGTERM', () => {
   });
 });
 
+// More lenient error handling - log but don't crash immediately for unhandled promises
+// This allows the server to stay up for health checks even if MongoDB connection fails initially
 process.on('uncaughtException', (err) => {
   console.error('💥 Uncaught Exception:', err);
-  process.exit(1);
+  // Only exit in non-production or if it's a critical error
+  if (process.env.NODE_ENV !== 'production' || err.code === 'EADDRINUSE') {
+    process.exit(1);
+  }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
+  // Log but don't exit - let the server stay up for health checks
+  // MongoDB connection errors should be handled gracefully in app.js
 });
 
 module.exports = { server, io };

@@ -1,6 +1,6 @@
 const PKBattle = require('../models/PKBattle');
 const MultiHostSession = require('../models/MultiHostSession');
-const LiveStream = require('../models/LiveStream');
+const Livestream = require('../models/Livestream');
 const User = require('../models/User');
 
 /**
@@ -16,7 +16,7 @@ class WebRTCService {
    */
   static async createOffer(streamId, userId, offerSDP) {
     try {
-      const stream = await LiveStream.findById(streamId);
+      const stream = await Livestream.findById(streamId);
       
       if (!stream) {
         throw new Error('Stream not found');
@@ -44,7 +44,7 @@ class WebRTCService {
    */
   static async createAnswer(streamId, userId, answerSDP) {
     try {
-      const stream = await LiveStream.findById(streamId);
+      const stream = await Livestream.findById(streamId);
       
       if (!stream) {
         throw new Error('Stream not found');
@@ -92,7 +92,7 @@ class WebRTCService {
    */
   static async startWebRTCStream(streamId, userId, streamConfig) {
     try {
-      const stream = await LiveStream.findById(streamId);
+      const stream = await Livestream.findById(streamId);
       
       if (!stream) {
         throw new Error('Stream not found');
@@ -128,7 +128,7 @@ class WebRTCService {
    */
   static async joinWebRTCStream(streamId, userId) {
     try {
-      const stream = await LiveStream.findById(streamId);
+      const stream = await Livestream.findById(streamId);
       
       if (!stream) {
         throw new Error('Stream not found');

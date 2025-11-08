@@ -1,6 +1,6 @@
 const ScheduledContent = require('../models/ScheduledContent');
 const Content = require('../models/Content');
-const Livestream = require('../models/LiveStream');
+const Livestream = require('../models/Livestream');
 const Story = require('../models/Story');
 const notificationService = require('./notificationService');
 

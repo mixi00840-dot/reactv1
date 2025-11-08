@@ -1,18 +1,14 @@
 /**
- * Unified Authentication Middleware
- * Supports BOTH Firebase Auth AND JWT during migration
- * This allows gradual user migration without breaking existing sessions
+ * JWT Authentication Middleware (MongoDB Only)
+ * Pure JWT-based authentication for MongoDB backend
  */
 
-const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const db = require('../utils/database'); // Firestore
-const { getDatabaseMode } = require('./dualDatabase');
 
 /**
- * Unified auth middleware that accepts both Firebase tokens and JWT tokens
- * This allows Flutter app to work during migration period
+ * JWT authentication middleware
+ * Verifies JWT tokens and attaches user to request
  */
 const unifiedAuth = async (req, res, next) => {
   try {
@@ -36,117 +32,17 @@ const unifiedAuth = async (req, res, next) => {
       });
     }
 
-    const mode = getDatabaseMode();
-    let user = null;
-    let authType = null;
-
-    // Try JWT first (MongoDB users)
-    if (mode === 'mongodb' || mode === 'dual') {
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Get user from MongoDB
-        const mongoUser = await User.findById(decoded.id).select('-password');
-        
-        if (mongoUser) {
-          user = mongoUser;
-          authType = 'jwt';
-          req.authType = 'jwt';
-          req.database = 'mongodb';
-          console.log(`✅ Authenticated via JWT (MongoDB user: ${mongoUser.username})`);
-        }
-      } catch (jwtError) {
-        // Not a JWT token, will try Firebase next
-        if (mode === 'mongodb') {
-          // In MongoDB-only mode, JWT is required
-          throw jwtError;
-        }
-      }
-    }
-
-    // Try Firebase if JWT failed (Firestore users)
-    if (!user && (mode === 'firebase' || mode === 'dual')) {
-      try {
-        const decodedToken = await admin.auth().verifyIdToken(token, true);
-        const uid = decodedToken.uid;
-        
-        // Check MongoDB first for migrated users
-        if (mode === 'dual') {
-          try {
-            const mongoUser = await User.findOne({ firebaseUid: uid }).select('-password');
-            if (mongoUser) {
-              user = mongoUser;
-              authType = 'firebase-migrated';
-              req.authType = 'firebase-migrated';
-              req.database = 'mongodb';
-              console.log(`✅ Authenticated via Firebase (Migrated MongoDB user: ${mongoUser.username})`);
-            }
-          } catch (mongoErr) {
-            // User not migrated yet, use Firestore
-          }
-        }
-        
-        // If not in MongoDB, get from Firestore
-        if (!user) {
-          let userDoc = await db.collection('users').doc(uid).get();
-          
-          // Auto-create user if doesn't exist
-          if (!userDoc.exists) {
-            console.log(`Auto-creating Firestore user document for Firebase Auth user: ${uid}`);
-            
-            const firebaseUser = await admin.auth().getUser(uid);
-            const userData = {
-              email: firebaseUser.email || '',
-              username: firebaseUser.email ? firebaseUser.email.split('@')[0] : `user_${uid.substring(0, 8)}`,
-              fullName: firebaseUser.displayName || 'User',
-              role: 'user',
-              status: 'active',
-              isVerified: firebaseUser.emailVerified || false,
-              isFeatured: false,
-              avatar: firebaseUser.photoURL || '',
-              createdAt: new Date(firebaseUser.metadata.creationTime).toISOString(),
-              updatedAt: new Date().toISOString(),
-              lastLogin: new Date().toISOString(),
-              firebaseUid: uid,
-              autoCreated: true
-            };
-            
-            await db.collection('users').doc(uid).set(userData);
-            await db.collection('wallets').doc(uid).set({
-              userId: uid,
-              balance: 0,
-              currency: 'USD',
-              transactions: [],
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            });
-            
-            user = { id: uid, ...userData };
-            console.log(`✅ Auto-created user document for ${uid}`);
-          } else {
-            user = { id: userDoc.id, ...userDoc.data() };
-          }
-          
-          authType = 'firebase';
-          req.authType = 'firebase';
-          req.database = 'firestore';
-          console.log(`✅ Authenticated via Firebase (Firestore user: ${user.username || user.email})`);
-        }
-        
-      } catch (firebaseError) {
-        console.error('Firebase auth error:', firebaseError.message);
-        if (mode === 'firebase') {
-          throw firebaseError;
-        }
-      }
-    }
-
-    // Check if we got a user
+    // Verify JWT token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Get user from MongoDB
+    const user = await User.findById(decoded.id).select('-password');
+    
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid or expired authentication token',
-        code: 'AUTH_FAILED'
+        message: 'User not found',
+        code: 'USER_NOT_FOUND'
       });
     }
 
@@ -167,10 +63,10 @@ const unifiedAuth = async (req, res, next) => {
       });
     }
 
-    // Attach user to request (normalize format)
+    // Attach user to request
     req.user = {
-      id: user._id || user.id,
-      uid: user._id || user.id,
+      id: user._id.toString(),
+      uid: user._id.toString(),
       email: user.email,
       username: user.username,
       fullName: user.fullName,
@@ -178,15 +74,16 @@ const unifiedAuth = async (req, res, next) => {
       status: user.status,
       avatar: user.avatar,
       isVerified: user.isVerified,
-      ...user
+      ...user.toObject()
     };
     
     req.userId = req.user.id;
-    req.authType = authType;
+    req.authType = 'jwt';
+    req.database = 'mongodb';
 
     next();
   } catch (error) {
-    console.error('Unified auth error:', error);
+    console.error('JWT auth error:', error);
     
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
@@ -196,7 +93,7 @@ const unifiedAuth = async (req, res, next) => {
       });
     }
 
-    if (error.name === 'JsonWebTokenError' || error.code === 'auth/argument-error') {
+    if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
         message: 'Invalid token. Please login again.',
@@ -213,7 +110,7 @@ const unifiedAuth = async (req, res, next) => {
 };
 
 /**
- * Require admin role (works with both auth types)
+ * Require admin role
  */
 const requireAdmin = (req, res, next) => {
   if (!req.user) {
@@ -234,7 +131,7 @@ const requireAdmin = (req, res, next) => {
 };
 
 /**
- * Require seller role (works with both auth types)
+ * Require seller role
  */
 const requireSeller = (req, res, next) => {
   if (!req.user) {
@@ -259,4 +156,3 @@ module.exports = {
   requireAdmin,
   requireSeller
 };
-

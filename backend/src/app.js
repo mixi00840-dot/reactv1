@@ -37,14 +37,9 @@ try {
   productRoutes = storeRoutes = fallback;
 }
 
-// Load Firestore orders route
-try {
-//   orderRoutes = require('./routes/orders-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Orders routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Orders routes error:', error.message);
-  orderRoutes = createFallbackRouter();
-}
+// Load orders route (use fallback since Firestore removed)
+orderRoutes = createFallbackRouter(); // Firestore removed - using fallback
+console.log('⚠️ Orders routes using fallback (Firestore removed)');
 
 // E-commerce routes still using MongoDB (will use fallback)
 const fallback2 = createFallbackRouter();
@@ -60,8 +55,8 @@ let analyticsRoutes = fallback2; // Changed to let for Firestore override
 let cmsRoutes, bannersRoutes;
 let settingsRoutes; // Will be set by Firestore stub loader below
 try {
-  cmsRoutes = require('./routes/cms');
   bannersRoutes = require('./routes/banners');
+  cmsRoutes = bannersRoutes; // Use banners as CMS for now
 } catch (error) {
   console.error('⚠️  CMS/Banners routes have issues:', error.message);
   const fallback3 = createFallbackRouter();
@@ -116,183 +111,66 @@ try {
 }
 
 // Messaging, comments, notifications already migrated (from previous work)
-try {
-//   messagingRoutes = require('./routes/messaging-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Messaging routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Messaging routes error:', error.message);
-  messagingRoutes = createFallbackRouter();
-}
+messagingRoutes = createFallbackRouter(); // Firestore removed - using fallback
+console.log('⚠️ Messaging routes using fallback (Firestore removed)');
 
-try {
-//   commentsRoutes = require('./routes/comments-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Comments routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Comments routes error:', error.message);
-  commentsRoutes = createFallbackRouter();
-}
+commentsRoutes = createFallbackRouter(); // Firestore removed - using fallback
+console.log('⚠️ Comments routes using fallback (Firestore removed)');
 
-try {
-//   notificationsRoutes = require('./routes/notifications-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Notifications routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Notifications routes error:', error.message);
-  notificationsRoutes = createFallbackRouter();
-}
+notificationsRoutes = createFallbackRouter(); // Firestore removed - using fallback
+console.log('⚠️ Notifications routes using fallback (Firestore removed)');
 
 // Load stub Firestore routes for admin dashboard (return empty data instead of 503)
-try {
-//   monetizationRoutes = require('./routes/monetization-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Monetization routes loaded (Firestore stub)');
-} catch (error) {
-  console.error('⚠️ Monetization routes error:', error.message);
-  monetizationRoutes = createFallbackRouter();
-}
+monetizationRoutes = createFallbackRouter(); // Firestore removed - using fallback
+console.log('⚠️ Monetization routes using fallback (Firestore removed)');
 
-try {
-//   soundsRoutes = require('./routes/sounds-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Sounds routes loaded (Firestore stub)');
-} catch (error) {
-  console.error('⚠️ Sounds routes error:', error.message);
-  soundsRoutes = createFallbackRouter();
-}
+soundsRoutes = createFallbackRouter(); // Firestore removed - using fallback
+console.log('⚠️ Sounds routes using fallback (Firestore removed)');
 
 // Load other critical admin routes (reuse existing variables, don't redeclare)
-// Load each route individually to prevent one failure from affecting others
-try {
-//   moderationRoutes = require('./routes/moderation-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Moderation routes loaded');
-} catch (error) {
-  console.error('⚠️ Moderation routes error:', error.message);
-}
+// All using fallback since Firestore removed
+console.log('⚠️ Moderation routes using fallback (Firestore removed)');
+console.log('⚠️ Settings routes using fallback (Firestore removed)');
+settingsRoutes = fallback4; // Assign fallback to settingsRoutes
+console.log('⚠️ Transcode routes using fallback (Firestore removed)');
+console.log('⚠️ Trending routes using fallback (Firestore removed)');
+console.log('⚠️ Analytics routes using fallback (Firestore removed)');
+console.log('⚠️ Metrics routes using fallback (Firestore removed)');
 
-try {
-//   settingsRoutes = require('./routes/settings-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Settings routes loaded');
-} catch (error) {
-  console.error('⚠️ Settings routes error:', error.message);
-}
+// All Firestore routes removed - using fallbacks
+console.log('⚠️ Cart routes using fallback (Firestore removed)');
+// cartRoutes already set to fallback2 above
 
-try {
-//   transcodeRoutes = require('./routes/transcode-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Transcode routes loaded');
-} catch (error) {
-  console.error('⚠️ Transcode routes error:', error.message);
-}
+console.log('⚠️ Categories routes using fallback (Firestore removed)');
+// categoryRoutes already set to fallback2 above
 
-try {
-//   trendingRoutes = require('./routes/trending-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Trending routes loaded');
-} catch (error) {
-  console.error('⚠️ Trending routes error:', error.message);
-}
+console.log('⚠️ Content routes using fallback (Firestore removed)');
+// contentRoutes already set to fallback4 above
 
-try {
-//   analyticsRoutes = require('./routes/analytics-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Analytics routes loaded');
-} catch (error) {
-  console.error('⚠️ Analytics routes error:', error.message);
-}
+console.log('⚠️ Comments (firestore version) using fallback (Firestore removed)');
+// commentsRoutes already created above
 
-try {
-//   metricsRoutes = require('./routes/metrics-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Metrics routes loaded');
-} catch (error) {
-  console.error('⚠️ Metrics routes error:', error.message);
-}
+console.log('⚠️ Feed routes using fallback (Firestore removed)');
+// feedRoutes already set to fallback4 above
 
-// Load new Firestore routes for unmigrated features
-try {
-//   cartRoutes = require('./routes/cart-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Cart routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Cart routes error:', error.message);
-}
+console.log('⚠️ Messaging (firestore version) using fallback (Firestore removed)');
+// messagingRoutes already created above
 
-try {
-//   categoriesRoutes_firestore = require('./routes/categories-firestore'); // DISABLED: Firestore removed
-  categoryRoutes = categoriesRoutes_firestore;
-  console.log('✅ Categories routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Categories routes error:', error.message);
-}
+console.log('⚠️ Streaming routes using fallback (Firestore removed)');
+// streamProviderRoutes and livestreamRoutes already set to fallback4 above
 
-try {
-//   contentRoutes = require('./routes/content-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Content routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Content routes error:', error.message);
-  console.error('⚠️ Content routes stack:', error.stack);
-  // Keep fallback router if load fails
-  contentRoutes = fallback4;
-}
+console.log('⚠️ Player routes using fallback (Firestore removed)');
+// playerRoutes already set to fallback4 above
 
-try {
-//   commentsRoutes_firestore = require('./routes/comments-firestore'); // DISABLED: Firestore removed
-  commentsRoutes = commentsRoutes_firestore;
-  console.log('✅ Comments routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Comments routes error:', error.message);
-}
+uploadRoutes = fallback4; // Set upload routes fallback
+console.log('⚠️ Uploads routes using fallback (Firestore removed)');
 
-try {
-//   feedRoutes = require('./routes/feed-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Feed routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Feed routes error:', error.message);
-  console.error('⚠️ Feed routes stack:', error.stack);
-  // Keep fallback router if load fails
-  feedRoutes = fallback4;
-}
-
-try {
-//   messagingRoutes_firestore = require('./routes/messaging-firestore'); // DISABLED: Firestore removed
-  messagingRoutes = messagingRoutes_firestore;
-  console.log('✅ Messaging routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Messaging routes error:', error.message);
-}
-
-try {
-//   streamingRoutes_firestore = require('./routes/streaming-firestore'); // DISABLED: Firestore removed
-  streamProviderRoutes = streamingRoutes_firestore;
-  livestreamRoutes = streamingRoutes_firestore;
-  console.log('✅ Streaming routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Streaming routes error:', error.message);
-}
-
-try {
-//   playerRoutes = require('./routes/player-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Player routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Player routes error:', error.message);
-}
-
-try {
-//   uploadsRoutes_firestore = require('./routes/uploads-firestore'); // DISABLED: Firestore removed
-  uploadRoutes = uploadsRoutes_firestore;
-  console.log('✅ Uploads routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Uploads routes error:', error.message);
-}
-
-try {
-//   paymentsRoutes_firestore = require('./routes/payments-firestore'); // DISABLED: Firestore removed
-  paymentRoutes = paymentsRoutes_firestore;
-  console.log('✅ Payments routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Payments routes error:', error.message);
-}
+// paymentRoutes already set to fallback2 above
+console.log('⚠️ Payments routes using fallback (Firestore removed)');
 
 // Load gifts routes
-try {
-//   giftsRoutes = require('./routes/gifts-firestore'); // DISABLED: Firestore removed
-  console.log('✅ Gifts routes loaded (Firestore)');
-} catch (error) {
-  console.error('⚠️ Gifts routes error:', error.message);
-  giftsRoutes = createFallbackRouter();
-}
+giftsRoutes = createFallbackRouter();
+console.log('⚠️ Gifts routes using fallback (Firestore removed)');
 
 // Routes still needing full migration (return fallback 503)
 const fallback5 = createFallbackRouter();
@@ -648,18 +526,7 @@ const DATABASE_MODE = process.env.DATABASE_MODE || 'firebase';
 
 if (DATABASE_MODE === 'dual' || DATABASE_MODE === 'mongodb') {
   console.log(`\n🔄 Loading MongoDB routes (Mode: ${DATABASE_MODE})`);
-  
-  // Initialize dual database manager
-  const { dualDb } = require('./middleware/dualDatabase');
-  
-  (async () => {
-    try {
-      await dualDb.initialize();
-      console.log('✅ Dual Database Manager initialized');
-    } catch (error) {
-      console.error('⚠️  Dual Database initialization failed:', error.message);
-    }
-  })();
+  console.log('✅ MongoDB-only mode enabled');
   
   try {
     // MongoDB Routes

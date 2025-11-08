@@ -1,5 +1,5 @@
 const PKBattle = require('../models/PKBattle');
-const LiveStream = require('../models/LiveStream');
+const LiveStream = require('../models/Livestream');
 const GiftTransaction = require('../models/GiftTransaction');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
