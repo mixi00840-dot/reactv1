@@ -54,25 +54,15 @@ const Wallets = () => {
   const fetchWallets = async () => {
     setLoading(true);
     try {
-      // For now, we'll fetch wallets from users endpoint as there's no direct wallets list endpoint
-      // This is a temporary workaround - backend should add /api/admin/mongodb/wallets endpoint
-      const response = await mongoAPI.users.getAll({ limit: 100 });
-      const users = response?.data?.users || [];
-      // Map users to wallet-like structure
-      const walletsData = await Promise.all(
-        users.map(async (user) => {
-          try {
-            const walletResponse = await mongoAPI.wallets.getWallet(user._id);
-            return { ...walletResponse.data, user };
-          } catch (err) {
-            return null;
-          }
-        })
-      );
-      setWallets(walletsData.filter(w => w !== null));
+      const response = await mongoAPI.get('/api/wallets/admin/all', {
+        params: { limit: 100 }
+      });
+      const walletsData = response?.data?.data?.wallets || response?.data?.wallets || [];
+      setWallets(Array.isArray(walletsData) ? walletsData : []);
     } catch (error) {
       console.error('Error fetching wallets:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch wallets');
+      toast.error('Failed to fetch wallets');
+      setWallets([]);
     } finally {
       setLoading(false);
     }
@@ -80,13 +70,13 @@ const Wallets = () => {
 
   const fetchStats = async () => {
     try {
-      // Calculate stats from wallets data
-      const totalWallets = wallets.length;
-      const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
-      const totalDeposits = wallets.reduce((sum, w) => sum + (w.totalDeposits || 0), 0);
-      const totalWithdrawals = wallets.reduce((sum, w) => sum + (w.totalWithdrawals || 0), 0);
-      
-      setStats({ totalWallets, totalBalance, totalDeposits, totalWithdrawals });
+      const response = await mongoAPI.get('/api/wallets/admin/stats');
+      setStats(response?.data?.data || {
+        totalWallets: 0,
+        totalBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -98,18 +88,18 @@ const Wallets = () => {
       return;
     }
 
+  const handleAdjustBalance = async (type) => {
+    if (!adjustAmount || parseFloat(adjustAmount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
     try {
-      if (type === 'credit') {
-        await mongoAPI.wallets.addFunds(
-          selectedWallet.user._id,
-          parseFloat(adjustAmount),
-          adjustReason || 'Admin credit adjustment'
-        );
-      } else {
-        // Debit not directly supported yet - would need backend endpoint
-        toast.info('Debit feature coming soon - use transaction system');
-        return;
-      }
+      await mongoAPI.post(`/api/wallets/admin/${selectedWallet.userId._id}/adjust`, {
+        amount: parseFloat(adjustAmount),
+        reason: adjustReason || 'Admin balance adjustment',
+        type: type === 'credit' ? 'add' : 'deduct'
+      });
       
       fetchWallets();
       fetchStats();
@@ -120,7 +110,7 @@ const Wallets = () => {
       toast.success(`Balance ${type === 'credit' ? 'added' : 'deducted'} successfully`);
     } catch (error) {
       console.error('Error adjusting balance:', error);
-      toast.error(error.response?.data?.message || 'Failed to adjust balance');
+      toast.error('Failed to adjust balance');
     }
   };
 
