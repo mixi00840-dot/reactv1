@@ -202,5 +202,162 @@ router.get('/analytics', async (req, res) => {
   }
 });
 
+// ==================== ADMIN ENDPOINTS ====================
+const { verifyJWT } = require('../middleware/jwtAuth');
+const { requireAdmin } = require('../middleware/adminMiddleware');
+const TrendingConfig = require('../models/TrendingConfig');
+
+/**
+ * @route   GET /api/trending/admin/config
+ * @desc    Get trending algorithm configuration (Admin)
+ * @access  Admin
+ */
+router.get('/admin/config', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    let config = await TrendingConfig.findOne().sort({ createdAt: -1 });
+
+    if (!config) {
+      // Create default config
+      config = new TrendingConfig({
+        weights: {
+          watchTime: 0.35,
+          likes: 0.20,
+          shares: 0.20,
+          comments: 0.10,
+          completionRate: 0.10,
+          recency: 0.05
+        },
+        thresholds: {
+          minViews: 100,
+          minEngagement: 10,
+          decayHalfLife: 48
+        }
+      });
+      await config.save();
+    }
+
+    res.json({
+      success: true,
+      data: { config }
+    });
+
+  } catch (error) {
+    console.error('Get trending config error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching trending configuration'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/trending/admin/config
+ * @desc    Update trending algorithm configuration (Admin)
+ * @access  Admin
+ */
+router.put('/admin/config', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { weights, thresholds } = req.body;
+
+    if (!weights || !thresholds) {
+      return res.status(400).json({
+        success: false,
+        message: 'Weights and thresholds are required'
+      });
+    }
+
+    // Validate weights sum to 1.0
+    const weightSum = Object.values(weights).reduce((a, b) => a + b, 0);
+    if (Math.abs(weightSum - 1.0) > 0.01) {
+      return res.status(400).json({
+        success: false,
+        message: 'Weights must sum to 1.0'
+      });
+    }
+
+    const config = new TrendingConfig({
+      weights,
+      thresholds,
+      updatedBy: req.userId
+    });
+    await config.save();
+
+    res.json({
+      success: true,
+      data: { config },
+      message: 'Trending configuration updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update trending config error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating trending configuration'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/trending/admin/config/history
+ * @desc    Get trending configuration history (Admin)
+ * @access  Admin
+ */
+router.get('/admin/config/history', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const history = await TrendingConfig.find()
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .populate('updatedBy', 'username email');
+
+    res.json({
+      success: true,
+      data: { history }
+    });
+
+  } catch (error) {
+    console.error('Get config history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching configuration history'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/trending/admin/recalculate
+ * @desc    Force recalculation of trending content (Admin)
+ * @access  Admin
+ */
+router.post('/admin/recalculate', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { category = 'overall', period = 'daily' } = req.body;
+
+    // Clear old trending records for this category/period
+    await TrendingRecord.deleteMany({ category, period });
+
+    // Generate new trending
+    const records = await generateTrending(category, period, 50);
+
+    res.json({
+      success: true,
+      data: {
+        recalculated: records.length,
+        category,
+        period
+      },
+      message: 'Trending content recalculated successfully'
+    });
+
+  } catch (error) {
+    console.error('Recalculate trending error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error recalculating trending'
+    });
+  }
+});
+
 module.exports = router;
 

@@ -61,12 +61,13 @@ const TrendingControls = () => {
   const fetchConfig = async () => {
     setLoading(true);
     try {
-      const payload = await api.get('/api/trending/config');
-      const configData = payload?.config || payload;
+      const response = await api.get('/api/trending/admin/config');
+      const configData = response?.data?.data?.config || response?.data?.config || response?.config;
       setConfig(configData);
       setOriginalConfig(configData);
     } catch (error) {
       console.error('Error fetching config:', error);
+      toast.error('Failed to fetch trending configuration');
     } finally {
       setLoading(false);
     }
@@ -74,8 +75,10 @@ const TrendingControls = () => {
 
   const fetchHistory = async () => {
     try {
-      const payload = await api.get('/api/trending/config/history?limit=10');
-      setHistory(payload?.history || []);
+      const response = await api.get('/api/trending/admin/config/history', {
+        params: { limit: 10 }
+      });
+      setHistory(response?.data?.data?.history || []);
     } catch (error) {
       console.error('Error fetching history:', error);
     }
@@ -105,20 +108,24 @@ const TrendingControls = () => {
     // Validate weights sum to 1.0
     const sum = Object.values(config.weights).reduce((a, b) => a + b, 0);
     if (Math.abs(sum - 1.0) > 0.001) {
-      alert('Weights must sum to 100%');
+      toast.error('Weights must sum to 100%');
       return;
     }
 
     setSaving(true);
     try {
-      await api.put('/api/trending/config/weights', { weights: config.weights });
+      await api.put('/api/trending/admin/config', { 
+        weights: config.weights,
+        thresholds: config.thresholds 
+      });
+      toast.success('Configuration updated successfully!');
       setSuccessMessage('Weights updated successfully!');
       fetchConfig();
       fetchHistory();
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Error saving weights:', error);
-      alert('Failed to save weights');
+      toast.error('Failed to save weights');
     } finally {
       setSaving(false);
     }
@@ -127,14 +134,18 @@ const TrendingControls = () => {
   const handleSaveThresholds = async () => {
     setSaving(true);
     try {
-      await api.put('/api/trending/config/thresholds', { thresholds: config.thresholds });
+      await api.put('/api/trending/admin/config', { 
+        weights: config.weights,
+        thresholds: config.thresholds 
+      });
+      toast.success('Thresholds updated successfully!');
       setSuccessMessage('Thresholds updated successfully!');
       fetchConfig();
       fetchHistory();
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Error saving thresholds:', error);
-      alert('Failed to save thresholds');
+      toast.error('Failed to save thresholds');
     } finally {
       setSaving(false);
     }
@@ -147,11 +158,14 @@ const TrendingControls = () => {
 
     setSaving(true);
     try {
-      await api.post('/api/trending/recalculate', {});
-      alert('Trending calculation started. This will complete in the background.');
+      await api.post('/api/trending/admin/recalculate', {
+        category: 'overall',
+        period: 'daily'
+      });
+      toast.success('Trending calculation started. This will complete in the background.');
     } catch (error) {
       console.error('Error triggering recalculation:', error);
-      alert('Failed to trigger recalculation');
+      toast.error('Failed to trigger recalculation');
     } finally {
       setSaving(false);
     }

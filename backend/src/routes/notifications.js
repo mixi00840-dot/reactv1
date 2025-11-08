@@ -147,5 +147,219 @@ router.get('/unread-count', verifyJWT, async (req, res) => {
   }
 });
 
+// ==================== ADMIN ENDPOINTS ====================
+const { requireAdmin } = require('../middleware/adminMiddleware');
+const User = require('../models/User');
+
+/**
+ * @route   POST /api/notifications/admin/send
+ * @desc    Send notification to users (Admin)
+ * @access  Admin
+ */
+router.post('/admin/send', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { 
+      title, 
+      message, 
+      recipientType, 
+      targetUsers, 
+      targetSegment, 
+      link,
+      type = 'system'
+    } = req.body;
+
+    if (!title || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and message are required'
+      });
+    }
+
+    let userIds = [];
+
+    // Determine recipients
+    if (recipientType === 'all') {
+      const allUsers = await User.find({ role: 'user' }).select('_id');
+      userIds = allUsers.map(u => u._id);
+    } else if (recipientType === 'specific' && targetUsers) {
+      userIds = targetUsers.split(',').map(id => id.trim());
+    } else if (recipientType === 'segment') {
+      let query = {};
+      if (targetSegment === 'verified') {
+        query.isVerified = true;
+      } else if (targetSegment === 'creators') {
+        query.role = 'creator';
+      } else if (targetSegment === 'sellers') {
+        query.isSeller = true;
+      }
+      const segmentUsers = await User.find(query).select('_id');
+      userIds = segmentUsers.map(u => u._id);
+    }
+
+    // Create notifications for all users
+    const notifications = userIds.map(userId => ({
+      userId,
+      title,
+      message,
+      type,
+      link: link || undefined,
+      metadata: {
+        sentBy: req.userId,
+        recipientType,
+        targetSegment
+      }
+    }));
+
+    const created = await Notification.insertMany(notifications);
+
+    res.json({
+      success: true,
+      data: {
+        sent: created.length,
+        recipientType,
+        targetSegment
+      },
+      message: `Notification sent to ${created.length} users`
+    });
+
+  } catch (error) {
+    console.error('Send notification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error sending notification'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/notifications/admin/history
+ * @desc    Get notification history (Admin)
+ * @access  Admin
+ */
+router.get('/admin/history', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 50, type } = req.query;
+    const skip = (page - 1) * limit;
+
+    let query = { 'metadata.sentBy': { $exists: true } };
+    if (type) query.type = type;
+
+    const notifications = await Notification.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('metadata.sentBy', 'username email');
+
+    // Group by message to get unique notification campaigns
+    const uniqueNotifications = [];
+    const seen = new Set();
+    
+    notifications.forEach(notif => {
+      const key = `${notif.title}-${notif.message}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueNotifications.push(notif);
+      }
+    });
+
+    const total = await Notification.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        notifications: uniqueNotifications,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get notification history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching history'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/notifications/admin/stats
+ * @desc    Get notification statistics (Admin)
+ * @access  Admin
+ */
+router.get('/admin/stats', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const [
+      totalNotifications,
+      todayNotifications,
+      totalRead,
+      totalUnread
+    ] = await Promise.all([
+      Notification.countDocuments(),
+      Notification.countDocuments({
+        createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+      }),
+      Notification.countDocuments({ isRead: true }),
+      Notification.countDocuments({ isRead: false })
+    ]);
+
+    const readRate = totalNotifications > 0 
+      ? ((totalRead / totalNotifications) * 100).toFixed(1)
+      : 0;
+
+    res.json({
+      success: true,
+      data: {
+        totalSent: totalNotifications,
+        sentToday: todayNotifications,
+        delivered: totalRead,
+        failed: totalUnread,
+        readRate: parseFloat(readRate)
+      }
+    });
+
+  } catch (error) {
+    console.error('Get notification stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching stats'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/notifications/admin/:id
+ * @desc    Delete notification (Admin)
+ * @access  Admin
+ */
+router.delete('/admin/:id', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const notification = await Notification.findByIdAndDelete(req.params.id);
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notification not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Notification deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting notification'
+    });
+  }
+});
+
 module.exports = router;
 

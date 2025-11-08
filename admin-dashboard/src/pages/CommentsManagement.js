@@ -90,42 +90,18 @@ const CommentsManagement = () => {
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get('/api/admin/comments', {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/api/comments/admin/all', {
         params: {
           ...filters,
           status: tabs[selectedTab].value
         }
       });
-      const list = response?.data?.data?.comments || response?.data?.comments || response?.comments || response?.data || response;
+      const list = response?.data?.data?.comments || response?.data?.comments || [];
       setComments(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error('Error fetching comments:', error);
-      // Generate dummy data for demonstration
-      const dummyComments = Array.from({ length: 20 }, (_, i) => ({
-        _id: `comment_${i + 1}`,
-        content: `This is a sample comment ${i + 1}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. ${Math.random() > 0.8 ? 'This comment contains inappropriate content and should be reviewed.' : ''}`,
-        author: {
-          _id: `user_${i + 1}`,
-          username: `user${i + 1}`,
-          avatar: `https://ui-avatars.com/api/?name=User+${i + 1}&background=random`,
-          role: Math.random() > 0.8 ? 'creator' : 'user'
-        },
-        contentId: {
-          _id: `content_${i + 1}`,
-          title: `Video/Post ${i + 1}`,
-          type: Math.random() > 0.5 ? 'video' : 'post'
-        },
-        status: ['pending', 'approved', 'reported', 'blocked'][Math.floor(Math.random() * 4)],
-        likes: Math.floor(Math.random() * 100),
-        replies: Math.floor(Math.random() * 20),
-        isReported: Math.random() > 0.8,
-        reportCount: Math.floor(Math.random() * 5),
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date()
-      }));
-      setComments(dummyComments);
+      toast.error('Failed to fetch comments');
+      setComments([]);
     }
     setLoading(false);
   };
@@ -155,57 +131,51 @@ const CommentsManagement = () => {
   const handleCommentAction = async (action, commentId = null) => {
     const commentsToUpdate = commentId ? [commentId] : selectedComments;
     
+    if (commentsToUpdate.length === 0) {
+      toast.warning('No comments selected');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token');
-      
-      for (const id of commentsToUpdate) {
-        await api.patch(`/api/admin/comments/${id}`, 
-          { action },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+      if (action === 'delete') {
+        await api.post('/api/comments/admin/bulk-action', {
+          action: 'delete',
+          commentIds: commentsToUpdate
+        });
+      } else {
+        await api.post('/api/comments/admin/bulk-action', {
+          action,
+          commentIds: commentsToUpdate
+        });
       }
       
-      setSnackbar({
-        open: true,
-        message: `Comments ${action}ed successfully`,
-        severity: 'success'
-      });
-      
+      toast.success(`Comments ${action}d successfully`);
       fetchComments();
       setSelectedComments([]);
     } catch (error) {
       console.error('Error updating comments:', error);
-      setSnackbar({
-        open: true,
-        message: `Error ${action}ing comments`,
-        severity: 'error'
-      });
+      toast.error(`Failed to ${action} comments`);
     }
   };
 
   const handleBulkDelete = async () => {
+    if (selectedComments.length === 0) {
+      toast.warning('No comments selected');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token');
-      await api.delete('/api/admin/comments/bulk', {
-        headers: { Authorization: `Bearer ${token}` },
-        data: { commentIds: selectedComments }
+      await api.post('/api/comments/admin/bulk-action', {
+        action: 'delete',
+        commentIds: selectedComments
       });
       
-      setSnackbar({
-        open: true,
-        message: 'Comments deleted successfully',
-        severity: 'success'
-      });
-      
+      toast.success('Comments deleted successfully');
       fetchComments();
       setSelectedComments([]);
     } catch (error) {
       console.error('Error deleting comments:', error);
-      setSnackbar({
-        open: true,
-        message: 'Error deleting comments',
-        severity: 'error'
-      });
+      toast.error('Failed to delete comments');
     }
   };
 

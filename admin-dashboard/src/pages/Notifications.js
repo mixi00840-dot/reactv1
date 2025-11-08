@@ -63,14 +63,14 @@ const Notifications = () => {
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/notifications/history?limit=100`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setHistory(response?.notifications || response?.data?.notifications || []);
+      const response = await api.get('/api/notifications/admin/history', {
+        params: { limit: 100 }
+      });
+      setHistory(response?.data?.data?.notifications || []);
     } catch (error) {
       console.error('Error fetching history:', error);
+      toast.error('Failed to fetch notification history');
+      setHistory([]);
     } finally {
       setLoading(false);
     }
@@ -78,12 +78,13 @@ const Notifications = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/notifications/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response || {});
+      const response = await api.get('/api/notifications/admin/stats');
+      setStats(response?.data?.data || {
+        totalSent: 0,
+        sentToday: 0,
+        delivered: 0,
+        failed: 0
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -91,19 +92,14 @@ const Notifications = () => {
 
   const handleSendNotification = async () => {
     if (!notificationForm.title || !notificationForm.message) {
-      alert('Please fill in title and message');
+      toast.warning('Please fill in title and message');
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await api.post(
-        `/api/notifications/send`,
-        notificationForm,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post('/api/notifications/admin/send', notificationForm);
       
-      alert('Notification sent successfully!');
+      toast.success('Notification sent successfully!');
       setNotificationForm({
         title: '',
         message: '',
@@ -116,7 +112,7 @@ const Notifications = () => {
       fetchStats();
     } catch (error) {
       console.error('Error sending notification:', error);
-      alert('Failed to send notification');
+      toast.error('Failed to send notification');
     }
   };
 
