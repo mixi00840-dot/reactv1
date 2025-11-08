@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 /**
  * MongoDB Connection Manager
  * Replaces Firebase/Firestore with MongoDB + Mongoose
+ * Last updated: 2025-11-08 - Force rebuild
  */
 
 let isConnected = false;
