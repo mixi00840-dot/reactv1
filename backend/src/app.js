@@ -391,6 +391,7 @@ if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
             app.use('/api/reports/mongodb', require('./routes/reports'));
             app.use('/api/metrics/mongodb', require('./routes/metrics'));
             app.use('/api/uploads/mongodb', require('./routes/uploads'));
+            app.use('/api/levels', require('./routes/levels')); // Levels & Badges
             
             // Override content route with full MongoDB implementation
             app.use('/api/content/mongodb', require('./routes/content'));
