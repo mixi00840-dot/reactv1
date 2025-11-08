@@ -875,5 +875,111 @@ router.get('/wallets', verifyJWT, requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/admin/wallets/transactions
+ * @desc    Get all transactions (admin)
+ * @access  Admin
+ */
+router.get('/wallets/transactions', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Transaction = require('../models/Transaction');
+    const { 
+      page = 1, 
+      limit = 20, 
+      type,
+      status,
+      search
+    } = req.query;
+    const skip = (page - 1) * limit;
+
+    let query = {};
+    if (type) query.type = type;
+    if (status) query.status = status;
+    
+    if (search) {
+      query.$or = [
+        { description: { $regex: search, $options: 'i' } },
+        { reference: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const transactions = await Transaction.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('userId', 'username email avatar')
+      .lean();
+
+    const total = await Transaction.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        transactions,
+        pagination: {
+          total,
+          totalTransactions: total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get transactions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching transactions'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/wallets/transactions/stats
+ * @desc    Get transaction statistics (admin)
+ * @access  Admin
+ */
+router.get('/wallets/transactions/stats', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Transaction = require('../models/Transaction');
+    
+    const [
+      totalTransactions,
+      completedCount,
+      pendingCount,
+      failedCount,
+      volumeData
+    ] = await Promise.all([
+      Transaction.countDocuments(),
+      Transaction.countDocuments({ status: 'completed' }),
+      Transaction.countDocuments({ status: 'pending' }),
+      Transaction.countDocuments({ status: 'failed' }),
+      Transaction.aggregate([
+        { $match: { status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ])
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalTransactions,
+        completedCount,
+        pendingCount,
+        failedCount,
+        totalVolume: volumeData[0]?.total || 0
+      }
+    });
+
+  } catch (error) {
+    console.error('Get transaction stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching transaction statistics'
+    });
+  }
+});
+
 module.exports = router;
 

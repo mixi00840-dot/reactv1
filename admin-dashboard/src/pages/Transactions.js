@@ -53,20 +53,23 @@ const Transactions = () => {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
+      const params = {
         page: page + 1,
-        limit: rowsPerPage
-      });
-      
-      if (typeFilter) params.append('type', typeFilter);
-      if (statusFilter) params.append('status', statusFilter);
-      if (searchTerm) params.append('search', searchTerm);
+        limit: rowsPerPage,
+        ...(typeFilter && { type: typeFilter }),
+        ...(statusFilter && { status: statusFilter }),
+        ...(searchTerm && { search: searchTerm })
+      };
 
-      const response = await api.get(`/api/admin/wallets/transactions?${params}`);
-      setTransactions(response?.transactions || []);
-      setTotalTransactions(response?.totalTransactions || 0);
+      const response = await api.get('/api/admin/mongodb/wallets/transactions', { params });
+      const txns = response?.data?.data?.transactions || response?.data?.transactions || [];
+      setTransactions(Array.isArray(txns) ? txns : []);
+      const pagination = response?.data?.data?.pagination || response?.data?.pagination || {};
+      setTotalTransactions(pagination.totalTransactions || pagination.total || 0);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      toast.error('Failed to fetch transactions');
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
@@ -74,8 +77,13 @@ const Transactions = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get(`/api/admin/wallets/transactions/stats`);
-      setStats(response || {});
+      const response = await api.get('/api/admin/mongodb/wallets/transactions/stats');
+      setStats(response?.data?.data || {
+        totalTransactions: 0,
+        totalVolume: 0,
+        completedCount: 0,
+        pendingCount: 0
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
