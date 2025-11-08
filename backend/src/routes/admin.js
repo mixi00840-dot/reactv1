@@ -263,6 +263,207 @@ router.put('/users/:id/status', verifyJWT, requireAdmin, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/admin/users/:userId
+ * @desc    Get user details by ID (admin)
+ * @access  Admin
+ */
+router.get('/users/:userId', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { populate } = req.query;
+    
+    let query = User.findById(req.params.userId).select('-password');
+    
+    // Populate store if requested and user is a seller
+    if (populate && populate.includes('storeid')) {
+      query = query.populate('storeId', 'name status isVerified');
+    }
+    
+    const user = await query;
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Get additional stats
+    const [contentCount, followersCount, followingCount] = await Promise.all([
+      Content.countDocuments({ userId: user._id }),
+      require('../models/Follow').countDocuments({ followingId: user._id }),
+      require('../models/Follow').countDocuments({ followerId: user._id })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          ...user.toObject(),
+          stats: {
+            contentCount,
+            followersCount,
+            followingCount
+          }
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user details'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/users/:userId/activities
+ * @desc    Get user activity log
+ * @access  Admin
+ */
+router.get('/users/:userId/activities', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Get recent content, comments, likes, etc.
+    const [contents, comments] = await Promise.all([
+      Content.find({ userId: req.params.userId })
+        .select('caption mediaUrl mediaType viewsCount likesCount createdAt')
+        .sort({ createdAt: -1 })
+        .limit(5),
+      require('../models/Comment').find({ userId: req.params.userId })
+        .select('text contentId createdAt')
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate('contentId', 'caption')
+    ]);
+
+    // Format activities
+    const activities = [
+      ...contents.map(c => ({
+        type: 'content_posted',
+        description: `Posted ${c.mediaType}: ${c.caption?.substring(0, 50) || 'No caption'}`,
+        timestamp: c.createdAt,
+        metadata: { contentId: c._id, views: c.viewsCount, likes: c.likesCount }
+      })),
+      ...comments.map(c => ({
+        type: 'comment_added',
+        description: `Commented: ${c.text?.substring(0, 50)}`,
+        timestamp: c.createdAt,
+        metadata: { commentId: c._id, contentId: c.contentId?._id }
+      }))
+    ].sort((a, b) => b.timestamp - a.timestamp).slice(0, parseInt(limit));
+
+    res.json({
+      success: true,
+      data: {
+        activities,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: activities.length
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user activities error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user activities'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/users/:userId/followers
+ * @desc    Get user followers
+ * @access  Admin
+ */
+router.get('/users/:userId/followers', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const Follow = require('../models/Follow');
+    
+    const followers = await Follow.find({ followingId: req.params.userId })
+      .populate('followerId', 'username fullName avatar isVerified')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await Follow.countDocuments({ followingId: req.params.userId });
+
+    res.json({
+      success: true,
+      data: {
+        followers: followers.map(f => f.followerId),
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user followers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching followers'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/wallets/:userId/transactions
+ * @desc    Get user wallet transactions
+ * @access  Admin
+ */
+router.get('/wallets/:userId/transactions', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, type } = req.query;
+    const skip = (page - 1) * limit;
+
+    const Transaction = require('../models/Transaction');
+    
+    const query = { userId: req.params.userId };
+    if (type) query.type = type;
+
+    const transactions = await Transaction.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await Transaction.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        transactions,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get wallet transactions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching transactions'
+    });
+  }
+});
+
+/**
  * @route   GET /api/admin/seller-applications
  * @desc    Get seller applications
  * @access  Admin

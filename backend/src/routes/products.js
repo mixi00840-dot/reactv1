@@ -39,7 +39,40 @@ router.get('/', async (req, res) => {
     const skip = (page - 1) * limit;
     let query = { isActive: true }; // Changed from status and isPublished
 
-    if (category) query.category = category;
+    // Handle category filter - can be ObjectId or category name/slug
+    if (category) {
+      const Category = require('../models/Category');
+      // Check if category is a valid ObjectId
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        query.category = category;
+      } else {
+        // Try to find category by name or slug
+        const categoryDoc = await Category.findOne({
+          $or: [
+            { name: { $regex: new RegExp(`^${category}$`, 'i') } },
+            { slug: category.toLowerCase() }
+          ]
+        });
+        if (categoryDoc) {
+          query.category = categoryDoc._id;
+        } else {
+          // If category not found, return empty result
+          return res.json({
+            success: true,
+            data: {
+              products: [],
+              pagination: {
+                total: 0,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                pages: 0
+              }
+            }
+          });
+        }
+      }
+    }
+    
     if (storeId) query.storeId = storeId;
     if (minPrice || maxPrice) {
       query.price = {};

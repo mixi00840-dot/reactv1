@@ -12,6 +12,69 @@ const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
  */
 
 /**
+ * @route   GET /api/gifts
+ * @desc    Get all gifts
+ * @access  Public
+ */
+router.get('/', async (req, res) => {
+  try {
+    const { rarity, category, minPrice, maxPrice, limit = 50 } = req.query;
+
+    const query = { isActive: true };
+    if (rarity) query.rarity = rarity;
+    if (category) query.category = category;
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
+
+    const gifts = await Gift.find(query)
+      .sort({ popularity: -1, price: 1 })
+      .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { gifts }
+    });
+
+  } catch (error) {
+    console.error('Get gifts error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching gifts'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/gifts/popular
+ * @desc    Get popular gifts
+ * @access  Public
+ */
+router.get('/popular', async (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+
+    const gifts = await Gift.find({ isActive: true })
+      .sort({ timesSent: -1, popularity: -1 })
+      .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { gifts }
+    });
+
+  } catch (error) {
+    console.error('Get popular gifts error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching popular gifts'
+    });
+  }
+});
+
+/**
  * @route   POST /api/gifts/send
  * @desc    Send gift to another user (TRANSACTIONAL - RACE CONDITION SAFE)
  * @access  Private
