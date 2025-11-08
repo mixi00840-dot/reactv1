@@ -17,13 +17,27 @@ const connectMongoDB = async () => {
     return mongoose.connection;
   }
 
-  const MONGODB_URI = process.env.MONGODB_URI;
+  // Prefer secret-based override if provided (e.g., mounted as different env var)
+  const MONGODB_URI = process.env.MONGODB_URI_SECRET || process.env.MONGODB_URI;
 
   if (!MONGODB_URI) {
     throw new Error('❌ MONGODB_URI environment variable is not defined');
   }
 
   try {
+    // Startup validation: log only the cluster host to verify correctness safely
+    try {
+      const uriForLog = new URL(MONGODB_URI.replace('mongodb+srv://', 'http://'));
+      const host = uriForLog.host;
+      console.log(`🔎 MongoDB host: ${host}`);
+      if (/t8e6by\.mongodb\.net/i.test(host)) {
+        throw new Error('Configured MongoDB host points to deprecated cluster t8e6by. Please update to tt9e6by.');
+      }
+    } catch (e) {
+      // Non-fatal for parsing issues; will fail on connect if invalid
+      console.warn('⚠️ Could not parse MONGODB_URI for host validation:', e.message);
+    }
+
     console.log('🔄 MongoDB: Connecting...');
     
     await mongoose.connect(MONGODB_URI, {
