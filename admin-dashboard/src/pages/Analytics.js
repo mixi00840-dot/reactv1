@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
+// MongoDB Migration
+import mongoAPI from '../utils/apiMongoDB';
+const api = mongoAPI; // Alias for backward compatibility
 import {
   Box,
   Paper,

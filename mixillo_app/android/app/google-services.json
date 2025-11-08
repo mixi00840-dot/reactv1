@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "52242135857",
+    "project_id": "mixillo",
+    "storage_bucket": "mixillo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52242135857:android:d56ff8c31a4b2cc3750e10",
+        "android_client_info": {
+          "package_name": "com.mixillo.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "52242135857-d2nr1985eb1jdjt09n4dsa9jcuf4ql2n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqomROTpVMIBRbYBpXRdOUnFBtZXaEw2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "52242135857-d2nr1985eb1jdjt09n4dsa9jcuf4ql2n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "52242135857-5kokieupd4tdgbf5sru5scca0fohjrrq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mixillo.com"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

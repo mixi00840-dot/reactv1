@@ -121,8 +121,7 @@ class CommentsLocalDataSourceImpl implements CommentsLocalDataSource {
         return null;
       }
 
-      return CommentModel.fromJson(
-          Map<String, dynamic>.from(cachedData as Map<dynamic, dynamic>));
+      return CommentModel.fromJson(Map<String, dynamic>.from(cachedData));
     } catch (e) {
       return null;
     }

@@ -36,7 +36,8 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import api from '../utils/apiFirebase';
+// MongoDB Migration - Use MongoDB API instead of Firebase
+import mongoAPI from '../utils/apiMongoDB';
 import toast from 'react-hot-toast';
 
 ChartJS.register(
@@ -105,11 +106,11 @@ function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const payload = await api.get('/api/admin/dashboard');
-      setStats(payload?.stats || payload);
+      const response = await mongoAPI.analytics.getDashboard();
+      setStats(response?.data?.stats || response?.stats || response?.data || response);
     } catch (error) {
       console.error('Dashboard data fetch error:', error);
-      toast.error('Failed to load dashboard data');
+      toast.error(error.response?.data?.message || 'Failed to load dashboard data');
       // Set default empty structure to prevent undefined errors
       setStats({
         overview: {

@@ -54,8 +54,10 @@ import {
   Star as StarIcon
 } from '@mui/icons-material';
 import axios from 'axios';
-import api from '../utils/apiFirebase';
+// MongoDB Migration - Use MongoDB API instead of Firebase
+import mongoAPI from '../utils/apiMongoDB';
 import toast from 'react-hot-toast';
+const api = mongoAPI; // Alias for backward compatibility
 
 // TabPanel Component
 function TabPanel({ children, value, index, ...other }) {

@@ -2,21 +2,29 @@ import React, { useState, useEffect } from 'react';
 import {
   Typography, Box, Grid, Card, CardContent, Avatar, Chip, Button,
   TextField, Dialog, DialogTitle, DialogContent, DialogActions,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Tabs, Tab, Alert, IconButton, Badge, LinearProgress,
-  List, ListItem, ListItemText, ListItemAvatar, Divider, Switch,
+  Tabs, Tab, Alert, Badge, LinearProgress, Switch,
   FormControlLabel, Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
 import {
-  Edit as EditIcon, Delete as DeleteIcon, Block as BlockIcon,
+  Edit as EditIcon, Block as BlockIcon,
   CheckCircle as ApproveIcon, MonetizationOn as MoneyIcon,
   VideoLibrary as VideoIcon, Comment as CommentIcon,
-  Favorite as LikeIcon, Share as ShareIcon, Store as StoreIcon,
-  People as FollowersIcon, TrendingUp as EarningsIcon,
+  Store as StoreIcon, People as FollowersIcon,
   Star as StarIcon, Upload as UploadIcon, History as ActivityIcon
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
-import api from '../utils/apiFirebase';
+// MongoDB Migration
+import mongoAPI from '../utils/apiMongoDB';
+import toast from 'react-hot-toast';
+// Import new tab components
+import UserVideosTab from '../components/tabs/UserVideosTab';
+import UserPostsTab from '../components/tabs/UserPostsTab';
+import UserWalletTab from '../components/tabs/UserWalletTab';
+import UserSocialTab from '../components/tabs/UserSocialTab';
+import UserActivitiesTab from '../components/tabs/UserActivitiesTab';
+import UserUploadsTab from '../components/tabs/UserUploadsTab';
+import UserProductsTab from '../components/tabs/UserProductsTab';
+const api = mongoAPI; // Alias for backward compatibility
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -52,7 +60,8 @@ function UserDetails() {
 
   const fetchUserDetails = async () => {
     try {
-      const payload = await api.get(`/api/admin/users/${id}`);
+      // Fetch user with store populated
+      const payload = await api.get(`/api/admin/users/${id}?populate=storeId`);
       const userData = payload?.user || payload;
       setUser(userData);
       setEditedUser(userData);
@@ -214,7 +223,26 @@ function UserDetails() {
             <Grid item xs>
               <Typography variant="h4" gutterBottom>
                 {user?.username}
-                {user?.role === 'seller' && <Chip label="Seller" color="primary" sx={{ ml: 1 }} />}
+                {user?.role === 'seller' && (
+                  <>
+                    <Chip 
+                      label="Verified Seller" 
+                      icon={<ApproveIcon />}
+                      color="success" 
+                      sx={{ ml: 1 }} 
+                    />
+                    {user?.storeId && (
+                      <Chip 
+                        label={user.storeId.name || "Store"} 
+                        icon={<StoreIcon />}
+                        color="primary" 
+                        sx={{ ml: 1 }}
+                        clickable
+                        onClick={() => window.open(`/stores/${user.storeId._id}`, '_blank')}
+                      />
+                    )}
+                  </>
+                )}
                 {user?.isFeatured && <Chip label="Featured" color="secondary" sx={{ ml: 1 }} />}
                 {user?.isBanned && <Chip label="Banned" color="error" sx={{ ml: 1 }} />}
               </Typography>
@@ -313,305 +341,49 @@ function UserDetails() {
           scrollButtons="auto"
         >
           <Tab icon={<VideoIcon />} label="Videos" />
-          <Tab icon={<CommentIcon />} label="Posts & Comments" />
-          <Tab icon={<MoneyIcon />} label="Wallet & Earnings" />
-          <Tab icon={<FollowersIcon />} label="Social" />
+          <Tab icon={<CommentIcon />} label="Posts" />
           {user?.role === 'seller' && <Tab icon={<StoreIcon />} label="Products" />}
+          <Tab icon={<MoneyIcon />} label="Wallet" />
+          <Tab icon={<FollowersIcon />} label="Social" />
           <Tab icon={<ActivityIcon />} label="Activities" />
-          <Tab icon={<UploadIcon />} label="Uploads & Media" />
+          <Tab icon={<UploadIcon />} label="Uploads" />
         </Tabs>
 
         {/* Videos Tab */}
         <TabPanel value={tabValue} index={0}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Views</TableCell>
-                  <TableCell>Likes</TableCell>
-                  <TableCell>Comments</TableCell>
-                  <TableCell>Duration</TableCell>
-                  <TableCell>Upload Date</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {(userStats?.videos || []).map((video) => (
-                  <TableRow key={video.id}>
-                    <TableCell>{video.title}</TableCell>
-                    <TableCell>{video.views.toLocaleString()}</TableCell>
-                    <TableCell>{video.likes}</TableCell>
-                    <TableCell>{video.comments}</TableCell>
-                    <TableCell>{video.duration}</TableCell>
-                    <TableCell>{video.uploadDate}</TableCell>
-                    <TableCell>
-                      <IconButton size="small">
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton size="small" color="error">
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <UserVideosTab userId={id} />
         </TabPanel>
 
-        {/* Posts & Comments Tab */}
+        {/* Posts Tab */}
         <TabPanel value={tabValue} index={1}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>Recent Posts</Typography>
-              {(userStats?.posts || []).map((post) => (
-                <Card key={post.id} sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="body1" gutterBottom>{post.content}</Typography>
-                    <Box display="flex" gap={2} alignItems="center">
-                      <Chip icon={<LikeIcon />} label={post.likes} size="small" />
-                      <Chip icon={<CommentIcon />} label={post.comments} size="small" />
-                      <Chip icon={<ShareIcon />} label={post.shares} size="small" />
-                      <Typography variant="caption" color="textSecondary">
-                        {post.date}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>Recent Comments</Typography>
-              {(userStats?.comments || []).map((comment) => (
-                <Card key={comment.id} sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="body2" gutterBottom>{comment.content}</Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      On: {comment.video} • {comment.date} • {comment.likes} likes
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))}
-            </Grid>
-          </Grid>
+          <UserPostsTab userId={id} />
         </TabPanel>
 
-        {/* Wallet & Earnings Tab */}
-        <TabPanel value={tabValue} index={2}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>Wallet Balance</Typography>
-                  <Typography variant="h4" color="primary">
-                    ${(userStats?.wallet?.balance || 0).toFixed(2)}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    Pending: ${(userStats?.wallet?.pendingPayments || 0).toFixed(2)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>Total Earnings</Typography>
-                  <Typography variant="h4" color="success.main">
-                    ${(userStats?.wallet?.totalEarnings || 0).toFixed(2)}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    Last transaction: {userStats?.wallet?.lastTransaction || 'N/A'}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>Earnings History</Typography>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Amount</TableCell>
-                      <TableCell>Source</TableCell>
-                      <TableCell>Status</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {userStats.earnings.map((earning, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{earning.date}</TableCell>
-                        <TableCell>${earning.amount.toFixed(2)}</TableCell>
-                        <TableCell>{earning.source}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={earning.status}
-                            color={earning.status === 'paid' ? 'success' : 'warning'}
-                            size="small"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-          </Grid>
-        </TabPanel>
-
-        {/* Social Tab */}
-        <TabPanel value={tabValue} index={3}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>
-                Followers ({userStats.followers.length})
-              </Typography>
-              <List>
-                {userStats.followers.map((follower) => (
-                  <ListItem key={follower.id}>
-                    <ListItemAvatar>
-                      <Avatar>{follower.username[0].toUpperCase()}</Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={follower.username}
-                      secondary={`Followed on ${follower.followDate}`}
-                    />
-                    {follower.verified && <ApproveIcon color="primary" />}
-                  </ListItem>
-                ))}
-              </List>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>
-                Following ({userStats.following.length})
-              </Typography>
-              <List>
-                {userStats.following.map((following) => (
-                  <ListItem key={following.id}>
-                    <ListItemAvatar>
-                      <Avatar>{following.username[0].toUpperCase()}</Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={following.username}
-                      secondary={`Following since ${following.followDate}`}
-                    />
-                    {following.verified && <ApproveIcon color="primary" />}
-                  </ListItem>
-                ))}
-              </List>
-            </Grid>
-          </Grid>
-        </TabPanel>
-
-        {/* Products Tab (for sellers) */}
-        {user.role === 'seller' && (
-          <TabPanel value={tabValue} index={4}>
-            <Typography variant="h6" gutterBottom>Seller Products</Typography>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Product Name</TableCell>
-                    <TableCell>Price</TableCell>
-                    <TableCell>Sales</TableCell>
-                    <TableCell>Revenue</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {userStats.products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>${product.price}</TableCell>
-                      <TableCell>{product.sales}</TableCell>
-                      <TableCell>${product.revenue.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={product.status}
-                          color={product.status === 'active' ? 'success' : 'default'}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <IconButton size="small">
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton size="small" color="error">
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+        {/* Products Tab (Only for Sellers) */}
+        {user?.role === 'seller' && (
+          <TabPanel value={tabValue} index={2}>
+            <UserProductsTab userId={id} />
           </TabPanel>
         )}
 
-        {/* Activities Tab */}
-        <TabPanel value={tabValue} index={user.role === 'seller' ? 5 : 4}>
-          <Typography variant="h6" gutterBottom>Recent Activities</Typography>
-          <List>
-            {userStats.activities.map((activity, index) => (
-              <React.Fragment key={index}>
-                <ListItem>
-                  <ListItemText
-                    primary={activity.action}
-                    secondary={
-                      <>
-                        <Typography variant="body2">{activity.details}</Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {activity.timestamp}
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
-                {index < userStats.activities.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
-          </List>
+        {/* Wallet Tab */}
+        <TabPanel value={tabValue} index={user?.role === 'seller' ? 3 : 2}>
+          <UserWalletTab userId={id} />
         </TabPanel>
 
-        {/* Uploads & Media Tab */}
-        <TabPanel value={tabValue} index={user.role === 'seller' ? 6 : 5}>
-          <Typography variant="h6" gutterBottom>Uploaded Documents & Media</Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="subtitle1" gutterBottom>Profile Media</Typography>
-                  <Box display="flex" gap={1}>
-                    <Chip label="Avatar: Yes" color="success" />
-                    <Chip label="Cover: No" color="default" />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-            {user.role === 'seller' && (
-              <Grid item xs={12} md={6}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="subtitle1" gutterBottom>Verification Documents</Typography>
-                    <Box display="flex" gap={1}>
-                      <Chip label="ID Document: Uploaded" color="success" />
-                      <Chip label="Business License: Pending" color="warning" />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>Video Uploads Summary</Typography>
-              <Typography variant="body2">
-                Total videos: {userStats.videos.length} | 
-                Total views: {userStats.videos.reduce((acc, video) => acc + video.views, 0).toLocaleString()} |
-                Average engagement: {((userStats.videos.reduce((acc, video) => acc + video.likes + video.comments, 0) / userStats.videos.length) || 0).toFixed(1)}
-              </Typography>
-            </Grid>
-          </Grid>
+        {/* Social Tab */}
+        <TabPanel value={tabValue} index={user?.role === 'seller' ? 4 : 3}>
+          <UserSocialTab userId={id} />
+        </TabPanel>
+
+        {/* Activities Tab */}
+        <TabPanel value={tabValue} index={user?.role === 'seller' ? 5 : 4}>
+          <UserActivitiesTab userId={id} />
+        </TabPanel>
+
+        {/* Uploads Tab */}
+        <TabPanel value={tabValue} index={user?.role === 'seller' ? 6 : 5}>
+          <UserUploadsTab userId={id} />
         </TabPanel>
       </Card>
 

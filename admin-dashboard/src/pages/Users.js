@@ -33,7 +33,8 @@ import {
   Edit,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/apiFirebase';
+// MongoDB Migration - Use MongoDB API instead of Firebase
+import mongoAPI from '../utils/apiMongoDB';
 import toast from 'react-hot-toast';
 
 const UserStatusChip = ({ status }) => {
@@ -84,13 +85,13 @@ function Users() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
+      const params = {
         page: pagination.currentPage,
         limit: 20,
         ...filters,
-      });
+      };
 
-      const response = await api.get(`/api/admin/users?${params}`);
+      const response = await mongoAPI.users.getAll(params);
       
       // Map _id to id for DataGrid
       const usersData = (response?.data?.users || response?.users || []).map(user => ({
@@ -98,7 +99,7 @@ function Users() {
         id: user._id || user.id
       }));
       
-      console.log('✅ Users data with id:', usersData.slice(0, 2)); // Log first 2 users to verify
+      console.log('✅ MongoDB Users data with id:', usersData.slice(0, 2)); // Log first 2 users to verify
       
       setUsers(usersData);
       
@@ -111,7 +112,7 @@ function Users() {
       }));
     } catch (error) {
       console.error('Fetch users error:', error);
-      toast.error('Failed to fetch users');
+      toast.error(error.response?.data?.message || 'Failed to fetch users');
     } finally {
       setLoading(false);
     }
@@ -149,47 +150,32 @@ function Users() {
     console.log(`🔵 User action triggered: ${action} for user:`, selectedUser._id);
 
     try {
-      let endpoint = '';
-      let method = 'PUT';
-      let data = {};
+      let response;
 
       switch (action) {
-        case 'verify':
-          endpoint = `/api/admin/users/${selectedUser._id}/verify`;
-          break;
-        case 'makeSeller':
-          endpoint = `/api/admin/users/${selectedUser._id}/make-seller`;
-          console.log('📞 Calling make-seller endpoint:', endpoint);
-          break;
-        case 'feature':
-          endpoint = `/api/admin/users/${selectedUser._id}/feature`;
-          break;
         case 'ban':
-          endpoint = `/api/admin/users/${selectedUser._id}/status`;
-          data = { status: 'banned', reason: 'Banned by admin' };
+          response = await mongoAPI.users.updateStatus(selectedUser._id, 'banned', 'Banned by admin');
           break;
         case 'suspend':
-          endpoint = `/api/admin/users/${selectedUser._id}/status`;
-          data = { status: 'suspended', reason: 'Suspended by admin' };
+          response = await mongoAPI.users.updateStatus(selectedUser._id, 'suspended', 'Suspended by admin');
           break;
         case 'activate':
-          endpoint = `/api/admin/users/${selectedUser._id}/status`;
-          data = { status: 'active', reason: 'Activated by admin' };
+          response = await mongoAPI.users.updateStatus(selectedUser._id, 'active', 'Activated by admin');
           break;
+        case 'verify':
+        case 'makeSeller':
+        case 'feature':
+          // These require direct API calls (not yet in mongoAPI)
+          toast.info('This feature will be implemented in the next update');
+          handleMenuClose();
+          return;
         default:
           return;
       }
 
-  const response = await api[method.toLowerCase()](endpoint, Object.keys(data).length ? data : undefined);
+      console.log(`✅ ${action} successful:`, response);
       
-      console.log(`✅ ${action} successful:`, response.data);
-      
-      if (action === 'makeSeller' && response.data.data) {
-        console.log('🏪 Store created:', response.data.data.storeCreated);
-        console.log('📦 Store details:', response.data.data.store);
-      }
-      
-  toast.success(response?.message || `User ${action}d successfully`);
+      toast.success(response?.message || `User ${action}d successfully`);
       fetchUsers();
     } catch (error) {
       console.error(`❌ ${action} user error:`, error);

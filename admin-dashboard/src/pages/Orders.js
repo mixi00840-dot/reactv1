@@ -37,7 +37,8 @@ import {
   Payment as PaymentIcon,
   Receipt as ReceiptIcon,
 } from '@mui/icons-material';
-import api from '../utils/apiFirebase';
+// MongoDB Migration - Use MongoDB API instead of Firebase
+import mongoAPI from '../utils/apiMongoDB';
 import toast from 'react-hot-toast';
 
 function Orders() {
@@ -59,15 +60,15 @@ function Orders() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
+      const params = {
         page: currentPage,
         limit: 20,
         ...(searchTerm && { search: searchTerm }),
         ...(statusFilter !== 'all' && { status: statusFilter }),
         ...(paymentStatusFilter !== 'all' && { paymentStatus: paymentStatusFilter }),
-      });
+      };
 
-      const response = await api.get(`/api/orders?${params}`);
+      const response = await mongoAPI.orders.getAll(params);
       const list = response?.data?.orders || response?.orders || (Array.isArray(response) ? response : []);
       const pagination = response?.data?.pagination || response?.pagination || {};
       setOrders(Array.isArray(list) ? list : []);
@@ -75,7 +76,7 @@ function Orders() {
       setTotalItems(pagination.totalItems || pagination.total || 0);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      toast.error('Failed to fetch orders');
+      toast.error(error.response?.data?.message || 'Failed to fetch orders');
     } finally {
       setLoading(false);
     }
@@ -83,15 +84,12 @@ function Orders() {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      await api.patch(`/api/orders/${orderId}/status`, { 
-        status: newStatus,
-        notes: `Status updated by admin to ${newStatus}`
-      });
+      await mongoAPI.orders.updateStatus(orderId, newStatus, `Status updated by admin to ${newStatus}`);
       toast.success('Order status updated successfully');
       fetchOrders();
     } catch (error) {
       console.error('Error updating order status:', error);
-      toast.error('Failed to update order status');
+      toast.error(error.response?.data?.message || 'Failed to update order status');
     }
   };
 

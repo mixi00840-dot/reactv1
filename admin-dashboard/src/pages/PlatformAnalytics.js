@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/apiFirebase';
+// MongoDB Migration
+import mongoAPI from '../utils/apiMongoDB';
+import toast from 'react-hot-toast';
+const api = mongoAPI; // Alias for backward compatibility
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer

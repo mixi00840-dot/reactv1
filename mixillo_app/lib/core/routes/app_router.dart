@@ -24,7 +24,7 @@ import '../../features/messages/screens/messages_screen.dart';
 import '../../features/shop/screens/shop_home_screen.dart';
 import '../../features/live/screens/pk_battle_screen.dart';
 import '../../features/stories/screens/stories_feed_screen.dart';
-import '../../features/stories/screens/story_viewer_screen.dart';
+//import '../../features/stories/screens/story_viewer_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(

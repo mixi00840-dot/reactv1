@@ -11,7 +11,7 @@ class AppAnimations {
   // ========== CURVES ==========
   static const Curve standard = Curves.easeInOut;
   static const Curve decelerate = Curves.decelerate;
-  static const Curve accelerate = Curves.accelerate;
+  static const Curve accelerate = Curves.easeIn;
   static const Curve bounce = Curves.bounceOut;
   static const Curve elastic = Curves.elasticOut;
   static const Curve smooth = Curves.easeOutCubic;

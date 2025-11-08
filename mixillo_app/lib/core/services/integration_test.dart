@@ -90,7 +90,7 @@ class _IntegrationTestScreenState extends State<IntegrationTestScreen> {
       'Search Users',
       () async {
         final users = await _backend.searchUsers('test');
-        return users is List;
+        return users.isNotEmpty;
       },
     );
 

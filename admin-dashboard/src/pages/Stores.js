@@ -38,8 +38,10 @@ import {
   Verified as VerifiedIcon,
   Store as StoreIcon,
 } from '@mui/icons-material';
-import api from '../utils/apiFirebase';
+// MongoDB Migration
+import mongoAPI from '../utils/apiMongoDB';
 import toast from 'react-hot-toast';
+const api = mongoAPI; // Alias for backward compatibility
 
 function Stores() {
   const [stores, setStores] = useState([]);

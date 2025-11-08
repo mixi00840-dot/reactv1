@@ -16,8 +16,10 @@ import {
   Switch
 } from '@mui/material';
 import { Save, Person, Email, Lock, Badge } from '@mui/icons-material';
-import api from '../utils/apiFirebase';
+// MongoDB Migration
+import mongoAPI from '../utils/apiMongoDB';
 import toast from 'react-hot-toast';
+const api = mongoAPI; // Alias for backward compatibility
 import { useNavigate } from 'react-router-dom';
 
 function CreateUser() {

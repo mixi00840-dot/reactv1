@@ -2,11 +2,13 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
-import { useAuth } from './contexts/AuthContextFirebase';
+// MongoDB Migration - Use MongoDB auth instead of Firebase
+import { useAuth } from './contexts/AuthContextMongoDB';
 
 // Components
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundaryEnhanced from './components/ErrorBoundaryEnhanced';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
@@ -25,12 +27,10 @@ import Coupons from './pages/Coupons';
 import Shipping from './pages/Shipping';
 import CustomerSupport from './pages/CustomerSupport';
 
-// New Phase 10 Pages
-import ContentManager from './pages/ContentManager';
+// Phase 10: Platform Analytics
 import PlatformAnalytics from './pages/PlatformAnalytics';
 
-// Phase 14: Media Management Pages
-import MediaBrowser from './pages/MediaBrowser';
+// Phase 14: Media Management Pages (ContentManager, MediaBrowser removed - now in UserDetails tabs)
 import SoundManager from './pages/SoundManager';
 import TrendingControls from './pages/TrendingControls';
 import ProcessingQueue from './pages/ProcessingQueue';
@@ -45,11 +45,9 @@ import Wallets from './pages/Wallets';
 import Notifications from './pages/Notifications';
 
 // Content & Economy Management Pages
-import Videos from './pages/Videos';
+// Videos, Posts, Stories, ContentManager, UploadManager, MediaBrowser removed - now in UserDetails tabs
 import Gifts from './pages/Gifts';
 import APISettings from './pages/APISettings';
-import Posts from './pages/Posts';
-import Stories from './pages/Stories';
 import Coins from './pages/Coins';
 import Levels from './pages/Levels';
 import Banners from './pages/Banners';
@@ -58,10 +56,9 @@ import Explorer from './pages/Explorer';
 import Featured from './pages/Featured';
 import Transactions from './pages/Transactions';
 
-// New Missing Pages
+// System Management Pages
 import CommentsManagement from './pages/CommentsManagement';
 import TranslationsManagement from './pages/TranslationsManagement';
-import UploadManager from './pages/UploadManager';
 import CurrenciesManagement from './pages/CurrenciesManagement';
 import StreamingProviders from './pages/StreamingProviders';
 
@@ -132,6 +129,7 @@ function App() {
         path="/*" 
         element={
           <ProtectedRoute>
+            <ErrorBoundaryEnhanced>
             <ErrorBoundary>
             <Layout>
               <Routes>
@@ -153,12 +151,10 @@ function App() {
                 
                 <Route path="/analytics" element={<Analytics />} />
                 
-                {/* Phase 10: Content & Platform Management */}
-                <Route path="/content" element={<ContentManager />} />
+                {/* Phase 10: Platform Analytics */}
                 <Route path="/platform-analytics" element={<PlatformAnalytics />} />
                 
                 {/* Phase 14: Media Management */}
-                <Route path="/media-browser" element={<MediaBrowser />} />
                 <Route path="/sound-manager" element={<SoundManager />} />
                 <Route path="/trending-controls" element={<TrendingControls />} />
                 <Route path="/processing-queue" element={<ProcessingQueue />} />
@@ -174,9 +170,7 @@ function App() {
                 <Route path="/notifications" element={<Notifications />} />
                 
                 {/* Content & Economy Management */}
-                <Route path="/videos" element={<Videos />} />
-                <Route path="/posts" element={<Posts />} />
-                <Route path="/stories-manage" element={<Stories />} />
+                {/* Videos, Posts, Stories removed - now in UserDetails tabs */}
                 <Route path="/gifts" element={<Gifts />} />
                 <Route path="/coins" element={<Coins />} />
                 <Route path="/levels" element={<Levels />} />
@@ -191,16 +185,17 @@ function App() {
                 <Route path="/api-settings" element={<APISettings />} />
                 <Route path="/streaming-providers" element={<StreamingProviders />} />
                 
-                {/* New Missing Pages */}
+                {/* System Management */}
                 <Route path="/comments-management" element={<CommentsManagement />} />
                 <Route path="/translations" element={<TranslationsManagement />} />
-                <Route path="/upload-manager" element={<UploadManager />} />
+                {/* Upload Manager removed - now in UserDetails tabs */}
                 <Route path="/currencies" element={<CurrenciesManagement />} />
                 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Layout>
             </ErrorBoundary>
+            </ErrorBoundaryEnhanced>
           </ProtectedRoute>
         } 
       />

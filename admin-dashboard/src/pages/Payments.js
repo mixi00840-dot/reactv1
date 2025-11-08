@@ -25,8 +25,10 @@ import {
   AccountBalance as AccountBalanceIcon,
   CreditCard as CreditCardIcon,
 } from '@mui/icons-material';
-import api from '../utils/apiFirebase';
+// MongoDB Migration
+import mongoAPI from '../utils/apiMongoDB';
 import toast from 'react-hot-toast';
+const api = mongoAPI; // Alias for backward compatibility
 
 function Payments() {
   const [payments, setPayments] = useState([]);

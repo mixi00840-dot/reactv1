@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
-import 'app_shadows.dart';
-import 'app_typography.dart';
+//import 'app_shadows.dart';
+//import 'app_typography.dart';
 
 /// Enhanced App Theme - Premium TikTok/Instagram Level
 class AppTheme {
@@ -64,7 +65,7 @@ class AppTheme {
           color: AppColors.lightText,
           letterSpacing: 0,
         ),
-        // systemOverlayStyle: SystemUiOverlayStyle.dark,  // TODO: Fix import issue
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       
       // Bottom Navigation Bar Theme
@@ -360,7 +361,7 @@ class AppTheme {
           color: AppColors.darkText,
           letterSpacing: 0,
         ),
-        // systemOverlayStyle: SystemUiOverlayStyle.light,  // TODO: Fix import issue
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       
       // Bottom Navigation Bar Theme

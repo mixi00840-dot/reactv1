@@ -32,7 +32,7 @@ class PremiumCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = Container(
       margin: margin ?? EdgeInsets.zero,
-      padding: padding ?? AppSpacing.cardPadding(),
+      padding: padding ?? AppSpacing.cardPadding as EdgeInsets,
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.getCardColor(context),
         borderRadius: borderRadius ?? BorderRadius.circular(AppSpacing.radiusMd),
@@ -95,7 +95,7 @@ class _PremiumElevatedCardState extends State<PremiumElevatedCard> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
         margin: widget.margin ?? EdgeInsets.zero,
-        padding: widget.padding ?? AppSpacing.cardPadding(),
+        padding: widget.padding ?? AppSpacing.cardPadding as EdgeInsets,
         decoration: BoxDecoration(
           color: widget.backgroundColor ?? AppColors.getCardColor(context),
           borderRadius: widget.borderRadius ?? BorderRadius.circular(AppSpacing.radiusMd),

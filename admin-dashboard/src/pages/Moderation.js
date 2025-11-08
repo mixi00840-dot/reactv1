@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import api from '../utils/apiFirebase';
+// MongoDB Migration - Use MongoDB API instead of Firebase
+import mongoAPI from '../utils/apiMongoDB';
+import toast from 'react-hot-toast';
 import {
   Box,
   Paper,
@@ -58,15 +60,11 @@ const Moderation = () => {
   const fetchQueue = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const status = selectedTab === 0 ? 'pending' : selectedTab === 1 ? 'flagged' : 'all';
       
-      const response = await api.get(
-        `/api/moderation/queue?status=${status}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await mongoAPI.moderation.getQueue({ status });
       
-      setQueue(response?.items || response?.data?.items || []);
+      setQueue(response?.data?.items || response?.items || response?.data?.queue || []);
     } catch (error) {
       console.error('Error fetching moderation queue:', error);
     } finally {
@@ -76,12 +74,16 @@ const Moderation = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/moderation/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response || {});
+      // MongoDB doesn't have a separate stats endpoint yet, calculate from queue
+      const response = await mongoAPI.moderation.getQueue({ status: 'all' });
+      const allItems = response?.data?.items || response?.items || [];
+      
+      setStats({
+        pending: allItems.filter(item => item.status === 'pending').length,
+        flagged: allItems.filter(item => item.status === 'flagged').length,
+        approved: allItems.filter(item => item.status === 'approved').length,
+        rejected: allItems.filter(item => item.status === 'rejected').length
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -89,43 +91,33 @@ const Moderation = () => {
 
   const handleApprove = async (itemId) => {
     try {
-      const token = localStorage.getItem('token');
-      await api.post(
-        `/api/moderation/approve/${itemId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await mongoAPI.content.approve(itemId);
       fetchQueue();
       fetchStats();
       setDetailsOpen(false);
-      alert('Content approved');
+      toast.success('Content approved successfully');
     } catch (error) {
       console.error('Error approving content:', error);
-      alert('Failed to approve content');
+      toast.error(error.response?.data?.message || 'Failed to approve content');
     }
   };
 
   const handleReject = async (itemId) => {
     if (!rejectReason.trim()) {
-      alert('Please enter a rejection reason');
+      toast.error('Please enter a rejection reason');
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await api.post(
-        `/api/moderation/reject/${itemId}`,
-        { reason: rejectReason, action: 'takedown' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await mongoAPI.content.reject(itemId, rejectReason);
       fetchQueue();
       fetchStats();
       setDetailsOpen(false);
       setRejectReason('');
-      alert('Content rejected');
+      toast.success('Content rejected successfully');
     } catch (error) {
       console.error('Error rejecting content:', error);
-      alert('Failed to reject content');
+      toast.error(error.response?.data?.message || 'Failed to reject content');
     }
   };
 

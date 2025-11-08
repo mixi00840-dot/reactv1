@@ -13,7 +13,8 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, Login as LoginIcon } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
-import { useAuth } from '../contexts/AuthContextFirebase';
+// MongoDB Migration - Use MongoDB auth instead of Firebase
+import { useAuth } from '../contexts/AuthContextMongoDB';
 
 function Login() {
   const { login, loading } = useAuth();
@@ -28,9 +29,10 @@ function Login() {
 
   const onSubmit = async (data) => {
     setError('');
-    const success = await login(data);
-    if (!success) {
-      setError('Invalid credentials or insufficient privileges');
+    // MongoDB uses 'identifier' instead of separate login field
+    const result = await login(data.login, data.password);
+    if (!result.success) {
+      setError(result.message || 'Invalid credentials or insufficient privileges');
     }
   };
 
@@ -58,7 +60,10 @@ function Login() {
                 Mixillo Admin
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Sign in to access the admin dashboard
+                Sign in to access the admin dashboard (MongoDB)
+              </Typography>
+              <Typography variant="caption" color="primary" sx={{ display: 'block', mt: 1 }}>
+                ✅ Now using MongoDB + JWT Authentication
               </Typography>
             </Box>
 

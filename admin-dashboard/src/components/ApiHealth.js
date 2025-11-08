@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Tooltip, Chip } from '@mui/material';
-import api from '../utils/api';
+import axios from 'axios';
 
-const statusColor = (ok) => (ok ? 'success' : 'error');
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://mixillo-backend-52242135857.europe-west1.run.app/api';
 
 export default function ApiHealth() {
   const [health, setHealth] = useState({ api: null, db: null });
@@ -11,11 +11,14 @@ export default function ApiHealth() {
     let cancelled = false;
     const fetchHealth = async () => {
       try {
-        const [apiOk, dbRes] = await Promise.all([
-          api.get('/health').then(() => true).catch(() => false),
-          api.get('/api/health/db').catch(() => ({ status: 'error' })),
-        ]);
-        if (!cancelled) setHealth({ api: apiOk, db: dbRes?.status === 'ok' });
+        // Check backend health endpoint (without /api prefix since it's in baseURL)
+        const response = await axios.get(API_BASE_URL.replace('/api', '/health'));
+        
+        if (!cancelled && response.data) {
+          const isApiOk = response.data.status === 'ok';
+          const isDbOk = response.data.mongodb?.connected === true;
+          setHealth({ api: isApiOk, db: isDbOk });
+        }
       } catch (_) {
         if (!cancelled) setHealth({ api: false, db: false });
       }
@@ -25,7 +28,7 @@ export default function ApiHealth() {
     return () => { cancelled = true; clearInterval(t); };
   }, []);
 
-  const label = health.api === null ? 'Checking API…' : `API:${health.api ? 'OK' : 'DOWN'} · DB:${health.db ? 'OK' : 'ISSUE'}`;
+  const label = health.api === null ? 'Checking API…' : `API:${health.api ? 'OK' : 'DOWN'} · MongoDB:${health.db ? 'OK' : 'ISSUE'}`;
   const color = health.api && health.db ? 'success' : 'warning';
 
   return (

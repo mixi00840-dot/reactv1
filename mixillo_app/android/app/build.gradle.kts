@@ -3,10 +3,11 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.mixillo_app"
+    namespace = "com.mixillo.com"
     compileSdk = 36
     ndkVersion = "27.0.12077973"
 
@@ -23,8 +24,8 @@ android {
     // Note: ffmpeg-kit version resolution overrides removed pending correct coordinates
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.mixillo_app"
+        // Mixillo application ID matching Firebase configuration
+        applicationId = "com.mixillo.com"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // Raise minSdk to satisfy libraries like camerawesome (requires >=24)

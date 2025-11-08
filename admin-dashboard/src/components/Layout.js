@@ -63,7 +63,8 @@ import {
   AttachMoney as CurrencyIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+// MongoDB Migration - Use MongoDB auth
+import { useAuth } from '../contexts/AuthContextMongoDB';
 import ApiHealth from './ApiHealth';
 
 const drawerWidth = 280;
@@ -89,17 +90,7 @@ const menuItems = [
     icon: <PersonAddIcon />,
     path: '/create-user',
   },
-  // Content Management
-  {
-    text: 'Content Manager',
-    icon: <InventoryIcon />,
-    path: '/content',
-  },
-  {
-    text: 'Upload Manager',
-    icon: <UploadIcon />,
-    path: '/upload-manager',
-  },
+  // Content Management (Videos, Posts, Stories, Uploads now in UserDetails)
   {
     text: 'Comments Management',
     icon: <CommentIcon />,
@@ -111,11 +102,6 @@ const menuItems = [
     path: '/platform-analytics',
   },
   // Phase 14: Media Management
-  {
-    text: 'Media Browser',
-    icon: <VideoLibraryIcon />,
-    path: '/media-browser',
-  },
   {
     text: 'Sound Manager',
     icon: <MusicNoteIcon />,
@@ -167,23 +153,7 @@ const menuItems = [
     icon: <NotificationsActiveIcon />,
     path: '/notifications',
   },
-  // Content & Social Management
-  {
-    text: 'Videos',
-    icon: <VideoLibraryIcon />,
-    path: '/videos',
-  },
-  {
-    text: 'Posts',
-    icon: <PostIcon />,
-    path: '/posts',
-  },
-  {
-    text: 'Stories',
-    icon: <StoryIcon />,
-    path: '/stories-manage',
-  },
-  // Economy & Gamification
+  // Economy & Gamification (Videos, Posts, Stories removed - now in UserDetails)
   {
     text: 'Gifts',
     icon: <GiftIcon />,
