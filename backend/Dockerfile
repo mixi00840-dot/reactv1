@@ -2,8 +2,7 @@
 # Base with apt to install ffmpeg for media-related features
 FROM node:18-bullseye-slim AS base
 
-ENV NODE_ENV=production \
-    PORT=5000
+ENV NODE_ENV=production
 
 WORKDIR /app
 
@@ -31,4 +30,4 @@ EXPOSE 5000
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
 # Start the server
-CMD ["node", "src/server-simple.js"]
+CMD ["node", "src/server.js"]
