@@ -1,30 +1,41 @@
 const express = require('express');
 const router = express.Router();
-const { Gift } = require('../models/Gift');
-const { authMiddleware, adminMiddleware } = require('../middleware/auth');
+const Gift = require('../models/Gift');
+const GiftTransaction = require('../models/GiftTransaction');
+const Wallet = require('../models/Wallet');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
-// @route   GET /api/gifts
-// @desc    Get all gifts with filters
-// @access  Public
+/**
+ * Gifts Routes - MongoDB Implementation
+ */
+
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Gifts API is working (MongoDB)',
+    database: 'MongoDB'
+  });
+});
+
+/**
+ * @route   GET /api/gifts
+ * @desc    Get all gifts
+ * @access  Public
+ */
 router.get('/', async (req, res) => {
   try {
-    const {
-      category,
-      featured,
-      page = 1,
-      limit = 20,
-      sort = '-popularity'
-    } = req.query;
+    const { category, featured, page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
 
-    const query = { isActive: true };
-    
+    let query = { isActive: true };
     if (category) query.category = category;
     if (featured === 'true') query.isFeatured = true;
 
     const gifts = await Gift.find(query)
-      .sort(sort)
+      .sort({ sortOrder: 1, popularity: -1 })
       .limit(parseInt(limit))
-      .skip((page - 1) * limit);
+      .skip(skip);
 
     const total = await Gift.countDocuments(query);
 
@@ -35,10 +46,12 @@ router.get('/', async (req, res) => {
         pagination: {
           total,
           page: parseInt(page),
+          limit: parseInt(limit),
           pages: Math.ceil(total / limit)
         }
       }
     });
+
   } catch (error) {
     console.error('Get gifts error:', error);
     res.status(500).json({
@@ -48,132 +61,115 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   GET /api/gifts/categories
-// @desc    Get gift categories
-// @access  Public
-router.get('/categories', async (req, res) => {
+/**
+ * @route   POST /api/gifts/send
+ * @desc    Send gift to another user
+ * @access  Private
+ */
+router.post('/send', verifyJWT, async (req, res) => {
   try {
-    const categories = await Gift.distinct('category');
-    res.json({
-      success: true,
-      data: { categories }
-    });
-  } catch (error) {
-    console.error('Get gift categories error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching categories'
-    });
-  }
-});
+    const { giftId, recipientId, quantity = 1, context, livestreamId, contentId, message } = req.body;
+    const senderId = req.userId;
 
-// @route   GET /api/gifts/:id
-// @desc    Get gift by ID
-// @access  Public
-router.get('/:id', async (req, res) => {
-  try {
-    const gift = await Gift.findById(req.params.id);
-    
-    if (!gift) {
+    // Get gift
+    const gift = await Gift.findById(giftId);
+    if (!gift || !gift.isAvailable()) {
       return res.status(404).json({
         success: false,
-        message: 'Gift not found'
+        message: 'Gift not available'
       });
     }
 
-    res.json({
-      success: true,
-      data: { gift }
-    });
-  } catch (error) {
-    console.error('Get gift error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching gift'
-    });
-  }
-});
+    const totalCost = gift.price * quantity;
 
-// @route   POST /api/gifts
-// @desc    Create new gift
-// @access  Admin
-router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const gift = new Gift(req.body);
+    // Get sender wallet
+    const senderWallet = await Wallet.findOne({ userId: senderId });
+    if (!senderWallet || senderWallet.balance < totalCost) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance'
+      });
+    }
+
+    // Deduct from sender
+    await senderWallet.deductFunds(totalCost, `Sent ${quantity}x ${gift.name} to user`);
+
+    // Add to recipient
+    let recipientWallet = await Wallet.findOne({ userId: recipientId });
+    if (!recipientWallet) {
+      recipientWallet = new Wallet({ userId: recipientId });
+    }
+
+    const creatorEarnings = (totalCost * gift.creatorEarningsPercent) / 100;
+    await recipientWallet.addFunds(creatorEarnings, `Received ${quantity}x ${gift.name}`);
+
+    // Create gift transaction
+    const giftTransaction = new GiftTransaction({
+      giftId,
+      senderId,
+      recipientId,
+      context: context || 'profile',
+      livestreamId,
+      contentId,
+      quantity,
+      unitPrice: gift.price,
+      totalCost,
+      creatorEarnings,
+      platformFee: totalCost - creatorEarnings,
+      giftName: gift.name,
+      giftIcon: gift.icon,
+      giftAnimation: gift.animation,
+      message
+    });
+
+    await giftTransaction.save();
+
+    // Update gift stats
+    gift.timesSent += quantity;
+    gift.popularity += quantity;
+    gift.totalRevenue += totalCost;
     await gift.save();
 
-    res.status(201).json({
+    res.json({
       success: true,
-      data: { gift },
-      message: 'Gift created successfully'
+      data: { transaction: giftTransaction },
+      message: 'Gift sent successfully'
     });
+
   } catch (error) {
-    console.error('Create gift error:', error);
+    console.error('Send gift error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error creating gift',
+      message: 'Error sending gift',
       error: error.message
     });
   }
 });
 
-// @route   PUT /api/gifts/:id
-// @desc    Update gift
-// @access  Admin
-router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
+/**
+ * @route   GET /api/gifts/popular
+ * @desc    Get popular gifts
+ * @access  Public
+ */
+router.get('/popular', async (req, res) => {
   try {
-    const gift = await Gift.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const { limit = 20 } = req.query;
 
-    if (!gift) {
-      return res.status(404).json({
-        success: false,
-        message: 'Gift not found'
-      });
-    }
+    const gifts = await Gift.getPopularGifts(parseInt(limit));
 
     res.json({
       success: true,
-      data: { gift },
-      message: 'Gift updated successfully'
+      data: { gifts }
     });
+
   } catch (error) {
-    console.error('Update gift error:', error);
+    console.error('Get popular gifts error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error updating gift'
-    });
-  }
-});
-
-// @route   DELETE /api/gifts/:id
-// @desc    Delete gift
-// @access  Admin
-router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const gift = await Gift.findByIdAndDelete(req.params.id);
-
-    if (!gift) {
-      return res.status(404).json({
-        success: false,
-        message: 'Gift not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Gift deleted successfully'
-    });
-  } catch (error) {
-    console.error('Delete gift error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting gift'
+      message: 'Error fetching popular gifts'
     });
   }
 });
 
 module.exports = router;
+

@@ -1,409 +1,271 @@
 const express = require('express');
 const router = express.Router();
-const { body, param, query, validationResult } = require('express-validator');
-const orderController = require('../controllers/orderController');
-const { 
-  authMiddleware, 
-  adminMiddleware, 
-  sellerMiddleware,
-  customerMiddleware,
-  rateLimitMiddleware,
-  permissionMiddleware
-} = require('../middleware/auth');
+const Order = require('../models/Order');
+const Cart = require('../models/Cart');
+const Product = require('../models/Product');
+const Wallet = require('../models/Wallet');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
-// Validation rules
-const orderIdValidation = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid order ID format')
-];
+/**
+ * Orders Routes - MongoDB Implementation
+ */
 
-const orderStatusValidation = [
-  body('status')
-    .isIn(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'disputed'])
-    .withMessage('Invalid order status'),
-  body('notes')
-    .optional()
-    .isLength({ max: 500 })
-    .withMessage('Notes must be less than 500 characters'),
-  body('trackingNumber')
-    .optional()
-    .isLength({ min: 5, max: 50 })
-    .withMessage('Tracking number must be between 5-50 characters'),
-  body('estimatedDelivery')
-    .optional()
-    .isISO8601()
-    .withMessage('Invalid delivery date format')
-];
-
-const refundValidation = [
-  body('amount')
-    .isFloat({ min: 0.01 })
-    .withMessage('Refund amount must be greater than 0'),
-  body('reason')
-    .notEmpty()
-    .isLength({ min: 10, max: 500 })
-    .withMessage('Refund reason must be between 10-500 characters'),
-  body('method')
-    .optional()
-    .isIn(['original', 'wallet', 'store_credit'])
-    .withMessage('Invalid refund method'),
-  body('items')
-    .optional()
-    .isArray()
-    .withMessage('Items must be an array'),
-  body('items.*.itemId')
-    .if(body('items').exists())
-    .isMongoId()
-    .withMessage('Invalid item ID'),
-  body('items.*.quantity')
-    .if(body('items').exists())
-    .isInt({ min: 1 })
-    .withMessage('Quantity must be a positive integer')
-];
-
-const shippingUpdateValidation = [
-  body('trackingNumber')
-    .optional()
-    .isLength({ min: 5, max: 50 })
-    .withMessage('Tracking number must be between 5-50 characters'),
-  body('carrier')
-    .optional()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Carrier name must be between 2-50 characters'),
-  body('estimatedDelivery')
-    .optional()
-    .isISO8601()
-    .withMessage('Invalid delivery date format'),
-  body('notes')
-    .optional()
-    .isLength({ max: 500 })
-    .withMessage('Notes must be less than 500 characters'),
-  body('shippingAddress')
-    .optional()
-    .isObject()
-    .withMessage('Shipping address must be an object')
-];
-
-const bulkUpdateValidation = [
-  body('orderIds')
-    .isArray({ min: 1 })
-    .withMessage('Order IDs array is required'),
-  body('orderIds.*')
-    .isMongoId()
-    .withMessage('Invalid order ID format'),
-  body('updates')
-    .isObject()
-    .withMessage('Updates object is required'),
-  body('updates.status')
-    .optional()
-    .isIn(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'])
-    .withMessage('Invalid status')
-];
-
-const cancelOrderValidation = [
-  body('reason')
-    .notEmpty()
-    .isLength({ min: 10, max: 500 })
-    .withMessage('Cancellation reason must be between 10-500 characters'),
-  body('refundMethod')
-    .optional()
-    .isIn(['original', 'wallet', 'store_credit'])
-    .withMessage('Invalid refund method')
-];
-
-const queryValidation = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer'),
-  query('limit')
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('Limit must be between 1-100'),
-  query('sort')
-    .optional()
-    .isIn([
-      'createdAt', '-createdAt', 
-      'updatedAt', '-updatedAt',
-      'totals.finalTotal', '-totals.finalTotal',
-      'status', '-status'
-    ])
-    .withMessage('Invalid sort parameter'),
-  query('status')
-    .optional()
-    .isIn(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'disputed'])
-    .withMessage('Invalid status filter'),
-  query('paymentStatus')
-    .optional()
-    .isIn(['pending', 'processing', 'completed', 'failed', 'refunded'])
-    .withMessage('Invalid payment status filter'),
-  query('shippingStatus')
-    .optional()
-    .isIn(['pending', 'shipped', 'delivered'])
-    .withMessage('Invalid shipping status filter'),
-  query('startDate')
-    .optional()
-    .isISO8601()
-    .withMessage('Invalid start date format'),
-  query('endDate')
-    .optional()
-    .isISO8601()
-    .withMessage('Invalid end date format'),
-  query('minAmount')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Minimum amount must be non-negative'),
-  query('maxAmount')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Maximum amount must be non-negative'),
-  query('search')
-    .optional()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Search term must be between 2-100 characters')
-];
-
-// Validation error handler
-const handleValidationErrors = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors.array()
-    });
-  }
-  next();
-};
-
-// Apply rate limiting to all routes
-router.use(rateLimitMiddleware({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-}));
-
-// GET /api/orders - Get orders with filtering and pagination
-router.get('/',
-  authMiddleware,
-  queryValidation,
-  handleValidationErrors,
-  orderController.getOrders
-);
-
-// GET /api/orders/stats - Global order stats (admin dashboard)
-router.get('/stats',
-  authMiddleware,
-  orderController.getGlobalStats
-);
-
-// GET /api/orders/analytics - Get order analytics (seller/admin only)
-router.get('/analytics',
-  authMiddleware,
-  permissionMiddleware(['admin', 'seller']),
-  [
-    query('startDate')
-      .optional()
-      .isISO8601()
-      .withMessage('Invalid start date format'),
-    query('endDate')
-      .optional()
-      .isISO8601()
-      .withMessage('Invalid end date format'),
-    query('storeId')
-      .optional()
-      .isMongoId()
-      .withMessage('Invalid store ID'),
-    query('granularity')
-      .optional()
-      .isIn(['hour', 'day', 'week', 'month'])
-      .withMessage('Invalid granularity')
-  ],
-  handleValidationErrors,
-  orderController.getOrderAnalytics
-);
-
-// GET /api/orders/:id - Get single order
-router.get('/:id',
-  authMiddleware,
-  orderIdValidation,
-  handleValidationErrors,
-  orderController.getOrder
-);
-
-// PUT /api/orders/:id/status - Update order status (seller/admin only)
-router.put('/:id/status',
-  authMiddleware,
-  permissionMiddleware(['admin', 'seller']),
-  rateLimitMiddleware({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 20 // 20 status updates per 5 minutes
-  }),
-  orderIdValidation,
-  orderStatusValidation,
-  handleValidationErrors,
-  orderController.updateOrderStatus
-);
-
-// PUT /api/orders/:id/shipping - Update shipping information (seller/admin only)
-router.put('/:id/shipping',
-  authMiddleware,
-  permissionMiddleware(['admin', 'seller']),
-  rateLimitMiddleware({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 15 // 15 shipping updates per 5 minutes
-  }),
-  orderIdValidation,
-  shippingUpdateValidation,
-  handleValidationErrors,
-  orderController.updateShipping
-);
-
-// POST /api/orders/:id/cancel - Cancel order
-router.post('/:id/cancel',
-  authMiddleware,
-  rateLimitMiddleware({
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 5 // 5 cancellations per 10 minutes
-  }),
-  orderIdValidation,
-  cancelOrderValidation,
-  handleValidationErrors,
-  orderController.cancelOrder
-);
-
-// POST /api/orders/:id/refund - Process refund (seller/admin only)
-router.post('/:id/refund',
-  authMiddleware,
-  permissionMiddleware(['admin', 'seller']),
-  rateLimitMiddleware({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10 // 10 refunds per 15 minutes
-  }),
-  orderIdValidation,
-  refundValidation,
-  handleValidationErrors,
-  orderController.processOrderRefund
-);
-
-// PUT /api/orders/bulk - Bulk update orders (admin only)
-router.put('/bulk',
-  authMiddleware,
-  adminMiddleware,
-  rateLimitMiddleware({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5 // 5 bulk operations per 15 minutes
-  }),
-  bulkUpdateValidation,
-  handleValidationErrors,
-  orderController.bulkUpdateOrders
-);
-
-// Customer-specific routes
-
-// GET /api/orders/customer/history - Get customer's order history
-router.get('/customer/history',
-  authMiddleware,
-  customerMiddleware,
-  queryValidation,
-  handleValidationErrors,
-  orderController.getOrders
-);
-
-// POST /api/orders/customer/:id/review - Add order review (customer only)
-router.post('/customer/:id/review',
-  authMiddleware,
-  customerMiddleware,
-  rateLimitMiddleware({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10 // 10 reviews per hour
-  }),
-  orderIdValidation,
-  [
-    body('rating')
-      .isInt({ min: 1, max: 5 })
-      .withMessage('Rating must be between 1-5'),
-    body('comment')
-      .optional()
-      .isLength({ min: 10, max: 1000 })
-      .withMessage('Comment must be between 10-1000 characters'),
-    body('items')
-      .optional()
-      .isArray()
-      .withMessage('Items must be an array'),
-    body('items.*.productId')
-      .if(body('items').exists())
-      .isMongoId()
-      .withMessage('Invalid product ID'),
-    body('items.*.rating')
-      .if(body('items').exists())
-      .isInt({ min: 1, max: 5 })
-      .withMessage('Product rating must be between 1-5'),
-    body('items.*.comment')
-      .if(body('items').exists())
-      .optional()
-      .isLength({ max: 500 })
-      .withMessage('Product comment must be less than 500 characters')
-  ],
-  handleValidationErrors,
-  async (req, res) => {
-    // This would be implemented to handle order reviews
-    res.json({
-      success: true,
-      message: 'Order review functionality to be implemented'
-    });
-  }
-);
-
-// Seller-specific routes
-
-// GET /api/orders/seller/dashboard - Get seller order dashboard
-router.get('/seller/dashboard',
-  authMiddleware,
-  sellerMiddleware,
-  [
-    query('period')
-      .optional()
-      .isIn(['today', 'week', 'month', 'quarter', 'year'])
-      .withMessage('Invalid period')
-  ],
-  handleValidationErrors,
-  async (req, res) => {
-    // This would provide seller-specific dashboard data
-    res.json({
-      success: true,
-      message: 'Seller dashboard functionality to be implemented'
-    });
-  }
-);
-
-// Error handling middleware
-router.use((error, req, res, next) => {
-  console.error('Order routes error:', error);
-  
-  if (error.name === 'ValidationError') {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: Object.values(error.errors).map(err => ({
-        field: err.path,
-        message: err.message
-      }))
-    });
-  }
-
-  if (error.name === 'CastError') {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid ID format'
-    });
-  }
-
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : undefined
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Orders API is working (MongoDB)',
+    database: 'MongoDB'
   });
+});
+
+/**
+ * @route   GET /api/orders
+ * @desc    Get user orders
+ * @access  Private
+ */
+router.get('/', verifyJWT, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status } = req.query;
+    const userId = req.userId;
+
+    const orders = await Order.getUserOrders(userId, {
+      status,
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
+
+    const total = await Order.countDocuments({ userId });
+
+    res.json({
+      success: true,
+      data: {
+        orders,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get orders error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching orders'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/orders
+ * @desc    Create order from cart
+ * @access  Private
+ */
+router.post('/', verifyJWT, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { shippingAddress, paymentMethod, couponCode } = req.body;
+
+    // Get user's cart
+    const cart = await Cart.findOne({ userId }).populate('items.productId');
+
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cart is empty'
+      });
+    }
+
+    // Calculate totals
+    let subtotal = 0;
+    const orderItems = [];
+
+    for (const item of cart.items) {
+      const product = item.productId;
+      
+      // Check stock
+      if (product.trackInventory && product.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name}`
+        });
+      }
+
+      const itemTotal = product.price * item.quantity;
+      subtotal += itemTotal;
+
+      orderItems.push({
+        productId: product._id,
+        storeId: product.storeId,
+        name: product.name,
+        price: product.price,
+        quantity: item.quantity,
+        variant: item.variant,
+        image: product.images?.[0]?.url,
+        total: itemTotal
+      });
+    }
+
+    // Calculate tax, shipping, discount
+    const tax = subtotal * 0.1; // 10% tax (configurable)
+    const shipping = subtotal > 50 ? 0 : 5.99; // Free shipping over $50
+    let discount = 0;
+
+    // Apply coupon if provided
+    if (couponCode) {
+      const Coupon = require('../models/Coupon');
+      const coupon = await Coupon.findOne({ 
+        code: couponCode.toUpperCase(),
+        isActive: true,
+        validFrom: { $lte: new Date() },
+        validUntil: { $gte: new Date() }
+      });
+
+      if (coupon && subtotal >= coupon.minPurchase) {
+        if (coupon.type === 'percentage') {
+          discount = (subtotal * coupon.value) / 100;
+          if (coupon.maxDiscount) {
+            discount = Math.min(discount, coupon.maxDiscount);
+          }
+        } else {
+          discount = coupon.value;
+        }
+        
+        // Update coupon usage
+        coupon.usageCount += 1;
+        await coupon.save();
+      }
+    }
+
+    const total = subtotal + tax + shipping - discount;
+
+    // Create order
+    const order = new Order({
+      userId,
+      items: orderItems,
+      subtotal,
+      tax,
+      shipping,
+      discount,
+      total,
+      couponCode,
+      shippingAddress,
+      paymentMethod,
+      sellerId: orderItems[0].storeId // Primary seller
+    });
+
+    await order.save();
+
+    // Reduce product stock
+    for (const item of cart.items) {
+      const product = item.productId;
+      if (product.trackInventory) {
+        await product.reduceStock(item.quantity);
+      }
+    }
+
+    // Clear cart
+    await cart.clear();
+
+    res.status(201).json({
+      success: true,
+      data: { order },
+      message: 'Order created successfully'
+    });
+
+  } catch (error) {
+    console.error('Create order error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating order',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/orders/:id
+ * @desc    Get order by ID
+ * @access  Private (Order owner or Admin)
+ */
+router.get('/:id', verifyJWT, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('items.productId', 'name images')
+      .populate('items.storeId', 'name logo');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Check ownership
+    if (!order.userId.equals(req.userId) && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { order }
+    });
+
+  } catch (error) {
+    console.error('Get order error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching order'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/orders/:id/status
+ * @desc    Update order status
+ * @access  Private (Seller or Admin)
+ */
+router.put('/:id/status', verifyJWT, async (req, res) => {
+  try {
+    const { status, note } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Check permission (seller or admin)
+    if (!order.sellerId?.equals(req.userId) && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    await order.updateStatus(status, note, req.userId);
+
+    res.json({
+      success: true,
+      data: { order },
+      message: `Order status updated to ${status}`
+    });
+
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating order status'
+    });
+  }
 });
 
 module.exports = router;

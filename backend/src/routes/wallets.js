@@ -1,179 +1,185 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, adminMiddleware } = require('../middleware/auth');
-const walletsHelpers = require('../utils/walletsHelpers');
+const Wallet = require('../models/Wallet');
+const Transaction = require('../models/Transaction');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 /**
- * Wallets Routes - Firestore Implementation
+ * Wallets Routes - MongoDB Implementation
  */
 
-// Get wallet statistics (Admin)
-router.get('/stats', authenticate, adminMiddleware, async (req, res) => {
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Wallets API is working (MongoDB)',
+    database: 'MongoDB'
+  });
+});
+
+/**
+ * @route   GET /api/wallets/:userId
+ * @desc    Get user wallet
+ * @access  Private (Wallet owner or Admin)
+ */
+router.get('/:userId', verifyJWT, async (req, res) => {
   try {
-    const stats = await walletsHelpers.getWalletsStats();
-    res.json({ success: true, data: stats });
+    const { userId } = req.params;
+
+    // Check permission
+    if (userId !== req.userId.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    let wallet = await Wallet.findOne({ userId });
+
+    // Auto-create wallet if doesn't exist
+    if (!wallet) {
+      wallet = new Wallet({ userId });
+      await wallet.save();
+    }
+
+    res.json({
+      success: true,
+      data: { wallet }
+    });
+
   } catch (error) {
-    console.error('Error getting wallets stats:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Get wallet error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching wallet'
+    });
   }
 });
 
-// Get all wallets (Admin)
-router.get('/', authenticate, adminMiddleware, async (req, res) => {
+/**
+ * @route   GET /api/wallets/:userId/balance
+ * @desc    Get wallet balance
+ * @access  Private (Wallet owner or Admin)
+ */
+router.get('/:userId/balance', verifyJWT, async (req, res) => {
   try {
-    const { limit = 100, status, minBalance } = req.query;
-    const wallets = await walletsHelpers.getAllWallets({
+    const { userId } = req.params;
+
+    // Check permission
+    if (userId !== req.userId.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    const wallet = await Wallet.findOne({ userId });
+
+    res.json({
+      success: true,
+      data: {
+        balance: wallet?.balance || 0,
+        currency: wallet?.currency || 'USD'
+      }
+    });
+
+  } catch (error) {
+    console.error('Get balance error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching balance'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/wallets/:userId/transactions
+ * @desc    Get wallet transactions
+ * @access  Private (Wallet owner or Admin)
+ */
+router.get('/:userId/transactions', verifyJWT, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page = 1, limit = 50, type, status } = req.query;
+
+    // Check permission
+    if (userId !== req.userId.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    const transactions = await Transaction.getUserTransactions(userId, {
+      page: parseInt(page),
       limit: parseInt(limit),
-      status,
-      minBalance: minBalance ? parseFloat(minBalance) : undefined
+      type,
+      status
     });
-    res.json({ success: true, data: { wallets, count: wallets.length } });
-  } catch (error) {
-    console.error('Error getting all wallets:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
-// Get current user's wallet
-router.get('/me', authenticate, async (req, res) => {
-  try {
-    const wallet = await walletsHelpers.getWalletByUserId(req.user.uid);
-    res.json({ success: true, data: { wallet } });
-  } catch (error) {
-    console.error('Error getting wallet:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+    const total = await Transaction.countDocuments({ userId });
 
-// Get current user's wallet balance
-router.get('/balance', authenticate, async (req, res) => {
-  try {
-    const wallet = await walletsHelpers.getWalletByUserId(req.user.uid);
-    res.json({ 
-      success: true, 
-      data: { 
-        balance: wallet.balance || 0,
-        currency: wallet.currency || 'USD'
-      } 
+    res.json({
+      success: true,
+      data: {
+        transactions,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
     });
+
   } catch (error) {
-    console.error('Error getting balance:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Get transactions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching transactions'
+    });
   }
 });
 
-// Get current user's transactions
-router.get('/transactions', authenticate, async (req, res) => {
-  try {
-    const { limit = 50 } = req.query;
-    const transactions = await walletsHelpers.getTransactions(req.user.uid, { limit: parseInt(limit) });
-    res.json({ success: true, data: { transactions } });
-  } catch (error) {
-    console.error('Error getting transactions:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Get user wallet by ID (Admin)
-router.get('/:userId', authenticate, adminMiddleware, async (req, res) => {
+/**
+ * @route   POST /api/wallets/:userId/add-funds
+ * @desc    Add funds to wallet
+ * @access  Admin only (in production, this would be via payment gateway)
+ */
+router.post('/:userId/add-funds', verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
-    const wallet = await walletsHelpers.getWalletByUserId(userId);
-    res.json({ success: true, data: { wallet } });
-  } catch (error) {
-    console.error('Error getting user wallet:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+    const { amount, description } = req.body;
 
-// Add funds to user wallet (Admin)
-router.post('/:userId/deposit', authenticate, adminMiddleware, async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { amount, description, source } = req.body;
-    
     if (!amount || amount <= 0) {
-      return res.status(400).json({ success: false, message: 'Invalid amount' });
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be positive'
+      });
     }
-    
-    const result = await walletsHelpers.addFunds(userId, amount, { description, source });
-    res.json({ success: true, data: result, message: 'Funds added successfully' });
-  } catch (error) {
-    console.error('Error adding funds:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
-// Deduct funds from user wallet (Admin)
-router.post('/:userId/deduct', authenticate, adminMiddleware, async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { amount, description, destination } = req.body;
-    
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ success: false, message: 'Invalid amount' });
-    }
-    
-    const result = await walletsHelpers.deductFunds(userId, amount, { description, destination });
-    res.json({ success: true, data: result, message: 'Funds deducted successfully' });
-  } catch (error) {
-    console.error('Error deducting funds:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+    let wallet = await Wallet.findOne({ userId });
 
-// Create withdrawal request
-router.post('/withdraw', authenticate, async (req, res) => {
-  try {
-    const { amount, method, accountDetails } = req.body;
-    
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ success: false, message: 'Invalid amount' });
+    if (!wallet) {
+      wallet = new Wallet({ userId });
+      await wallet.save();
     }
-    
-    const result = await walletsHelpers.createWithdrawalRequest(req.user.uid, amount, {
-      method,
-      accountDetails
+
+    await wallet.addFunds(amount, description || 'Funds added by admin');
+
+    res.json({
+      success: true,
+      data: { wallet },
+      message: 'Funds added successfully'
     });
-    res.json({ success: true, data: result, message: 'Withdrawal request created' });
-  } catch (error) {
-    console.error('Error creating withdrawal:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
-// Process withdrawal (Admin)
-router.post('/withdrawals/:withdrawalId/process', authenticate, adminMiddleware, async (req, res) => {
-  try {
-    const { withdrawalId } = req.params;
-    const { status, adminNotes } = req.body;
-    
-    if (!['approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ success: false, message: 'Invalid status' });
-    }
-    
-    await walletsHelpers.processWithdrawal(withdrawalId, status, adminNotes);
-    res.json({ success: true, message: `Withdrawal ${status}` });
   } catch (error) {
-    console.error('Error processing withdrawal:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Transfer funds between users
-router.post('/transfer', authenticate, async (req, res) => {
-  try {
-    const { toUserId, amount, description } = req.body;
-    
-    if (!toUserId || !amount || amount <= 0) {
-      return res.status(400).json({ success: false, message: 'Invalid transfer details' });
-    }
-    
-    const result = await walletsHelpers.transferFunds(req.user.uid, toUserId, amount, description);
-    res.json({ success: true, data: result, message: 'Transfer successful' });
-  } catch (error) {
-    console.error('Error transferring funds:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Add funds error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error adding funds',
+      error: error.message
+    });
   }
 });
 

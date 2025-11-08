@@ -1,90 +1,129 @@
 const express = require('express');
 const router = express.Router();
-const metricsController = require('../controllers/metricsController');
-const { protect, adminOnly } = require('../middleware/auth');
+const User = require('../models/User');
+const Content = require('../models/Content');
+const Order = require('../models/Order');
+const Analytics = require('../models/Analytics');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 /**
- * Event Tracking Routes
- * Public routes for tracking user interactions
+ * Metrics Routes - MongoDB Implementation
+ * Platform metrics and overview statistics
  */
 
-// Track single event
-router.post('/events/track', protect, metricsController.trackEvent);
-
-// Track batch events (offline sync)
-router.post('/events/track-batch', protect, metricsController.trackBatchEvents);
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Metrics API is working (MongoDB)',
+    database: 'MongoDB'
+  });
+});
 
 /**
- * Content Metrics Routes
+ * @route   GET /api/metrics/overview
+ * @desc    Get platform metrics overview
+ * @access  Admin
  */
-
-// Get metrics for specific content
-router.get('/content/:contentId', protect, metricsController.getContentMetrics);
-
-// Get trending content
-router.get('/trending', metricsController.getTrendingContent);
-
-// Get top performing content
-router.get('/top-performing', metricsController.getTopPerforming);
-
-/**
- * Creator Analytics Routes
- * Protected routes for content creators
- */
-
-// Get creator's aggregated analytics
-router.get('/creator/analytics', protect, metricsController.getCreatorAnalytics);
-
-// Get creator's content performance list
-router.get('/creator/content', protect, metricsController.getCreatorContentPerformance);
-
-/**
- * User Routes
- */
-
-// Get user's watch history
-router.get('/user/watch-history', protect, metricsController.getUserWatchHistory);
-
-/**
- * Admin Routes
- * Admin-only routes for platform management
- */
-
-// Get overview metrics for dashboard
-router.get('/overview', protect, async (req, res) => {
+router.get('/overview', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const overview = {
-      totalViews: 2450000,
-      totalLikes: 185000,
-      totalComments: 45000,
-      totalShares: 25000,
-      avgEngagement: 7.5,
-      topPerformers: [],
-      recentActivity: [],
-      growthMetrics: {
-        viewsGrowth: '+15%',
-        usersGrowth: '+12%',
-        engagementGrowth: '+8%'
-      }
-    };
+    const { timeRange = '7d' } = req.query;
     
+    // Calculate date range
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (timeRange) {
+      case '24h':
+        startDate.setDate(now.getDate() - 1);
+        break;
+      case '7d':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case '30d':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case '90d':
+        startDate.setDate(now.getDate() - 90);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 7);
+    }
+
+    // Get metrics
+    const [
+      totalViews,
+      activeUsers,
+      videosUploaded,
+      revenue,
+      totalUsers,
+      totalContent,
+      totalOrders
+    ] = await Promise.all([
+      Content.aggregate([
+        { $match: { createdAt: { $gte: startDate } } },
+        { $group: { _id: null, total: { $sum: '$viewsCount' } } }
+      ]),
+      User.countDocuments({
+        lastActiveAt: { $gte: startDate },
+        status: 'active'
+      }),
+      Content.countDocuments({
+        type: 'video',
+        createdAt: { $gte: startDate }
+      }),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: startDate }, status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+      ]),
+      User.countDocuments(),
+      Content.countDocuments(),
+      Order.countDocuments()
+    ]);
+
+    // Calculate engagement rate
+    const totalInteractions = await Content.aggregate([
+      { $match: { createdAt: { $gte: startDate } } },
+      { $group: { _id: null, total: { $sum: { $add: ['$likesCount', '$commentsCount', '$sharesCount'] } } } }
+    ]);
+
+    const totalContentViews = totalViews[0]?.total || 0;
+    const engagementRate = totalContentViews > 0 
+      ? ((totalInteractions[0]?.total || 0) / totalContentViews * 100).toFixed(2)
+      : 0;
+
+    // Calculate average watch time (simplified)
+    const avgWatchTime = totalContentViews > 0 
+      ? (totalContentViews * 0.4).toFixed(2)  // Placeholder calculation
+      : 0;
+
     res.json({
       success: true,
-      data: overview
+      data: {
+        totalViews: totalContentViews,
+        activeUsers: activeUsers,
+        videosUploaded: videosUploaded,
+        engagementRate: parseFloat(engagementRate),
+        avgWatchTime: parseFloat(avgWatchTime),
+        revenue: revenue[0]?.total || 0,
+        overview: {
+          totalUsers,
+          totalContent,
+          totalOrders
+        },
+        timeRange
+      }
     });
+
   } catch (error) {
     console.error('Get metrics overview error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get metrics overview'
+      message: 'Error fetching metrics overview',
+      error: error.message
     });
   }
 });
 
-// Manually trigger event processing
-router.post('/admin/process-events', protect, adminOnly, metricsController.processEvents);
-
-// Get platform-wide statistics
-router.get('/admin/stats', protect, adminOnly, metricsController.getPlatformStats);
-
 module.exports = router;
+

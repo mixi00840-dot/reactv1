@@ -1,178 +1,230 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, adminMiddleware } = require('../middleware/auth');
-const storiesHelpers = require('../utils/storiesHelpers');
+const Story = require('../models/Story');
+const User = require('../models/User');
+const { verifyJWT } = require('../middleware/jwtAuth');
 
 /**
- * Story Routes - Firestore Implementation
- * All routes require authentication
+ * Stories Routes - MongoDB Implementation
  */
 
-// Get stories statistics
-router.get('/stats', async (req, res) => {
-  try {
-    const stats = await storiesHelpers.getStoriesStats();
-    res.json({ success: true, data: stats });
-  } catch (error) {
-    console.error('Error getting stories stats:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Stories API is working (MongoDB)',
+    database: 'MongoDB'
+  });
 });
 
-// Get all active stories
-router.get('/', async (req, res) => {
+/**
+ * @route   GET /api/stories
+ * @desc    Get all active stories (from followed users)
+ * @access  Private
+ */
+router.get('/', verifyJWT, async (req, res) => {
   try {
-    const { limit = 100, status = 'active' } = req.query;
-    const stories = await storiesHelpers.getAllActiveStories({ 
-      limit: parseInt(limit),
-      status
+    const userId = req.userId;
+    const Follow = require('../models/Follow');
+
+    // Get followed users
+    const follows = await Follow.find({ followerId: userId }).distinct('followingId');
+    const userIds = [userId, ...follows]; // Include own stories
+
+    // Get active stories
+    const stories = await Story.aggregate([
+      {
+        $match: {
+          userId: { $in: userIds },
+          expiresAt: { $gt: new Date() },
+          isArchived: false
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $group: {
+          _id: '$userId',
+          stories: { $push: '$$ROOT' },
+          latestStory: { $first: '$createdAt' },
+          totalStories: { $sum: 1 },
+          hasViewed: { $first: '$viewers' }
+        }
+      },
+      {
+        $sort: { latestStory: -1 }
+      }
+    ]);
+
+    // Populate user data
+    for (let story of stories) {
+      const user = await User.findById(story._id).select('username fullName avatar isVerified');
+      story.user = user;
+    }
+
+    res.json({
+      success: true,
+      data: { stories }
     });
-    res.json({ success: true, data: { stories, count: stories.length } });
-  } catch (error) {
-    console.error('Error getting active stories:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
-// Create story
-router.post('/', authenticate, async (req, res) => {
-  try {
-    const story = await storiesHelpers.createStory({
-      userId: req.user.uid,
-      ...req.body
+  } catch (error) {
+    console.error('Get stories error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching stories'
     });
-    res.status(201).json({ success: true, data: story });
-  } catch (error) {
-    console.error('Error creating story:', error);
-    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Get stories feed (following users)
-router.get('/feed', authenticate, async (req, res) => {
+/**
+ * @route   POST /api/stories
+ * @desc    Create new story
+ * @access  Private
+ */
+router.post('/', verifyJWT, async (req, res) => {
   try {
-    const { limit = 50 } = req.query;
-    // Get user's following list from Firestore
-    const userDoc = await require('./database').collection('users').doc(req.user.uid).get();
-    const following = userDoc.data()?.following || [];
-    
-    const stories = await storiesHelpers.getStoriesFeed(req.user.uid, following, { limit: parseInt(limit) });
-    res.json({ success: true, data: { stories } });
+    const { type, mediaUrl, thumbnailUrl, caption, duration, musicId } = req.body;
+    const userId = req.userId;
+
+    const story = new Story({
+      userId,
+      type,
+      mediaUrl,
+      thumbnailUrl,
+      caption,
+      duration: duration || 5,
+      musicId,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    });
+
+    await story.save();
+
+    res.status(201).json({
+      success: true,
+      data: { story },
+      message: 'Story created successfully'
+    });
+
   } catch (error) {
-    console.error('Error getting stories feed:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Create story error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating story',
+      error: error.message
+    });
   }
 });
 
-// Get user stories
-router.get('/user/:userId', async (req, res) => {
+/**
+ * @route   GET /api/stories/:id
+ * @desc    Get story by ID
+ * @access  Private
+ */
+router.get('/:id', verifyJWT, async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { limit = 50 } = req.query;
-    const stories = await storiesHelpers.getUserStories(userId, { limit: parseInt(limit) });
-    res.json({ success: true, data: { stories } });
+    const story = await Story.findById(req.params.id)
+      .populate('userId', 'username fullName avatar isVerified');
+
+    if (!story) {
+      return res.status(404).json({
+        success: false,
+        message: 'Story not found or expired'
+      });
+    }
+
+    // Check if expired
+    if (story.expiresAt < new Date()) {
+      return res.status(404).json({
+        success: false,
+        message: 'Story has expired'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { story }
+    });
+
   } catch (error) {
-    console.error('Error getting user stories:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Get story error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching story'
+    });
   }
 });
 
-// View story
-router.post('/:storyId/view', authenticate, async (req, res) => {
+/**
+ * @route   POST /api/stories/:id/view
+ * @desc    Record story view
+ * @access  Private
+ */
+router.post('/:id/view', verifyJWT, async (req, res) => {
   try {
-    const { storyId } = req.params;
-    await storiesHelpers.viewStory(storyId, req.user.uid);
-    res.json({ success: true, message: 'Story viewed' });
+    const story = await Story.findById(req.params.id);
+
+    if (!story) {
+      return res.status(404).json({
+        success: false,
+        message: 'Story not found'
+      });
+    }
+
+    await story.addViewer(req.userId);
+
+    res.json({
+      success: true,
+      data: { viewsCount: story.viewsCount },
+      message: 'View recorded'
+    });
+
   } catch (error) {
-    console.error('Error viewing story:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Record story view error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error recording view'
+    });
   }
 });
 
-// Add reaction to story
-router.post('/:storyId/reactions', authenticate, async (req, res) => {
+/**
+ * @route   DELETE /api/stories/:id
+ * @desc    Delete story
+ * @access  Private (Story owner)
+ */
+router.delete('/:id', verifyJWT, async (req, res) => {
   try {
-    const { storyId } = req.params;
-    const { type } = req.body;
-    const result = await storiesHelpers.addReaction(storyId, req.user.uid, type);
-    res.json({ success: true, data: result });
-  } catch (error) {
-    console.error('Error adding reaction:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+    const story = await Story.findById(req.params.id);
 
-// Reply to story
-router.post('/:storyId/replies', authenticate, async (req, res) => {
-  try {
-    const { storyId } = req.params;
-    const { message } = req.body;
-    const result = await storiesHelpers.replyToStory(storyId, req.user.uid, message);
-    res.json({ success: true, data: result });
-  } catch (error) {
-    console.error('Error replying to story:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+    if (!story) {
+      return res.status(404).json({
+        success: false,
+        message: 'Story not found'
+      });
+    }
 
-// Get story viewers
-router.get('/:storyId/viewers', authenticate, async (req, res) => {
-  try {
-    const { storyId } = req.params;
-    const viewers = await storiesHelpers.getStoryViewers(storyId);
-    res.json({ success: true, data: { viewers } });
-  } catch (error) {
-    console.error('Error getting story viewers:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+    // Check ownership
+    if (!story.userId.equals(req.userId) && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
 
-// Save story to highlight
-router.post('/:storyId/highlight', authenticate, async (req, res) => {
-  try {
-    const { storyId } = req.params;
-    const { name } = req.body;
-    const result = await storiesHelpers.saveToHighlight(storyId, req.user.uid, name);
-    res.json({ success: true, data: result });
-  } catch (error) {
-    console.error('Error saving to highlight:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+    await story.deleteOne();
 
-// Delete story
-router.delete('/:storyId', authenticate, async (req, res) => {
-  try {
-    const { storyId } = req.params;
-    await storiesHelpers.deleteStory(storyId);
-    res.json({ success: true, message: 'Story deleted' });
-  } catch (error) {
-    console.error('Error deleting story:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+    res.json({
+      success: true,
+      message: 'Story deleted successfully'
+    });
 
-// ==================== Admin Routes ====================
-
-// Get story cleanup statistics (Admin only)
-router.get('/admin/cleanup/stats', authenticate, adminMiddleware, async (req, res) => {
-  try {
-    const stats = await storiesHelpers.getCleanupStats();
-    res.json({ success: true, data: stats });
   } catch (error) {
-    console.error('Error getting cleanup stats:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Manually trigger story cleanup (Admin only)
-router.post('/admin/cleanup/trigger', authenticate, adminMiddleware, async (req, res) => {
-  try {
-    const result = await storiesHelpers.manualCleanup();
-    res.json({ success: true, data: result });
-  } catch (error) {
-    console.error('Error triggering cleanup:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Delete story error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting story'
+    });
   }
 });
 

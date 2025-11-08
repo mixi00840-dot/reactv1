@@ -1,72 +1,249 @@
 const express = require('express');
 const router = express.Router();
-const moderationController = require('../controllers/moderationController');
-const { protect, adminOnly, moderatorOnly } = require('../middleware/auth');
+const ModerationQueue = require('../models/ModerationQueue');
+const Report = require('../models/Report');
+const Content = require('../models/Content');
+const User = require('../models/User');
+const Strike = require('../models/Strike');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 /**
- * Admin Routes
- * Moderation management and oversight
+ * Moderation Routes - MongoDB Implementation
  */
 
-// Trigger moderation for specific content
-router.post('/moderate/:contentId', protect, adminOnly, moderationController.moderateContent);
-
-// Get moderation result
-router.get('/result/:contentId', protect, moderatorOnly, moderationController.getModerationResult);
-
-// Get moderation queue
-router.get('/queue', protect, moderatorOnly, moderationController.getQueue);
-
-// Get next item for review
-router.get('/queue/next', protect, moderatorOnly, moderationController.getNextItem);
-
-// Review content (approve/reject/escalate)
-router.post('/review/:queueId', protect, moderatorOnly, moderationController.reviewContent);
-
-// Get queue statistics
-router.get('/stats', protect, adminOnly, moderationController.getStats);
-
-// Get pending appeals
-router.get('/appeals', protect, adminOnly, moderationController.getPendingAppeals);
-
-// Review appeal
-router.post('/appeal/:contentId/review', protect, adminOnly, moderationController.reviewAppeal);
-
-// Get high-risk content
-router.get('/high-risk', protect, adminOnly, moderationController.getHighRisk);
-
-// Get moderator's dashboard
-router.get('/dashboard', protect, moderatorOnly, moderationController.getModeratorDashboard);
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Moderation API is working (MongoDB)',
+    database: 'MongoDB'
+  });
+});
 
 /**
- * Sightengine AI Moderation Routes
- * Real-time AI moderation using Sightengine API
+ * @route   GET /api/moderation/queue
+ * @desc    Get moderation queue
+ * @access  Admin
  */
+router.get('/queue', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { status = 'pending', priority, page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
 
-// Moderate image with Sightengine
-router.post('/sightengine/image', protect, moderationController.moderateImageSightengine);
+    let query = { status };
+    if (priority) query.priority = priority;
 
-// Moderate video with Sightengine
-router.post('/sightengine/video', protect, moderationController.moderateVideoSightengine);
+    const queue = await ModerationQueue.find(query)
+      .sort({ priority: -1, createdAt: 1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('assignedTo', 'username fullName');
 
-// Moderate text with Sightengine
-router.post('/sightengine/text', protect, moderationController.moderateTextSightengine);
+    const total = await ModerationQueue.countDocuments(query);
 
-// Batch moderate multiple items
-router.post('/sightengine/batch', protect, adminOnly, moderationController.moderateBatchSightengine);
+    res.json({
+      success: true,
+      data: {
+        queue,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
 
-// Update Sightengine thresholds (admin)
-router.put('/sightengine/thresholds', protect, adminOnly, moderationController.updateSightengineThresholds);
-
-// Get Sightengine config
-router.get('/sightengine/config', protect, adminOnly, moderationController.getSightengineConfig);
+  } catch (error) {
+    console.error('Get moderation queue error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching moderation queue'
+    });
+  }
+});
 
 /**
- * Creator Routes
- * Content creators can appeal moderation decisions
+ * @route   GET /api/moderation/reports
+ * @desc    Get all reports
+ * @access  Admin
  */
+router.get('/reports', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { status = 'pending', type, page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
 
-// Submit appeal for rejected content
-router.post('/appeal/:contentId', protect, moderationController.submitAppeal);
+    let query = { status };
+    if (type) query.reportedType = type;
+
+    const reports = await Report.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('reporterId', 'username fullName avatar')
+      .populate('reportedUserId', 'username fullName avatar')
+      .populate('reviewedBy', 'username fullName');
+
+    const total = await Report.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        reports,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get reports error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching reports'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/moderation/reports/:id/resolve
+ * @desc    Resolve report
+ * @access  Admin
+ */
+router.put('/reports/:id/resolve', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { actionTaken, reviewNotes } = req.body;
+
+    const report = await Report.findById(req.params.id);
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: 'Report not found'
+      });
+    }
+
+    report.status = 'resolved';
+    report.actionTaken = actionTaken;
+    report.reviewNotes = reviewNotes;
+    report.reviewedBy = req.userId;
+    report.reviewedAt = new Date();
+
+    await report.save();
+
+    // Execute action
+    if (actionTaken === 'content_removed' && report.reportedType === 'content') {
+      await Content.findByIdAndUpdate(report.reportedId, { status: 'removed' });
+    } else if (actionTaken === 'account_suspended') {
+      await User.findByIdAndUpdate(report.reportedUserId, { status: 'suspended' });
+    } else if (actionTaken === 'account_banned') {
+      await User.findByIdAndUpdate(report.reportedUserId, { status: 'banned' });
+    } else if (actionTaken === 'warning') {
+      // Create strike
+      const strike = new Strike({
+        userId: report.reportedUserId,
+        reason: report.reason,
+        description: reviewNotes,
+        severity: 'moderate',
+        issuedBy: req.userId
+      });
+      await strike.save();
+    }
+
+    res.json({
+      success: true,
+      data: { report },
+      message: 'Report resolved successfully'
+    });
+
+  } catch (error) {
+    console.error('Resolve report error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error resolving report'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/moderation/content/:id/approve
+ * @desc    Approve content
+ * @access  Admin
+ */
+router.post('/content/:id/approve', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const content = await Content.findByIdAndUpdate(
+      req.params.id,
+      { status: 'active', reviewedBy: req.userId, reviewedAt: new Date() },
+      { new: true }
+    );
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { content },
+      message: 'Content approved successfully'
+    });
+
+  } catch (error) {
+    console.error('Approve content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error approving content'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/moderation/content/:id/reject
+ * @desc    Reject content
+ * @access  Admin
+ */
+router.post('/content/:id/reject', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const content = await Content.findByIdAndUpdate(
+      req.params.id,
+      { 
+        status: 'removed',
+        moderationFlags: [reason],
+        reviewedBy: req.userId,
+        reviewedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { content },
+      message: 'Content rejected'
+    });
+
+  } catch (error) {
+    console.error('Reject content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error rejecting content'
+    });
+  }
+});
 
 module.exports = router;
+

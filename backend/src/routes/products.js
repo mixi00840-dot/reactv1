@@ -1,188 +1,286 @@
 const express = require('express');
 const router = express.Router();
-const { body } = require('express-validator');
-const productController = require('../controllers/productController');
-const { 
-  authMiddleware, 
-  sellerMiddleware, 
-  storeOwnerMiddleware,
-  optionalAuthMiddleware,
-  rateLimitMiddleware
-} = require('../middleware/auth');
-const { uploadMiddleware } = require('../middleware/upload');
+const Product = require('../models/Product');
+const Store = require('../models/Store');
+const Category = require('../models/Category');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
-// Validation rules
-const createProductValidation = [
-  body('name')
-    .notEmpty()
-    .withMessage('Product name is required')
-    .isLength({ min: 2, max: 200 })
-    .withMessage('Product name must be between 2 and 200 characters'),
-  
-  body('description')
-    .notEmpty()
-    .withMessage('Product description is required')
-    .isLength({ min: 10, max: 2000 })
-    .withMessage('Description must be between 10 and 2000 characters'),
-  
-  body('pricing.basePrice')
-    .isFloat({ min: 0 })
-    .withMessage('Base price must be a positive number'),
-  
-  body('category')
-    .isMongoId()
-    .withMessage('Valid category ID is required'),
-  
-  body('inventory.stockQuantity')
-    .optional()
-    .isInt({ min: 0 })
-    .withMessage('Stock quantity must be a non-negative integer'),
-  
-  body('status')
-    .optional()
-    .isIn(['draft', 'active', 'inactive', 'out_of_stock'])
-    .withMessage('Invalid status value')
-];
+/**
+ * Products Routes - MongoDB Implementation
+ */
 
-const updateProductValidation = [
-  body('name')
-    .optional()
-    .isLength({ min: 2, max: 200 })
-    .withMessage('Product name must be between 2 and 200 characters'),
-  
-  body('description')
-    .optional()
-    .isLength({ min: 10, max: 2000 })
-    .withMessage('Description must be between 10 and 2000 characters'),
-  
-  body('pricing.basePrice')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Base price must be a positive number'),
-  
-  body('inventory.stockQuantity')
-    .optional()
-    .isInt({ min: 0 })
-    .withMessage('Stock quantity must be a non-negative integer')
-];
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Products API is working (MongoDB)',
+    database: 'MongoDB'
+  });
+});
 
-const inventoryUpdateValidation = [
-  body('operation')
-    .isIn(['add', 'remove', 'set'])
-    .withMessage('Operation must be add, remove, or set'),
-  
-  body('quantity')
-    .isInt({ min: 0 })
-    .withMessage('Quantity must be a non-negative integer'),
-  
-  body('reason')
-    .optional()
-    .isLength({ max: 500 })
-    .withMessage('Reason must be less than 500 characters')
-];
+/**
+ * @route   GET /api/products
+ * @desc    Get all products with filters
+ * @access  Public
+ */
+router.get('/', async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      category,
+      storeId,
+      search,
+      minPrice,
+      maxPrice,
+      sortBy = '-createdAt'
+    } = req.query;
 
-// Public routes (no authentication required)
+    const skip = (page - 1) * limit;
+    let query = { status: 'active', isPublished: true };
 
-// GET /api/products - Get all products with filtering and pagination
-router.get('/', 
-  optionalAuthMiddleware,
-  productController.getProducts
-);
+    if (category) query.category = category;
+    if (storeId) query.storeId = storeId;
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
 
-// GET /api/products/search - Advanced product search
-router.post('/search',
-  optionalAuthMiddleware,
-  rateLimitMiddleware(50, 60000), // 50 requests per minute
-  productController.searchProducts
-);
+    // Text search if search query provided
+    if (search) {
+      query.$text = { $search: search };
+    }
 
-// GET /api/products/:id - Get single product by ID or slug
-router.get('/:id',
-  optionalAuthMiddleware,
-  productController.getProduct
-);
+    const products = await Product.find(query)
+      .sort(sortBy)
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('storeId', 'name logo rating')
+      .populate('sellerId', 'username fullName')
+      .populate('category', 'name slug');
 
-// Protected routes (authentication required)
+    const total = await Product.countDocuments(query);
 
-// POST /api/products - Create new product (seller/admin only)
-router.post('/',
-  authMiddleware,
-  sellerMiddleware,
-  uploadMiddleware.productImages, // Allow up to 10 product images
-  createProductValidation,
-  rateLimitMiddleware(10, 3600000), // 10 products per hour
-  productController.createProduct
-);
+    res.json({
+      success: true,
+      data: {
+        products,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
 
-// PUT /api/products/:id - Update product (store owner/admin only)
-router.put('/:id',
-  authMiddleware,
-  uploadMiddleware.productImages,
-  updateProductValidation,
-  productController.updateProduct
-);
+  } catch (error) {
+    console.error('Get products error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching products',
+      error: error.message
+    });
+  }
+});
 
-// DELETE /api/products/:id - Delete product (store owner/admin only)
-router.delete('/:id',
-  authMiddleware,
-  productController.deleteProduct
-);
+/**
+ * @route   GET /api/products/:id
+ * @desc    Get product by ID
+ * @access  Public
+ */
+router.get('/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate('storeId', 'name logo rating verified')
+      .populate('sellerId', 'username fullName avatar')
+      .populate('category', 'name slug');
 
-// PATCH /api/products/bulk - Bulk update products (store owner/admin only)
-router.patch('/bulk',
-  authMiddleware,
-  sellerMiddleware,
-  rateLimitMiddleware(5, 3600000), // 5 bulk operations per hour
-  productController.bulkUpdateProducts
-);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
 
-// Inventory management routes
+    // Increment views
+    product.viewsCount += 1;
+    await product.save();
 
-// PATCH /api/products/:id/inventory - Update product inventory
-router.patch('/:id/inventory',
-  authMiddleware,
-  sellerMiddleware,
-  inventoryUpdateValidation,
-  productController.updateInventory
-);
+    res.json({
+      success: true,
+      data: { product }
+    });
 
-// Analytics routes
+  } catch (error) {
+    console.error('Get product error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching product'
+    });
+  }
+});
 
-// GET /api/products/stats - Global product stats (admin dashboard)
-router.get('/stats',
-  optionalAuthMiddleware,
-  productController.getGlobalStats
-);
+/**
+ * @route   POST /api/products
+ * @desc    Create new product
+ * @access  Private (Seller)
+ */
+router.post('/', verifyJWT, async (req, res) => {
+  try {
+    const sellerId = req.userId;
+    
+    // Verify user has a store
+    const store = await Store.findOne({ sellerId });
+    if (!store) {
+      return res.status(403).json({
+        success: false,
+        message: 'You must have an approved store to create products'
+      });
+    }
 
-// GET /api/products/:id/analytics - Get product analytics (store owner/admin only)
-router.get('/:id/analytics',
-  authMiddleware,
-  productController.getProductAnalytics
-);
+    if (store.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your store must be active to create products'
+      });
+    }
 
-// Store-specific routes
+    const productData = {
+      ...req.body,
+      storeId: store._id,
+      sellerId,
+      status: 'pending_approval' // Requires admin approval
+    };
 
-// GET /api/products/store/:storeId - Get products by store
-router.get('/store/:storeId',
-  optionalAuthMiddleware,
-  productController.getProducts
-);
+    const product = new Product(productData);
+    await product.save();
 
-// Category-specific routes
+    res.status(201).json({
+      success: true,
+      data: { product },
+      message: 'Product created successfully. Pending approval.'
+    });
 
-// GET /api/products/category/:categoryId - Get products by category
-router.get('/category/:categoryId',
-  optionalAuthMiddleware,
-  productController.getProducts
-);
+  } catch (error) {
+    console.error('Create product error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating product',
+      error: error.message
+    });
+  }
+});
 
-// Admin-only routes
+/**
+ * @route   PUT /api/products/:id
+ * @desc    Update product
+ * @access  Private (Product owner or Admin)
+ */
+router.put('/:id', verifyJWT, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
 
-// GET /api/products/admin/all - Get all products including inactive (admin only)
-router.get('/admin/all',
-  authMiddleware,
-  require('../middleware/auth').adminMiddleware,
-  productController.getProducts
-);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    // Check ownership
+    if (!product.sellerId.equals(req.userId) && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to update this product'
+      });
+    }
+
+    Object.assign(product, req.body);
+    await product.save();
+
+    res.json({
+      success: true,
+      data: { product },
+      message: 'Product updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update product error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating product',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/products/:id
+ * @desc    Delete product
+ * @access  Private (Product owner or Admin)
+ */
+router.delete('/:id', verifyJWT, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    // Check ownership
+    if (!product.sellerId.equals(req.userId) && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this product'
+      });
+    }
+
+    // Soft delete
+    product.status = 'archived';
+    await product.save();
+
+    res.json({
+      success: true,
+      message: 'Product deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete product error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting product'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/products/best-sellers
+ * @desc    Get best-selling products
+ * @access  Public
+ */
+router.get('/featured/best-sellers', async (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+
+    const products = await Product.getBestSellers(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { products }
+    });
+
+  } catch (error) {
+    console.error('Get best sellers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching best sellers'
+    });
+  }
+});
 
 module.exports = router;

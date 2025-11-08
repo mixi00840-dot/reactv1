@@ -1,105 +1,212 @@
 const express = require('express');
 const router = express.Router();
-const soundController = require('../controllers/soundController');
-const { authMiddleware, adminMiddleware, moderatorMiddleware } = require('../middleware/auth');
+const Sound = require('../models/Sound');
+const Content = require('../models/Content');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 /**
- * Public Sound Routes
+ * Sounds Routes - MongoDB Implementation
  */
 
-// Get all sounds
-router.get('/', soundController.getAllSounds || (async (req, res) => {
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Sounds API is working (MongoDB)',
+    database: 'MongoDB'
+  });
+});
+
+/**
+ * @route   GET /api/sounds
+ * @desc    Get all sounds
+ * @access  Public
+ */
+router.get('/', async (req, res) => {
   try {
-    const Sound = require('../models/Sound');
-    const sounds = await Sound.find().limit(20);
-    res.json({ success: true, data: { sounds } });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-}));
+    const { page = 1, limit = 50, genre, search } = req.query;
+    const skip = (page - 1) * limit;
 
-// Get trending sounds
-router.get('/trending', soundController.getTrendingSounds);
+    let query = { status: 'active' };
+    if (genre) query.genre = genre;
 
-// Search sounds
-router.get('/search', soundController.searchSounds);
+    if (search) {
+      query.$text = { $search: search };
+    }
 
-// Get featured sounds
-router.get('/featured', soundController.getFeaturedSounds);
+    const sounds = await Sound.find(query)
+      .sort(search ? { score: { $meta: 'textScore' } } : { usageCount: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('uploadedBy', 'username fullName avatar');
 
-// Get sound details
-router.get('/:soundId', soundController.getSoundDetails);
+    const total = await Sound.countDocuments(query);
 
-// Get videos using a sound
-router.get('/:soundId/videos', soundController.getSoundVideos);
-
-/**
- * Creator Routes (Authentication Required)
- */
-
-// Upload new sound
-router.post('/upload', authMiddleware, soundController.uploadSound);
-
-// Confirm sound upload
-router.post('/:soundId/confirm-upload', authMiddleware, soundController.confirmSoundUpload);
-
-// Get my uploaded sounds
-router.get('/my/sounds', authMiddleware, soundController.getMySounds);
-
-// Update sound metadata
-router.put('/:soundId', authMiddleware, soundController.updateSound);
-
-// Delete sound
-router.delete('/:soundId', authMiddleware, soundController.deleteSound);
-
-// Record sound usage (when used in content)
-router.post('/:soundId/use', authMiddleware, soundController.recordSoundUsage);
-
-/**
- * Moderation Routes (Moderator/Admin)
- */
-
-// Get sounds pending review
-router.get('/admin/pending-review', moderatorMiddleware, soundController.getPendingReview);
-
-// Approve sound
-router.put('/:soundId/approve', moderatorMiddleware, soundController.approveSound);
-
-// Reject sound
-router.put('/:soundId/reject', moderatorMiddleware, soundController.rejectSound);
-
-/**
- * Admin Routes
- */
-
-// Get sound statistics
-router.get('/admin/stats', authMiddleware, adminMiddleware, soundController.getSoundStats);
-
-// Get sounds pending review
-router.get('/moderation/pending-review', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const pendingSounds = {
-      total: 15,
-      sounds: [],
-      categories: {
-        music: 8,
-        effects: 4,
-        voice: 2,
-        other: 1
-      }
-    };
-    
     res.json({
       success: true,
-      data: pendingSounds
+      data: {
+        sounds,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
     });
+
   } catch (error) {
-    console.error('Get pending sounds error:', error);
+    console.error('Get sounds error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get pending sounds'
+      message: 'Error fetching sounds'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/sounds/trending
+ * @desc    Get trending sounds
+ * @access  Public
+ */
+router.get('/trending', async (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+
+    const sounds = await Sound.find({
+      status: 'active',
+      isTrending: true
+    })
+    .sort({ trendingScore: -1, usageCount: -1 })
+    .limit(parseInt(limit))
+    .populate('uploadedBy', 'username fullName avatar');
+
+    res.json({
+      success: true,
+      data: { sounds }
+    });
+
+  } catch (error) {
+    console.error('Get trending sounds error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching trending sounds'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/sounds/:id
+ * @desc    Get sound by ID
+ * @access  Public
+ */
+router.get('/:id', async (req, res) => {
+  try {
+    const sound = await Sound.findById(req.params.id)
+      .populate('uploadedBy', 'username fullName avatar isVerified');
+
+    if (!sound) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sound not found'
+      });
+    }
+
+    // Get usage count (number of content using this sound)
+    const contentCount = await Content.countDocuments({
+      soundId: sound._id,
+      status: 'active'
+    });
+
+    const soundData = sound.toObject();
+    soundData.contentCount = contentCount;
+
+    res.json({
+      success: true,
+      data: { sound: soundData }
+    });
+
+  } catch (error) {
+    console.error('Get sound error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching sound'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/sounds
+ * @desc    Upload new sound
+ * @access  Private
+ */
+router.post('/', verifyJWT, async (req, res) => {
+  try {
+    const { title, artist, audioUrl, duration, genre } = req.body;
+
+    const sound = new Sound({
+      title,
+      artist,
+      audioUrl,
+      duration,
+      genre,
+      uploadedBy: req.userId,
+      isOriginal: true,
+      status: 'pending' // Requires approval
+    });
+
+    await sound.save();
+
+    res.status(201).json({
+      success: true,
+      data: { sound },
+      message: 'Sound uploaded successfully. Pending approval.'
+    });
+
+  } catch (error) {
+    console.error('Upload sound error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error uploading sound',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/sounds/:id/use
+ * @desc    Increment sound usage count
+ * @access  Public
+ */
+router.post('/:id/use', async (req, res) => {
+  try {
+    const sound = await Sound.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { usageCount: 1 } },
+      { new: true }
+    );
+
+    if (!sound) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sound not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { sound },
+      message: 'Sound usage recorded'
+    });
+
+  } catch (error) {
+    console.error('Use sound error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error recording sound usage'
     });
   }
 });
 
 module.exports = router;
+

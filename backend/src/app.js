@@ -12,9 +12,9 @@ const DB_MODE = 'mongodb'; // MongoDB only - no Firebase/Firestore
 console.log(`🗄️  DATABASE MODE: ${DB_MODE.toUpperCase()}`);
 
 // Import core routes (MongoDB)
-const authRoutes = require('./routes/auth-mongodb'); // MongoDB auth with JWT
+const authRoutes = require('./routes/auth'); // MongoDB JWT auth
 // const sellerRoutes = require('./routes/sellers'); // TODO: Migrate to MongoDB - currently uses Firestore
-const adminRoutes = require('./routes/admin-mongodb'); // MongoDB admin
+const adminRoutes = require('./routes/admin'); // MongoDB admin
 
 // Create fallback router for unmigrated features
 const createFallbackRouter = () => {
@@ -29,8 +29,8 @@ const createFallbackRouter = () => {
 let productRoutes, storeRoutes;
 let orderRoutes;
 try {
-  productRoutes = require('./routes/products-mongodb');
-  storeRoutes = require('./routes/stores-mongodb');
+  productRoutes = require('./routes/products');
+  storeRoutes = require('./routes/stores');
 } catch (error) {
   console.error('⚠️  E-commerce routes have missing methods:', error.message);
   const fallback = createFallbackRouter();
@@ -100,7 +100,7 @@ let streamingRoutes_firestore, playerRoutes_firestore, uploadsRoutes_firestore, 
 
 // Load migrated MongoDB routes
 try {
-  storiesRoutes = require('./routes/stories-mongodb'); // ✅ MongoDB stories
+  storiesRoutes = require('./routes/stories'); // ✅ MongoDB stories
   console.log('✅ Stories routes loaded (MongoDB)');
 } catch (error) {
   console.error('⚠️ Stories routes error:', error.message);
@@ -108,7 +108,7 @@ try {
 }
 
 try {
-  walletsRoutes = require('./routes/wallets-mongodb'); // ✅ MongoDB wallets
+  walletsRoutes = require('./routes/wallets'); // ✅ MongoDB wallets
   console.log('✅ Wallets routes loaded (MongoDB)');
 } catch (error) {
   console.error('⚠️ Wallets routes error:', error.message);
@@ -455,49 +455,49 @@ if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
     console.log('\n🔄 Loading MongoDB routes (Mode: ' + DB_MODE + ')');
     
     // MongoDB Authentication
-    app.use('/api/auth/mongodb', require('./routes/auth-mongodb'));
+    app.use('/api/auth/mongodb', require('./routes/auth'));
     
     // MongoDB Core Features
-    app.use('/api/users/mongodb', require('./routes/users-mongodb'));
+    app.use('/api/users/mongodb', require('./routes/users'));
     // Content route loaded later with all other MongoDB routes
     
     // MongoDB Social Features
-    app.use('/api/stories/mongodb', require('./routes/stories-mongodb'));
-    app.use('/api/notifications/mongodb', require('./routes/notifications-mongodb'));
-    app.use('/api/messaging/mongodb', require('./routes/messaging-mongodb'));
+    app.use('/api/stories/mongodb', require('./routes/stories'));
+    app.use('/api/notifications/mongodb', require('./routes/notifications'));
+    app.use('/api/messaging/mongodb', require('./routes/messaging'));
     
     // MongoDB E-commerce
-    app.use('/api/products/mongodb', require('./routes/products-mongodb'));
-    app.use('/api/orders/mongodb', require('./routes/orders-mongodb'));
+    app.use('/api/products/mongodb', require('./routes/products'));
+    app.use('/api/orders/mongodb', require('./routes/orders'));
     
     // MongoDB Finance
-    app.use('/api/wallets/mongodb', require('./routes/wallets-mongodb'));
-    app.use('/api/gifts/mongodb', require('./routes/gifts-mongodb'));
+    app.use('/api/wallets/mongodb', require('./routes/wallets'));
+    app.use('/api/gifts/mongodb', require('./routes/gifts'));
     
     // MongoDB Live Streaming
-    app.use('/api/streaming/mongodb', require('./routes/livestreaming-mongodb'));
+    app.use('/api/streaming/mongodb', require('./routes/livestreaming'));
     
             // MongoDB Additional Features (14 more routes)
-            app.use('/api/comments/mongodb', require('./routes/comments-mongodb'));
-            app.use('/api/cart/mongodb', require('./routes/cart-mongodb'));
-            app.use('/api/categories/mongodb', require('./routes/categories-mongodb'));
-            app.use('/api/search/mongodb', require('./routes/search-mongodb'));
-            app.use('/api/settings/mongodb', require('./routes/settings-mongodb'));
-            app.use('/api/analytics/mongodb', require('./routes/analytics-mongodb'));
-            app.use('/api/moderation/mongodb', require('./routes/moderation-mongodb'));
-            app.use('/api/recommendations/mongodb', require('./routes/recommendations-mongodb'));
-            app.use('/api/trending/mongodb', require('./routes/trending-mongodb'));
-            app.use('/api/sounds/mongodb', require('./routes/sounds-mongodb'));
-            app.use('/api/stores/mongodb', require('./routes/stores-mongodb'));
-            app.use('/api/admin/mongodb', require('./routes/admin-mongodb'));
-            app.use('/api/feed/mongodb', require('./routes/feed-mongodb'));
-            app.use('/api/reports/mongodb', require('./routes/reports-mongodb'));
-            app.use('/api/metrics/mongodb', require('./routes/metrics-mongodb'));
-            app.use('/api/uploads/mongodb', require('./routes/uploads-mongodb'));
+            app.use('/api/comments/mongodb', require('./routes/comments'));
+            app.use('/api/cart/mongodb', require('./routes/cart'));
+            app.use('/api/categories/mongodb', require('./routes/categories'));
+            app.use('/api/search/mongodb', require('./routes/search'));
+            app.use('/api/settings/mongodb', require('./routes/settings'));
+            app.use('/api/analytics/mongodb', require('./routes/analytics'));
+            app.use('/api/moderation/mongodb', require('./routes/moderation'));
+            app.use('/api/recommendations/mongodb', require('./routes/recommendations'));
+            app.use('/api/trending/mongodb', require('./routes/trending'));
+            app.use('/api/sounds/mongodb', require('./routes/sounds'));
+            app.use('/api/stores/mongodb', require('./routes/stores'));
+            app.use('/api/admin/mongodb', require('./routes/admin'));
+            app.use('/api/feed/mongodb', require('./routes/feed'));
+            app.use('/api/reports/mongodb', require('./routes/reports'));
+            app.use('/api/metrics/mongodb', require('./routes/metrics'));
+            app.use('/api/uploads/mongodb', require('./routes/uploads'));
             
             // Override content route with full MongoDB implementation
-            app.use('/api/content/mongodb', require('./routes/content-mongodb'));
-            app.use('/api/payments/mongodb', require('./routes/payments-mongodb'));
+            app.use('/api/content/mongodb', require('./routes/content'));
+            app.use('/api/payments/mongodb', require('./routes/payments'));
     
     console.log('✅ All 28 MongoDB route groups loaded successfully:');
     console.log('  ✅ /api/auth/mongodb (Authentication)');
@@ -537,10 +537,10 @@ if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
 
 // MongoDB Routes
 app.use('/api/auth', authRoutes); // JWT authentication
-app.use('/api/users', require('./routes/users-mongodb')); // MongoDB user routes
+app.use('/api/users', require('./routes/users')); // MongoDB user routes
 // app.use('/api/sellers', sellerRoutes); // TODO: Migrate to MongoDB - currently uses Firestore
 app.use('/api/admin', adminRoutes);
-app.use('/api/admin/users', require('./routes/admin/users')); // Admin user management
+app.use('/api/admin/users', require('./routes/admin/users')); // MongoDB admin user management
 
 // E-commerce API routes
 app.use('/api/products', productRoutes);
@@ -663,31 +663,31 @@ if (DATABASE_MODE === 'dual' || DATABASE_MODE === 'mongodb') {
   
   try {
     // MongoDB Routes
-    app.use('/api/auth-mongodb', require('./routes/auth-mongodb'));
+    app.use('/api/auth-mongodb', require('./routes/auth'));
     console.log('  ✅ /api/auth-mongodb (Authentication)');
     
-    app.use('/api/users-mongodb', require('./routes/users-mongodb'));
+    app.use('/api/users-mongodb', require('./routes/users'));
     console.log('  ✅ /api/users-mongodb (User Management)');
     
-    app.use('/api/content-mongodb', require('./routes/content-mongodb'));
+    app.use('/api/content-mongodb', require('./routes/content'));
     console.log('  ✅ /api/content-mongodb (Videos/Posts)');
     
-    app.use('/api/comments-mongodb', require('./routes/comments-mongodb'));
+    app.use('/api/comments-mongodb', require('./routes/comments'));
     console.log('  ✅ /api/comments-mongodb (Comments)');
     
-    app.use('/api/stories-mongodb', require('./routes/stories-mongodb'));
+    app.use('/api/stories-mongodb', require('./routes/stories'));
     console.log('  ✅ /api/stories-mongodb (Stories)');
     
-    app.use('/api/wallets-mongodb', require('./routes/wallets-mongodb'));
+    app.use('/api/wallets-mongodb', require('./routes/wallets'));
     console.log('  ✅ /api/wallets-mongodb (Wallets)');
     
-    app.use('/api/products-mongodb', require('./routes/products-mongodb'));
+    app.use('/api/products-mongodb', require('./routes/products'));
     console.log('  ✅ /api/products-mongodb (Products)');
     
-    app.use('/api/orders-mongodb', require('./routes/orders-mongodb'));
+    app.use('/api/orders-mongodb', require('./routes/orders'));
     console.log('  ✅ /api/orders-mongodb (Orders)');
     
-    app.use('/api/streaming-mongodb', require('./routes/streaming-mongodb'));
+    app.use('/api/streaming-mongodb', require('./routes/streaming'));
     console.log('  ✅ /api/streaming-mongodb (Live Streaming)');
     
     console.log('✅ All MongoDB routes loaded successfully\n');

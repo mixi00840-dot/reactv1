@@ -1,11 +1,11 @@
 const express = require('express');
-const { verifyFirebaseToken, requireAdmin } = require('../../middleware/firebaseAuth');
-const db = require('../../utils/database');
+const { verifyJWT, requireAdmin } = require('../../middleware/jwtAuth');
+const User = require('../../models/User');
 
 const router = express.Router();
 
-// Apply Firebase auth and admin middleware to all routes
-router.use(verifyFirebaseToken);
+// Apply JWT auth and admin middleware to all routes
+router.use(verifyJWT);
 router.use(requireAdmin);
 
 // @route   GET /api/admin/users
@@ -15,28 +15,24 @@ router.get('/', async (req, res) => {
   try {
     const { limit = 25, offset = 0, status, role, sortBy = 'createdAt', order = 'desc' } = req.query;
 
-    let query = db.collection('users');
-
+    const query = {};
     if (status) {
-      query = query.where('status', '==', status);
+      query.status = status;
     }
     if (role) {
-      query = query.where('role', '==', role);
+      query.role = role;
     }
 
-    // Get total count for pagination before applying limit/offset
-    const countSnapshot = await query.get();
-    const totalCount = countSnapshot.size;
+    // Get total count for pagination
+    const totalCount = await User.countDocuments(query);
 
     // Apply sorting, pagination
-    const snapshot = await query.orderBy(sortBy, order).limit(parseInt(limit)).offset(parseInt(offset)).get();
-    
-    const users = [];
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      delete data.password; // Never send password
-      users.push({ id: doc.id, ...data });
-    });
+    const sortOrder = order === 'desc' ? -1 : 1;
+    const users = await User.find(query)
+      .select('-password') // Never send password
+      .sort({ [sortBy]: sortOrder })
+      .limit(parseInt(limit))
+      .skip(parseInt(offset));
 
     res.json({ 
         success: true, 
@@ -49,12 +45,6 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Get all users for admin error:', error);
-    if (error.code === 'FAILED_PRECONDITION') {
-        return res.status(500).json({ 
-            success: false, 
-            message: `Query requires a Firestore index. Please create it. Details: ${error.message}` 
-        });
-    }
     res.status(500).json({ success: false, message: 'Server error while fetching users.' });
   }
 });
@@ -69,25 +59,19 @@ router.get('/search', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Search query must be at least 2 characters' });
         }
 
-        const searchTerm = q.trim().toLowerCase();
+        const searchTerm = q.trim();
         
-        // This is an inefficient scan. For production, use a dedicated search service.
-        const usersSnapshot = await db.collection('users').get();
+        // Use MongoDB text search or regex
+        const users = await User.find({
+            $or: [
+                { username: { $regex: searchTerm, $options: 'i' } },
+                { email: { $regex: searchTerm, $options: 'i' } }
+            ]
+        })
+        .select('-password')
+        .limit(parseInt(limit));
 
-        const users = [];
-        usersSnapshot.forEach(doc => {
-            const userData = doc.data();
-            if (
-                (userData.username && userData.username.toLowerCase().includes(searchTerm)) ||
-                (userData.email && userData.email.toLowerCase().includes(searchTerm))
-            ) {
-                delete userData.password;
-                users.push({ id: doc.id, ...userData });
-            }
-        });
-
-        const limitedUsers = users.slice(0, parseInt(limit));
-        res.json({ success: true, data: { users: limitedUsers } });
+        res.json({ success: true, data: { users } });
     } catch (error) {
         console.error('Admin search users error:', error);
         res.status(500).json({ success: false, message: 'Server error during user search.' });

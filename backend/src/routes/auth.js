@@ -1,72 +1,70 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
-const db = require('../utils/database'); // Firestore instance
-const { generateToken, generateRefreshToken } = require('../middleware/auth');
-
 const router = express.Router();
+const User = require('../models/User');
+const { verifyJWT, verifyRefreshToken } = require('../middleware/jwtAuth');
+const crypto = require('crypto');
 
-// Health check endpoint
+/**
+ * MongoDB Authentication Routes
+ * Uses JWT tokens instead of Firebase
+ */
+
+// Health check
 router.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: 'Auth API is working',
+    message: 'MongoDB Auth API is operational',
     endpoints: [
       'POST /register - Register new user',
-      'POST /login - User login',
-      'POST /logout - User logout',
-      'GET /me - Get current user (requires auth)',
-      'POST /refresh - Refresh token',
-      'POST /forgot-password - Password reset'
+      'POST /login - Login user',
+      'POST /refresh - Refresh access token',
+      'POST /logout - Logout user',
+      'POST /forgot-password - Request password reset',
+      'POST /reset-password - Reset password with token',
+      'POST /verify-email - Verify email with token',
+      'GET /me - Get current user'
     ]
   });
 });
 
-// Validation middleware
+// Validation rules
 const registerValidation = [
   body('username')
     .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters')
+    .withMessage('Username must be 3-30 characters')
     .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('Username can only contain letters, numbers, and underscores'),
+    .withMessage('Username can only contain letters, numbers and underscores'),
   body('email')
     .isEmail()
-    .withMessage('Please provide a valid email')
+    .withMessage('Please enter a valid email')
     .normalizeEmail(),
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .withMessage('Password must be at least 6 characters'),
   body('fullName')
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Full name must be between 2 and 100 characters'),
-  body('dateOfBirth')
-    .isISO8601()
-    .withMessage('Please provide a valid date of birth')
-    .custom((value) => {
-      const age = new Date().getFullYear() - new Date(value).getFullYear();
-      if (age < 13) {
-        throw new Error('You must be at least 13 years old to register');
-      }
-      return true;
-    })
+    .trim()
+    .isLength({ min: 1 })
+    .withMessage('Full name is required')
 ];
 
 const loginValidation = [
-  body('login')
-    .notEmpty()
+  body('identifier')
+    .trim()
+    .isLength({ min: 1 })
     .withMessage('Email or username is required'),
   body('password')
-    .notEmpty()
+    .isLength({ min: 1 })
     .withMessage('Password is required')
 ];
 
-// @route   POST /api/auth/register
-// @desc    Register a new user
-// @access  Public
+/**
+ * @route   POST /api/auth-mongodb/register
+ * @desc    Register new user with MongoDB
+ * @access  Public
+ */
 router.post('/register', registerValidation, async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -78,10 +76,9 @@ router.post('/register', registerValidation, async (req, res) => {
 
     const { username, email, password, fullName, dateOfBirth, phone, bio } = req.body;
 
-    // Check if user already exists by email
-    const usersRef = db.collection('users');
-    const emailSnapshot = await usersRef.where('email', '==', email).limit(1).get();
-    if (!emailSnapshot.empty) {
+    // Check if email already exists
+    const existingEmail = await User.findOne({ email: email.toLowerCase() });
+    if (existingEmail) {
       return res.status(400).json({
         success: false,
         message: 'Email already registered'
@@ -89,67 +86,46 @@ router.post('/register', registerValidation, async (req, res) => {
     }
 
     // Check if username already exists
-    const usernameSnapshot = await usersRef.where('username', '==', username).limit(1).get();
-    if (!usernameSnapshot.empty) {
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
       return res.status(400).json({
         success: false,
         message: 'Username already taken'
       });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user document
-    const userData = {
+    // Create user (password will be hashed by pre-save hook)
+    const user = new User({
       username,
-      email,
-      password: hashedPassword,
+      email: email.toLowerCase(),
+      password,
       fullName,
       dateOfBirth,
-      phone: phone || '',
-      bio: bio || '',
-      role: 'user',
-      status: 'active',
-      isVerified: false,
-      isFeatured: false,
-      avatar: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString()
-    };
-
-    // Use batch write for atomic operations
-    const batch = db.batch();
-    
-    const userRef = usersRef.doc();
-    batch.set(userRef, userData);
-
-    // Create wallet for new user
-    const walletRef = db.collection('wallets').doc(userRef.id);
-    batch.set(walletRef, {
-      userId: userRef.id,
-      balance: 0,
-      currency: 'USD',
-      transactions: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      phone,
+      bio,
+      lastLogin: new Date()
     });
 
-    await batch.commit();
+    await user.save();
 
-    // Generate tokens
-    const token = generateToken(userRef.id);
-    const refreshToken = generateRefreshToken(userRef.id);
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    user.verificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    user.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    await user.save();
+
+    // TODO: Send verification email with verificationToken
+
+    // Generate JWT tokens
+    const token = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
 
     // Remove password from response
-    const userResponse = { ...userData, id: userRef.id };
-    delete userResponse.password;
+    const userResponse = user.toJSON();
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: 'User registered successfully. Please check your email to verify your account.',
       data: {
         user: userResponse,
         token,
@@ -161,17 +137,19 @@ router.post('/register', registerValidation, async (req, res) => {
     console.error('Registration error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during registration'
+      message: 'Server error during registration',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
-// @route   POST /api/auth/login
-// @desc    Login user
-// @access  Public
+/**
+ * @route   POST /api/auth-mongodb/login
+ * @desc    Login user with email/username and password
+ * @access  Public
+ */
 router.post('/login', loginValidation, async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -181,30 +159,20 @@ router.post('/login', loginValidation, async (req, res) => {
       });
     }
 
-    const { login, password } = req.body;
+    const { identifier, password } = req.body;
 
     // Find user by email or username
-    const usersRef = db.collection('users');
-    let userDoc = null;
-    let userData = null;
-    
-    // Check if login is email or username
-    const isEmail = login.includes('@');
-    const field = isEmail ? 'email' : 'username';
-    const snapshot = await usersRef.where(field, '==', login).limit(1).get();
+    const user = await User.findByEmailOrUsername(identifier).select('+password');
 
-    if (snapshot.empty) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
-    userDoc = snapshot.docs[0];
-    userData = userDoc.data();
-
     // Check password
-    const isMatch = await bcrypt.compare(password, userData.password);
+    const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
       return res.status(401).json({
@@ -213,34 +181,33 @@ router.post('/login', loginValidation, async (req, res) => {
       });
     }
 
-    // Check if account is active
-    if (userData.status === 'banned') {
+    // Check account status
+    if (user.status === 'banned') {
       return res.status(403).json({
         success: false,
-        message: 'Account is banned. Contact support for assistance.'
+        message: 'Account has been banned'
       });
     }
 
-    if (userData.status === 'suspended') {
+    if (user.status === 'suspended') {
       return res.status(403).json({
         success: false,
-        message: 'Account is suspended. Contact support for assistance.'
+        message: 'Account is temporarily suspended'
       });
     }
 
     // Update last login
-    await userDoc.ref.update({
-      lastLogin: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
+    user.lastLogin = new Date();
+    user.loginCount += 1;
+    await user.save();
 
-    // Generate tokens
-    const token = generateToken(userDoc.id);
-    const refreshToken = generateRefreshToken(userDoc.id);
+    // Generate JWT tokens
+    const token = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
 
     // Remove password from response
-    const userResponse = { ...userData, id: userDoc.id };
-    delete userResponse.password;
+    user.password = undefined;
+    const userResponse = user.toJSON();
 
     res.json({
       success: true,
@@ -256,198 +223,257 @@ router.post('/login', loginValidation, async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during login'
+      message: 'Server error during login',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
-// @route   POST /api/auth/refresh
-// @desc    Refresh access token
-// @access  Public
-router.post('/refresh', async (req, res) => {
+/**
+ * @route   POST /api/auth-mongodb/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public
+ */
+router.post('/refresh', verifyRefreshToken, async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(401).json({
-        success: false,
-        message: 'Refresh token is required'
-      });
-    }
-
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    
-    // Find user in Firestore
-    const userDoc = await db.collection('users').doc(decoded.userId || decoded.id).get();
-    
-    if (!userDoc.exists) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid refresh token'
-      });
-    }
+    const user = req.user;
 
     // Generate new access token
-    const newToken = generateToken(userDoc.id);
+    const token = user.generateAuthToken();
 
     res.json({
       success: true,
-      data: {
-        token: newToken
-      }
+      message: 'Token refreshed successfully',
+      data: { token }
     });
 
   } catch (error) {
     console.error('Token refresh error:', error);
-    res.status(401).json({
+    res.status(500).json({
       success: false,
-      message: 'Invalid refresh token'
+      message: 'Error refreshing token',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
-// @route   POST /api/auth/forgot-password
-// @desc    Send password reset email
-// @access  Public
-router.post('/forgot-password', async (req, res) => {
+/**
+ * @route   POST /api/auth-mongodb/logout
+ * @desc    Logout user (client should delete tokens)
+ * @access  Private
+ */
+router.post('/logout', verifyJWT, async (req, res) => {
   try {
-    const { email } = req.body;
+    // In JWT, logout is handled client-side by deleting tokens
+    // But we can remove FCM tokens if provided
+    const { fcmToken } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email is required'
-      });
+    if (fcmToken) {
+      const user = await User.findById(req.userId);
+      if (user) {
+        user.fcmTokens = user.fcmTokens.filter(t => t.token !== fcmToken);
+        await user.save();
+      }
     }
 
-    const usersRef = db.collection('users');
-    const snapshot = await usersRef.where('email', '==', email).limit(1).get();
-
-    if (snapshot.empty) {
-      // Don't reveal if email exists or not
-      return res.json({
-        success: true,
-        message: 'If an account with that email exists, we have sent a password reset link.'
-      });
-    }
-
-    // In a real implementation, you would:
-    // 1. Generate a reset token
-    // 2. Save it to the database with expiry
-    // 3. Send email with reset link
-    
-    // For now, just return success
     res.json({
       success: true,
-      message: 'If an account with that email exists, we have sent a password reset link.'
+      message: 'Logout successful'
+    });
+
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error during logout'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/auth-mongodb/me
+ * @desc    Get current user
+ * @access  Private
+ */
+router.get('/me', verifyJWT, async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      data: { user: req.user }
+    });
+  } catch (error) {
+    console.error('Get me error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user data'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/auth-mongodb/forgot-password
+ * @desc    Request password reset email
+ * @access  Public
+ */
+router.post('/forgot-password', [
+  body('email').isEmail().withMessage('Please enter a valid email')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { email } = req.body;
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    // Don't reveal if user exists or not
+    if (!user) {
+      return res.json({
+        success: true,
+        message: 'If that email is registered, you will receive a password reset link'
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save();
+
+    // TODO: Send reset email with resetToken
+    console.log('Password reset token:', resetToken);
+
+    res.json({
+      success: true,
+      message: 'If that email is registered, you will receive a password reset link'
     });
 
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during password reset request'
+      message: 'Error processing password reset request'
     });
   }
 });
 
-// @route   GET /api/auth/me
-// @desc    Get current user details (validate token)
-// @access  Private
-router.get('/me', async (req, res) => {
+/**
+ * @route   POST /api/auth-mongodb/reset-password
+ * @desc    Reset password with token
+ * @access  Public
+ */
+router.post('/reset-password', [
+  body('token').notEmpty().withMessage('Reset token is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
   try {
-    // Get token from header
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      return res.status(401).json({
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
         success: false,
-        message: 'No authentication token provided'
+        message: 'Validation failed',
+        errors: errors.array()
       });
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Get user from Firestore
-    const userDoc = await db.collection('users').doc(decoded.id || decoded.userId).get();
-    
-    if (!userDoc.exists) {
-      return res.status(404).json({
+    const { token, password } = req.body;
+
+    // Hash token to compare with database
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    }).select('+password');
+
+    if (!user) {
+      return res.status(400).json({
         success: false,
-        message: 'User not found'
+        message: 'Invalid or expired reset token'
       });
     }
 
-    const userData = userDoc.data();
-
-    // Check if user is active
-    if (userData.status !== 'active') {
-      return res.status(403).json({
-        success: false,
-        message: 'Account is not active'
-      });
-    }
+    // Set new password (will be hashed by pre-save hook)
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
 
     res.json({
       success: true,
-      data: {
-        user: {
-          id: userDoc.id,
-          username: userData.username,
-          email: userData.email,
-          fullName: userData.fullName,
-          role: userData.role,
-          status: userData.status,
-          isVerified: userData.isVerified,
-          avatar: userData.avatar,
-          bio: userData.bio
-        }
-      }
+      message: 'Password reset successful. You can now login with your new password.'
     });
 
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token'
-      });
-    }
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Token expired'
-      });
-    }
-
-    console.error('Token validation error:', error);
+    console.error('Reset password error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during token validation'
+      message: 'Error resetting password'
     });
   }
 });
 
-// @route   POST /api/auth/logout
-// @desc    Logout user (client-side token removal)
-// @access  Private
-router.post('/logout', async (req, res) => {
+/**
+ * @route   POST /api/auth-mongodb/verify-email
+ * @desc    Verify email with token
+ * @access  Public
+ */
+router.post('/verify-email', [
+  body('token').notEmpty().withMessage('Verification token is required')
+], async (req, res) => {
   try {
-    // In a production app, you might want to blacklist the token
-    // For now, we just send a success response
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { token } = req.body;
+
+    // Hash token to compare with database
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      verificationToken: hashedToken,
+      verificationTokenExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification token'
+      });
+    }
+
+    // Mark email as verified
+    user.isVerified = true;
+    user.emailVerifiedAt = new Date();
+    user.verificationToken = undefined;
+    user.verificationTokenExpire = undefined;
+    await user.save();
+
     res.json({
       success: true,
-      message: 'Logged out successfully'
+      message: 'Email verified successfully'
     });
+
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('Email verification error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during logout'
+      message: 'Error verifying email'
     });
   }
 });
 
 module.exports = router;
+

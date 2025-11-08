@@ -1,225 +1,132 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
-const db = require('../utils/database'); // Firestore instance
-const { authMiddleware, adminMiddleware } = require('../middleware/auth');
-
 const router = express.Router();
+const User = require('../models/User');
+const Content = require('../models/Content');
+const Product = require('../models/Product');
+const Order = require('../models/Order');
+const Store = require('../models/Store');
+const SellerApplication = require('../models/SellerApplication');
+const Report = require('../models/Report');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
-// Health check endpoint (no auth required)
-router.get('/health', async (req, res) => {
+/**
+ * Admin Routes - MongoDB Implementation
+ * Admin-specific operations and management
+ */
+
+// Health check
+router.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: 'Admin API is operational (Firestore)',
-    timestamp: new Date().toISOString(),
-    availableEndpoints: [
-      'GET /api/admin/dashboard - Admin dashboard stats',
-      'GET /api/admin/users - List all users',
-      'GET /api/admin/users/:userId - Get user details',
-      'PUT /api/admin/users/:userId/role - Update user role',
-      'PUT /api/admin/users/:userId/status - Update user status (ban/suspend/activate)',
-      'PUT /api/admin/users/:userId/verify - Verify user',
-      'PUT /api/admin/users/:userId/feature - Feature user',
-      'GET /api/admin/seller-applications - List seller applications',
-      'PUT /api/admin/seller-applications/:appId - Approve/reject seller application',
-      'POST /api/admin/strikes - Issue strike to user',
-      'GET /api/admin/strikes - List all strikes',
-      'DELETE /api/admin/strikes/:strikeId - Remove strike'
-    ]
+    message: 'Admin API is working (MongoDB)',
+    database: 'MongoDB'
   });
 });
 
-// Apply auth and admin middleware to all routes AFTER health check
-router.use(authMiddleware);
-router.use(adminMiddleware);
-
-// @route   GET /api/admin/dashboard
-// @desc    Get admin dashboard statistics
-// @access  Admin
-router.get('/dashboard', async (req, res) => {
+/**
+ * @route   GET /api/admin/dashboard
+ * @desc    Get admin dashboard stats
+ * @access  Admin
+ */
+router.get('/dashboard', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    // Get user statistics
-    const usersSnapshot = await db.collection('users').get();
-    let totalUsers = 0;
-    let activeUsers = 0;
-    let bannedUsers = 0;
-    let suspendedUsers = 0;
-    let verifiedUsers = 0;
-    let featuredUsers = 0;
-
-    usersSnapshot.forEach(doc => {
-      const user = doc.data();
-      totalUsers++;
-      if (user.status === 'active') activeUsers++;
-      if (user.status === 'banned') bannedUsers++;
-      if (user.status === 'suspended') suspendedUsers++;
-      if (user.isVerified) verifiedUsers++;
-      if (user.isFeatured) featuredUsers++;
-    });
-
-    // Get seller application statistics
-    const sellerSnapshot = await db.collection('sellerApplications').get();
-    let pendingSellerApps = 0;
-    let approvedSellers = 0;
-
-    sellerSnapshot.forEach(doc => {
-      const app = doc.data();
-      if (app.status === 'pending') pendingSellerApps++;
-      if (app.status === 'approved') approvedSellers++;
-    });
-
-    // Get strike statistics
-    const strikesSnapshot = await db.collection('strikes').get();
-    let totalStrikes = strikesSnapshot.size;
-    let activeStrikes = 0;
-
-    strikesSnapshot.forEach(doc => {
-      const strike = doc.data();
-      if (strike.isActive) activeStrikes++;
-    });
-
-    // Get top earners (top 10 by totalEarnings)
-    const walletsSnapshot = await db.collection('wallets')
-      .orderBy('totalEarnings', 'desc')
-      .limit(10)
-      .get();
-
-    const topEarners = [];
-    for (const walletDoc of walletsSnapshot.docs) {
-      const walletData = walletDoc.data();
-      const userDoc = await db.collection('users').doc(walletDoc.id).get();
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        topEarners.push({
-          user: {
-            id: userDoc.id,
-            username: userData.username,
-            fullName: userData.fullName,
-            avatar: userData.avatar,
-            isVerified: userData.isVerified
-          },
-          totalEarnings: walletData.totalEarnings || 0,
-          supportLevel: walletData.supportLevel || 1
-        });
-      }
-    }
-
-    // Get recent registrations (last 10 users)
-    const recentUsersSnapshot = await db.collection('users')
-      .orderBy('createdAt', 'desc')
-      .limit(10)
-      .get();
-
-    const recentUsers = recentUsersSnapshot.docs.map(doc => ({
-      id: doc.id,
-      username: doc.data().username,
-      fullName: doc.data().fullName,
-      avatar: doc.data().avatar,
-      createdAt: doc.data().createdAt,
-      status: doc.data().status
-    }));
-
-    const stats = {
-      overview: {
-        totalUsers,
-        activeUsers,
-        bannedUsers,
-        suspendedUsers,
-        verifiedUsers,
-        featuredUsers,
-        pendingSellerApps,
-        approvedSellers,
-        totalStrikes,
-        activeStrikes
-      },
-      topEarners,
-      recentUsers
-    };
+    const [
+      totalUsers,
+      activeUsers,
+      bannedUsers,
+      totalContent,
+      activeContent,
+      reportedContent,
+      totalProducts,
+      pendingProducts,
+      totalOrders,
+      pendingReports,
+      pendingApplications
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ status: 'active' }),
+      User.countDocuments({ status: 'banned' }),
+      Content.countDocuments(),
+      Content.countDocuments({ status: 'active' }),
+      Content.countDocuments({ status: 'reported' }),
+      Product.countDocuments(),
+      Product.countDocuments({ status: 'pending_approval' }),
+      Order.countDocuments(),
+      Report.countDocuments({ status: 'pending' }),
+      SellerApplication.countDocuments({ status: 'pending' })
+    ]);
 
     res.json({
       success: true,
-      data: { stats }
+      data: {
+        users: {
+          total: totalUsers,
+          active: activeUsers,
+          banned: bannedUsers
+        },
+        content: {
+          total: totalContent,
+          active: activeContent,
+          reported: reportedContent
+        },
+        products: {
+          total: totalProducts,
+          pending: pendingProducts
+        },
+        orders: {
+          total: totalOrders
+        },
+        moderation: {
+          pendingReports,
+          pendingApplications
+        }
+      }
     });
 
   } catch (error) {
-    console.error('Admin dashboard error:', error);
+    console.error('Get dashboard stats error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching dashboard data'
+      message: 'Error fetching dashboard stats'
     });
   }
 });
 
-// @route   GET /api/admin/users
-// @desc    Get all users with pagination and filters
-// @access  Admin
-router.get('/users', async (req, res) => {
+/**
+ * @route   GET /api/admin/users
+ * @desc    Get all users (admin)
+ * @access  Admin
+ */
+router.get('/users', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 20,
-      status,
-      role,
-      isVerified,
-      search
-    } = req.query;
+    const { page = 1, limit = 50, status, role, search } = req.query;
+    const skip = (page - 1) * limit;
 
-    // Ensure valid integers for pagination
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 20;
+    let query = {};
+    if (status) query.status = status;
+    if (role) query.role = role;
 
-    let query = db.collection('users');
-
-    // Apply filters
-    if (status) {
-      query = query.where('status', '==', status);
-    }
-    if (role) {
-      query = query.where('role', '==', role);
-    }
-    if (isVerified !== undefined) {
-      query = query.where('isVerified', '==', isVerified === 'true');
-    }
-
-    // Get total count for pagination
-    const snapshot = await query.get();
-    const total = snapshot.size;
-
-    // Apply pagination
-    const offset = (pageNum - 1) * limitNum;
-    const usersSnapshot = await query
-      .orderBy('createdAt', 'desc')
-      .limit(limitNum)
-      .offset(offset)
-      .get();
-
-    let users = usersSnapshot.docs.map(doc => {
-      const userData = doc.data();
-      delete userData.password;
-      return {
-        id: doc.id,
-        ...userData
-      };
-    });
-
-    // Apply search filter (client-side since Firestore doesn't support full-text search)
     if (search) {
-      const searchLower = search.toLowerCase();
-      users = users.filter(user =>
-        (user.username || '').toLowerCase().includes(searchLower) ||
-        (user.fullName || '').toLowerCase().includes(searchLower) ||
-        (user.email || '').toLowerCase().includes(searchLower)
-      );
+      query.$text = { $search: search };
     }
+
+    const users = await User.find(query)
+      .select('-password')
+      .sort(search ? { score: { $meta: 'textScore' } } : { createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await User.countDocuments(query);
 
     res.json({
       success: true,
       data: {
         users,
         pagination: {
-          page: pageNum,
-          limit: limitNum,
           total,
-          pages: Math.ceil(total / limitNum)
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
         }
       }
     });
@@ -228,281 +135,160 @@ router.get('/users', async (req, res) => {
     console.error('Get users error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching users'
+      message: 'Error fetching users'
     });
   }
 });
 
-// @route   GET /api/admin/users/:userId
-// @desc    Get detailed user information
-// @access  Admin
-router.get('/users/:userId', async (req, res) => {
+/**
+ * @route   POST /api/admin/users
+ * @desc    Create new user (admin)
+ * @access  Admin
+ */
+router.post('/users', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { username, email, password, fullName, role = 'user', status = 'active', isVerified = true } = req.body;
 
-    const userDoc = await db.collection('users').doc(userId).get();
-    if (!userDoc.exists) {
+    // Validate required fields
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username, email, and password are required'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [{ email: email.toLowerCase() }, { username }]
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: existingUser.email === email.toLowerCase() 
+          ? 'Email already exists' 
+          : 'Username already taken'
+      });
+    }
+
+    // Create user (password will be hashed by pre-save hook)
+    const user = new User({
+      username,
+      email: email.toLowerCase(),
+      password,
+      fullName,
+      role,
+      status,
+      isVerified,
+      lastLogin: new Date()
+    });
+
+    await user.save();
+
+    // Create wallet for user
+    const Wallet = require('../models/Wallet');
+    const wallet = new Wallet({
+      userId: user._id,
+      balance: 0
+    });
+    await wallet.save();
+
+    // Remove password from response
+    user.password = undefined;
+
+    res.status(201).json({
+      success: true,
+      data: { user },
+      message: 'User created successfully'
+    });
+
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating user',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/users/:id/status
+ * @desc    Update user status
+ * @access  Admin
+ */
+router.put('/users/:id/status', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { status, reason } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
-    const userData = userDoc.data();
-    delete userData.password;
-
-    // Get wallet data
-    const walletDoc = await db.collection('wallets').doc(userId).get();
-    const wallet = walletDoc.exists ? walletDoc.data() : null;
-
-    // Get strikes
-    const strikesSnapshot = await db.collection('strikes')
-      .where('userId', '==', userId)
-      .orderBy('createdAt', 'desc')
-      .get();
-
-    const strikes = strikesSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    // Get seller application
-    const sellerSnapshot = await db.collection('sellerApplications')
-      .where('userId', '==', userId)
-      .limit(1)
-      .get();
-
-    const sellerApplication = !sellerSnapshot.empty ? {
-      id: sellerSnapshot.docs[0].id,
-      ...sellerSnapshot.docs[0].data()
-    } : null;
-
-    res.json({
-      success: true,
-      data: {
-        user: {
-          id: userDoc.id,
-          ...userData
-        },
-        wallet,
-        strikes,
-        sellerApplication
-      }
-    });
-
-  } catch (error) {
-    console.error('Get user details error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching user details'
-    });
-  }
-});
-
-// @route   PUT /api/admin/users/:userId/role
-// @desc    Update user role
-// @access  Admin
-router.put('/users/:userId/role', [
-  body('role').isIn(['user', 'admin', 'moderator']).withMessage('Invalid role')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
+    // Create strike if banned/suspended
+    if (status === 'banned' || status === 'suspended') {
+      const Strike = require('../models/Strike');
+      const strike = new Strike({
+        userId: user._id,
+        reason: 'terms_violation',
+        description: reason,
+        severity: status === 'banned' ? 'critical' : 'major',
+        issuedBy: req.userId
       });
+      await strike.save();
     }
 
-    const { userId } = req.params;
-    const { role } = req.body;
-
-    await db.collection('users').doc(userId).update({
-      role,
-      updatedAt: new Date().toISOString()
-    });
-
     res.json({
       success: true,
-      message: `User role updated to ${role}`
-    });
-
-  } catch (error) {
-    console.error('Update role error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while updating role'
-    });
-  }
-});
-
-// @route   PUT /api/admin/users/:userId/status
-// @desc    Update user status (ban/suspend/activate)
-// @access  Admin
-router.put('/users/:userId/status', [
-  body('status').isIn(['active', 'banned', 'suspended']).withMessage('Invalid status'),
-  body('reason').optional().isString()
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { userId } = req.params;
-    const { status, reason } = req.body;
-
-    await db.collection('users').doc(userId).update({
-      status,
-      statusReason: reason || '',
-      updatedAt: new Date().toISOString()
-    });
-
-    res.json({
-      success: true,
+      data: { user },
       message: `User status updated to ${status}`
     });
 
   } catch (error) {
-    console.error('Update status error:', error);
+    console.error('Update user status error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while updating status'
+      message: 'Error updating user status'
     });
   }
 });
 
-// @route   PUT /api/admin/users/:userId/verify
-// @desc    Verify/unverify user
-// @access  Admin
-router.put('/users/:userId/verify', [
-  body('isVerified').isBoolean().withMessage('isVerified must be boolean')
-], async (req, res) => {
+/**
+ * @route   GET /api/admin/seller-applications
+ * @desc    Get seller applications
+ * @access  Admin
+ */
+router.get('/seller-applications', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
+    const { status = 'pending', page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
 
-    const { userId } = req.params;
-    const { isVerified } = req.body;
+    const applications = await SellerApplication.find({ status })
+      .sort({ createdAt: 1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('userId', 'username fullName email avatar');
 
-    await db.collection('users').doc(userId).update({
-      isVerified,
-      updatedAt: new Date().toISOString()
-    });
-
-    res.json({
-      success: true,
-      message: isVerified ? 'User verified' : 'User unverified'
-    });
-
-  } catch (error) {
-    console.error('Update verification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while updating verification'
-    });
-  }
-});
-
-// @route   PUT /api/admin/users/:userId/feature
-// @desc    Feature/unfeature user
-// @access  Admin
-router.put('/users/:userId/feature', [
-  body('isFeatured').isBoolean().withMessage('isFeatured must be boolean')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { userId } = req.params;
-    const { isFeatured } = req.body;
-
-    await db.collection('users').doc(userId).update({
-      isFeatured,
-      updatedAt: new Date().toISOString()
-    });
-
-    res.json({
-      success: true,
-      message: isFeatured ? 'User featured' : 'User unfeatured'
-    });
-
-  } catch (error) {
-    console.error('Update featured error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while updating featured status'
-    });
-  }
-});
-
-// @route   GET /api/admin/seller-applications
-// @desc    Get all seller applications
-// @access  Admin
-router.get('/seller-applications', async (req, res) => {
-  try {
-    const { status, page = 1, limit = 20 } = req.query;
-
-    let query = db.collection('sellerApplications');
-
-    if (status) {
-      query = query.where('status', '==', status);
-    }
-
-    const snapshot = await query
-      .orderBy('submittedAt', 'desc')
-      .get();
-
-    const total = snapshot.size;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-    
-    const applications = [];
-    for (let i = offset; i < Math.min(offset + parseInt(limit), snapshot.size); i++) {
-      const doc = snapshot.docs[i];
-      const appData = doc.data();
-      
-      // Get user data
-      const userDoc = await db.collection('users').doc(appData.userId).get();
-      const userData = userDoc.exists ? {
-        id: userDoc.id,
-        username: userDoc.data().username,
-        fullName: userDoc.data().fullName,
-        avatar: userDoc.data().avatar
-      } : null;
-
-      applications.push({
-        id: doc.id,
-        ...appData,
-        user: userData
-      });
-    }
+    const total = await SellerApplication.countDocuments({ status });
 
     res.json({
       success: true,
       data: {
         applications,
         pagination: {
+          total,
           page: parseInt(page),
           limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / parseInt(limit))
+          pages: Math.ceil(total / limit)
         }
       }
     });
@@ -511,319 +297,231 @@ router.get('/seller-applications', async (req, res) => {
     console.error('Get seller applications error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching seller applications'
+      message: 'Error fetching applications'
     });
   }
 });
 
-// @route   PUT /api/admin/seller-applications/:appId
-// @desc    Approve or reject seller application
-// @access  Admin
-router.put('/seller-applications/:appId', [
-  body('status').isIn(['approved', 'rejected']).withMessage('Status must be approved or rejected'),
-  body('notes').optional().isString()
-], async (req, res) => {
+/**
+ * @route   POST /api/admin/seller-applications/:id/approve
+ * @desc    Approve seller application
+ * @access  Admin
+ */
+router.post('/seller-applications/:id/approve', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
+    const application = await SellerApplication.findById(req.params.id);
 
-    const { appId } = req.params;
-    const { status, notes } = req.body;
-    const adminId = req.user.id || req.user._id;
-
-    const appDoc = await db.collection('sellerApplications').doc(appId).get();
-    if (!appDoc.exists) {
+    if (!application) {
       return res.status(404).json({
         success: false,
         message: 'Application not found'
       });
     }
 
-    const appData = appDoc.data();
-
-    // Update application
-    await db.collection('sellerApplications').doc(appId).update({
-      status,
-      reviewedBy: adminId,
-      reviewedAt: new Date().toISOString(),
-      reviewNotes: notes || '',
-      updatedAt: new Date().toISOString()
+    // Update user role
+    await User.findByIdAndUpdate(application.userId, {
+      role: 'seller',
+      isSeller: true,
+      sellerStatus: 'approved'
     });
 
-    // Update user role if approved
-    if (status === 'approved') {
-      await db.collection('users').doc(appData.userId).update({
-        role: 'seller',
-        updatedAt: new Date().toISOString()
+    // Create store
+    const store = new Store({
+      sellerId: application.userId,
+      name: application.businessName,
+      businessType: application.businessType,
+      description: application.description,
+      email: application.contactEmail,
+      phone: application.contactPhone,
+      address: application.address,
+      status: 'active',
+      isVerified: true,
+      verifiedAt: new Date(),
+      approvedBy: req.userId,
+      approvedAt: new Date()
+    });
+
+    await store.save();
+
+    // Update application
+    application.status = 'approved';
+    application.reviewedBy = req.userId;
+    application.reviewedAt = new Date();
+    application.storeId = store._id;
+    await application.save();
+
+    res.json({
+      success: true,
+      data: { application, store },
+      message: 'Seller application approved'
+    });
+
+  } catch (error) {
+    console.error('Approve seller error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error approving seller',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/seller-applications/:id/reject
+ * @desc    Reject seller application
+ * @access  Admin
+ */
+router.post('/seller-applications/:id/reject', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const application = await SellerApplication.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'rejected',
+        rejectionReason: reason,
+        reviewedBy: req.userId,
+        reviewedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
       });
     }
 
     res.json({
       success: true,
-      message: `Seller application ${status}`
+      data: { application },
+      message: 'Application rejected'
     });
 
   } catch (error) {
-    console.error('Update seller application error:', error);
+    console.error('Reject seller error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while updating application'
+      message: 'Error rejecting application'
     });
   }
 });
 
-// @route   POST /api/admin/strikes
-// @desc    Issue a strike to a user
-// @access  Admin
-router.post('/strikes', [
-  body('userId').notEmpty().withMessage('User ID is required'),
-  body('type').isIn(['warning', 'minor', 'major', 'severe']).withMessage('Invalid strike type'),
-  body('reason').notEmpty().withMessage('Reason is required'),
-  body('severity').isInt({ min: 1, max: 5 }).withMessage('Severity must be 1-5'),
-  body('expiresAt').optional().isISO8601()
-], async (req, res) => {
+/**
+ * @route   PUT /api/admin/users/:id/make-seller
+ * @desc    Directly promote user to seller and create store (admin shortcut)
+ * @access  Admin
+ */
+router.put('/users/:id/make-seller', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { userId, type, reason, severity, expiresAt } = req.body;
-    const adminId = req.user.id || req.user._id;
-
-    // Check if user exists
-    const userDoc = await db.collection('users').doc(userId).get();
-    if (!userDoc.exists) {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
-
-    // Create strike
-    const strikeData = {
-      userId,
-      type,
-      reason,
-      severity: parseInt(severity),
-      issuedBy: adminId,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      expiresAt: expiresAt || null
-    };
-
-    const strikeRef = await db.collection('strikes').add(strikeData);
-
-    // Get active strikes count
-    const strikesSnapshot = await db.collection('strikes')
-      .where('userId', '==', userId)
-      .where('isActive', '==', true)
-      .get();
-
-    const activeStrikesCount = strikesSnapshot.size;
-
-    // Auto-suspend if too many strikes
-    if (activeStrikesCount >= 3) {
-      await db.collection('users').doc(userId).update({
-        status: 'suspended',
-        statusReason: 'Accumulated too many strikes',
-        updatedAt: new Date().toISOString()
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Strike issued successfully',
-      data: {
-        strikeId: strikeRef.id,
-        activeStrikesCount
-      }
-    });
-
-  } catch (error) {
-    console.error('Issue strike error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while issuing strike'
-    });
-  }
-});
-
-// @route   GET /api/admin/strikes
-// @desc    Get all strikes with filters
-// @access  Admin
-router.get('/strikes', async (req, res) => {
-  try {
-    const { userId, isActive, page = 1, limit = 20 } = req.query;
-
-    let query = db.collection('strikes');
-
-    if (userId) {
-      query = query.where('userId', '==', userId);
-    }
-    if (isActive !== undefined) {
-      query = query.where('isActive', '==', isActive === 'true');
-    }
-
-    const snapshot = await query
-      .orderBy('createdAt', 'desc')
-      .get();
-
-    const total = snapshot.size;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
-    const strikes = [];
-    for (let i = offset; i < Math.min(offset + parseInt(limit), snapshot.size); i++) {
-      const doc = snapshot.docs[i];
-      const strikeData = doc.data();
-
-      // Get user data
-      const userDoc = await db.collection('users').doc(strikeData.userId).get();
-      const userData = userDoc.exists ? {
-        id: userDoc.id,
-        username: userDoc.data().username,
-        fullName: userDoc.data().fullName
-      } : null;
-
-      strikes.push({
-        id: doc.id,
-        ...strikeData,
-        user: userData
-      });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        strikes,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / parseInt(limit))
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Get strikes error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching strikes'
-    });
-  }
-});
-
-// @route   DELETE /api/admin/strikes/:strikeId
-// @desc    Remove/deactivate a strike
-// @access  Admin
-router.delete('/strikes/:strikeId', async (req, res) => {
-  try {
-    const { strikeId } = req.params;
-
-    const strikeDoc = await db.collection('strikes').doc(strikeId).get();
-    if (!strikeDoc.exists) {
-      return res.status(404).json({
+    
+    if (user.role === 'seller') {
+      return res.status(400).json({
         success: false,
-        message: 'Strike not found'
+        message: 'User is already a seller',
+        data: { user, storeCreated: false }
       });
     }
-
-    await db.collection('strikes').doc(strikeId).update({
-      isActive: false,
-      removedAt: new Date().toISOString(),
-      removedBy: req.user.id || req.user._id
+    
+    // Update user role
+    user.role = 'seller';
+    user.isSeller = true;
+    user.sellerStatus = 'approved';
+    await user.save();
+    
+    // Create store for the seller
+    const store = new Store({
+      sellerId: user._id,
+      name: `${user.fullName || user.username}'s Store`,
+      description: `Welcome to ${user.fullName || user.username}'s Store`,
+      businessType: 'individual',
+      status: 'active',
+      isVerified: true,
+      verifiedAt: new Date(),
+      approvedBy: req.userId,
+      approvedAt: new Date(),
+      settings: {
+        isActive: true,
+        allowReviews: true,
+        autoAcceptOrders: false
+      }
     });
-
+    
+    await store.save();
+    
+    // Update user with store reference
+    user.storeId = store._id;
+    await user.save();
+    
+    // Populate user data for response
+    await user.populate('storeId');
+    
     res.json({
       success: true,
-      message: 'Strike removed successfully'
+      message: 'User promoted to seller and store created successfully',
+      data: {
+        user,
+        store,
+        storeCreated: true
+      }
     });
-
+    
   } catch (error) {
-    console.error('Remove strike error:', error);
+    console.error('Make seller error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while removing strike'
+      message: 'Error making user a seller',
+      error: error.message
     });
   }
 });
 
-// @route   GET /api/admin/uploads
-// @desc    Get all uploads with pagination and filters
-// @access  Admin
-router.get('/uploads', async (req, res) => {
+/**
+ * @route   GET /api/admin/uploads
+ * @desc    Get all uploads (admin)
+ * @access  Admin
+ */
+router.get('/uploads', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 20,
-      type,
-      status,
-      search
-    } = req.query;
+    const { page = 1, limit = 20, search, type, status } = req.query;
+    const skip = (page - 1) * limit;
 
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 20;
-
-    let query = db.collection('uploads');
-
-    // Apply filters
-    if (type && type !== 'all') {
-      query = query.where('type', '==', type);
-    }
-    if (status) {
-      query = query.where('status', '==', status);
-    }
-
-    // Get total count
-    const snapshot = await query.get();
-    const total = snapshot.size;
-
-    // Apply pagination
-    const offset = (pageNum - 1) * limitNum;
-    const uploadsSnapshot = await query
-      .orderBy('createdAt', 'desc')
-      .limit(limitNum)
-      .offset(offset)
-      .get();
-
-    let uploads = uploadsSnapshot.docs.map(doc => ({
-      _id: doc.id,
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
-      updatedAt: doc.data().updatedAt?.toDate?.() || doc.data().updatedAt
-    }));
-
-    // Apply client-side search if provided
+    let query = {};
+    if (type && type !== 'all') query.type = type;
+    if (status && status !== 'all') query.status = status;
     if (search) {
-      const searchLower = search.toLowerCase();
-      uploads = uploads.filter(upload =>
-        (upload.fileName || '').toLowerCase().includes(searchLower) ||
-        (upload.originalName || '').toLowerCase().includes(searchLower) ||
-        (upload.uploadedBy?.username || '').toLowerCase().includes(searchLower)
-      );
+      query.$or = [
+        { title: new RegExp(search, 'i') },
+        { description: new RegExp(search, 'i') }
+      ];
     }
+
+    const uploads = await Content.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('userId', 'username fullName avatar');
+
+    const total = await Content.countDocuments(query);
 
     res.json({
       success: true,
       data: {
         uploads,
         pagination: {
-          page: pageNum,
-          limit: limitNum,
           total,
-          pages: Math.ceil(total / limitNum)
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
         }
       }
     });
@@ -832,19 +530,107 @@ router.get('/uploads', async (req, res) => {
     console.error('Get uploads error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching uploads',
-      error: error.message
+      message: 'Error fetching uploads'
     });
   }
 });
 
-// Mount sub-routes for new features
-const storiesRouter = require('./admin/stories');
-const walletsRouter = require('./admin/wallets');
-const analyticsRouter = require('./admin/analytics');
+/**
+ * @route   GET /api/admin/comments
+ * @desc    Get all comments (admin)
+ * @access  Admin
+ */
+router.get('/comments', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Comment = require('../models/Comment');
+    const { page = 1, limit = 20, search, status, contentType } = req.query;
+    const skip = (page - 1) * limit;
 
-router.use('/stories', storiesRouter);
-router.use('/wallets', walletsRouter);
-router.use('/analytics', analyticsRouter);
+    let query = {};
+    if (status && status !== 'all') query.status = status;
+    if (contentType && contentType !== 'all') query.contentType = contentType;
+    if (search) {
+      query.text = new RegExp(search, 'i');
+    }
+
+    const comments = await Comment.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('userId', 'username fullName avatar')
+      .populate('contentId', 'title type');
+
+    const total = await Comment.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        comments,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching comments'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/wallets
+ * @desc    Get all wallets (admin)
+ * @access  Admin
+ */
+router.get('/wallets', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Wallet = require('../models/Wallet');
+    const { page = 1, limit = 100 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const wallets = await Wallet.find()
+      .sort({ balance: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .populate('userId', 'username fullName email avatar');
+
+    const total = await Wallet.countDocuments();
+    const totalBalance = await Wallet.aggregate([
+      { $group: { _id: null, total: { $sum: '$balance' } } }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        wallets,
+        stats: {
+          totalWallets: total,
+          totalBalance: totalBalance[0]?.total || 0
+        },
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get wallets error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching wallets'
+    });
+  }
+});
 
 module.exports = router;
+
