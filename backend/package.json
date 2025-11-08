@@ -13,6 +13,8 @@
     "test:integration": "jest tests/integration",
     "test:unit": "jest tests/unit",
     "seed": "node src/scripts/seedDatabase.js",
+    "seed:all": "node src/scripts/seedAllData.js",
+    "seed:currencies": "node src/scripts/seedCurrencies.js",
     "seed:comprehensive": "node src/scripts/seedComprehensive.js",
     "seed:settings": "node src/scripts/seedSettings.js",
     "seed:languages": "node src/scripts/seedLanguages.js",
