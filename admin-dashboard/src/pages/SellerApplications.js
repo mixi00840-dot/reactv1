@@ -67,16 +67,16 @@ function SellerApplications() {
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
+      const params = {
         page: filters.page,
         limit: filters.limit,
         ...(filters.status && { status: filters.status }),
         ...(filters.search && { search: filters.search })
-      });
+      };
 
-  const response = await api.get(`/api/admin/seller-applications?${params}`);
-  const list = response?.data?.data?.applications || response?.data?.applications || response?.applications || response?.data || response;
-  setApplications(Array.isArray(list) ? list : []);
+      const response = await api.get('/api/admin/mongodb/seller-applications', { params });
+      const list = response?.data?.data?.applications || response?.data?.applications || [];
+      setApplications(Array.isArray(list) ? list : []);
       
       // Calculate stats from applications
       const statusCounts = (Array.isArray(list) ? list : []).reduce((acc, app) => {
@@ -94,6 +94,7 @@ function SellerApplications() {
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast.error('Failed to load seller applications');
+      setApplications([]);
     } finally {
       setLoading(false);
     }
@@ -101,7 +102,7 @@ function SellerApplications() {
 
   const handleApprove = async (appId) => {
     try {
-  await api.post(`/api/admin/seller-applications/${appId}/approve`);
+      await api.post(`/api/admin/mongodb/seller-applications/${appId}/approve`);
       toast.success('Application approved successfully');
       fetchApplications();
       setActionDialog({ open: false, type: '', app: null });
@@ -118,7 +119,7 @@ function SellerApplications() {
     }
 
     try {
-      await api.post(`/api/admin/seller-applications/${appId}/reject`, {
+      await api.post(`/api/admin/mongodb/seller-applications/${appId}/reject`, {
         reason: rejectionReason
       });
       toast.success('Application rejected successfully');
