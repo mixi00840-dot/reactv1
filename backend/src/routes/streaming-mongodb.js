@@ -113,7 +113,7 @@ router.get('/livestreams', optionalAuth, async (req, res) => {
  * @desc    Start a new livestream
  * @access  Private
  */
-router.post('/livestreams/start', unifiedAuth, async (req, res) => {
+router.post('/livestreams/start', verifyJWT, async (req, res) => {
   try {
     const hostId = req.user.id || req.user._id;
     const { title, description, isPrivate = false, type = 'solo' } = req.body;
@@ -170,7 +170,7 @@ router.post('/livestreams/start', unifiedAuth, async (req, res) => {
  * @desc    End a livestream
  * @access  Private (host only)
  */
-router.post('/livestreams/:livestreamId/end', unifiedAuth, async (req, res) => {
+router.post('/livestreams/:livestreamId/end', verifyJWT, async (req, res) => {
   try {
     const { livestreamId } = req.params;
     const userId = req.user.id || req.user._id;
