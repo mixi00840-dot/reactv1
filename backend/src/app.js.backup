@@ -39,7 +39,7 @@ try {
 
 // Load Firestore orders route
 try {
-//   orderRoutes = require('./routes/orders-firestore'); // DISABLED: Firestore removed
+  orderRoutes = require('./routes/orders-firestore');
   console.log('✅ Orders routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Orders routes error:', error.message);
@@ -117,7 +117,7 @@ try {
 
 // Messaging, comments, notifications already migrated (from previous work)
 try {
-//   messagingRoutes = require('./routes/messaging-firestore'); // DISABLED: Firestore removed
+  messagingRoutes = require('./routes/messaging-firestore');
   console.log('✅ Messaging routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Messaging routes error:', error.message);
@@ -125,7 +125,7 @@ try {
 }
 
 try {
-//   commentsRoutes = require('./routes/comments-firestore'); // DISABLED: Firestore removed
+  commentsRoutes = require('./routes/comments-firestore');
   console.log('✅ Comments routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Comments routes error:', error.message);
@@ -133,7 +133,7 @@ try {
 }
 
 try {
-//   notificationsRoutes = require('./routes/notifications-firestore'); // DISABLED: Firestore removed
+  notificationsRoutes = require('./routes/notifications-firestore');
   console.log('✅ Notifications routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Notifications routes error:', error.message);
@@ -142,7 +142,7 @@ try {
 
 // Load stub Firestore routes for admin dashboard (return empty data instead of 503)
 try {
-//   monetizationRoutes = require('./routes/monetization-firestore'); // DISABLED: Firestore removed
+  monetizationRoutes = require('./routes/monetization-firestore');
   console.log('✅ Monetization routes loaded (Firestore stub)');
 } catch (error) {
   console.error('⚠️ Monetization routes error:', error.message);
@@ -150,7 +150,7 @@ try {
 }
 
 try {
-//   soundsRoutes = require('./routes/sounds-firestore'); // DISABLED: Firestore removed
+  soundsRoutes = require('./routes/sounds-firestore');
   console.log('✅ Sounds routes loaded (Firestore stub)');
 } catch (error) {
   console.error('⚠️ Sounds routes error:', error.message);
@@ -160,42 +160,42 @@ try {
 // Load other critical admin routes (reuse existing variables, don't redeclare)
 // Load each route individually to prevent one failure from affecting others
 try {
-//   moderationRoutes = require('./routes/moderation-firestore'); // DISABLED: Firestore removed
+  moderationRoutes = require('./routes/moderation-firestore');
   console.log('✅ Moderation routes loaded');
 } catch (error) {
   console.error('⚠️ Moderation routes error:', error.message);
 }
 
 try {
-//   settingsRoutes = require('./routes/settings-firestore'); // DISABLED: Firestore removed
+  settingsRoutes = require('./routes/settings-firestore');
   console.log('✅ Settings routes loaded');
 } catch (error) {
   console.error('⚠️ Settings routes error:', error.message);
 }
 
 try {
-//   transcodeRoutes = require('./routes/transcode-firestore'); // DISABLED: Firestore removed
+  transcodeRoutes = require('./routes/transcode-firestore');
   console.log('✅ Transcode routes loaded');
 } catch (error) {
   console.error('⚠️ Transcode routes error:', error.message);
 }
 
 try {
-//   trendingRoutes = require('./routes/trending-firestore'); // DISABLED: Firestore removed
+  trendingRoutes = require('./routes/trending-firestore');
   console.log('✅ Trending routes loaded');
 } catch (error) {
   console.error('⚠️ Trending routes error:', error.message);
 }
 
 try {
-//   analyticsRoutes = require('./routes/analytics-firestore'); // DISABLED: Firestore removed
+  analyticsRoutes = require('./routes/analytics-firestore');
   console.log('✅ Analytics routes loaded');
 } catch (error) {
   console.error('⚠️ Analytics routes error:', error.message);
 }
 
 try {
-//   metricsRoutes = require('./routes/metrics-firestore'); // DISABLED: Firestore removed
+  metricsRoutes = require('./routes/metrics-firestore');
   console.log('✅ Metrics routes loaded');
 } catch (error) {
   console.error('⚠️ Metrics routes error:', error.message);
@@ -203,14 +203,14 @@ try {
 
 // Load new Firestore routes for unmigrated features
 try {
-//   cartRoutes = require('./routes/cart-firestore'); // DISABLED: Firestore removed
+  cartRoutes = require('./routes/cart-firestore');
   console.log('✅ Cart routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Cart routes error:', error.message);
 }
 
 try {
-//   categoriesRoutes_firestore = require('./routes/categories-firestore'); // DISABLED: Firestore removed
+  categoriesRoutes_firestore = require('./routes/categories-firestore');
   categoryRoutes = categoriesRoutes_firestore;
   console.log('✅ Categories routes loaded (Firestore)');
 } catch (error) {
@@ -218,7 +218,7 @@ try {
 }
 
 try {
-//   contentRoutes = require('./routes/content-firestore'); // DISABLED: Firestore removed
+  contentRoutes = require('./routes/content-firestore');
   console.log('✅ Content routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Content routes error:', error.message);
@@ -228,7 +228,7 @@ try {
 }
 
 try {
-//   commentsRoutes_firestore = require('./routes/comments-firestore'); // DISABLED: Firestore removed
+  commentsRoutes_firestore = require('./routes/comments-firestore');
   commentsRoutes = commentsRoutes_firestore;
   console.log('✅ Comments routes loaded (Firestore)');
 } catch (error) {
@@ -236,7 +236,7 @@ try {
 }
 
 try {
-//   feedRoutes = require('./routes/feed-firestore'); // DISABLED: Firestore removed
+  feedRoutes = require('./routes/feed-firestore');
   console.log('✅ Feed routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Feed routes error:', error.message);
@@ -246,7 +246,7 @@ try {
 }
 
 try {
-//   messagingRoutes_firestore = require('./routes/messaging-firestore'); // DISABLED: Firestore removed
+  messagingRoutes_firestore = require('./routes/messaging-firestore');
   messagingRoutes = messagingRoutes_firestore;
   console.log('✅ Messaging routes loaded (Firestore)');
 } catch (error) {
@@ -254,7 +254,7 @@ try {
 }
 
 try {
-//   streamingRoutes_firestore = require('./routes/streaming-firestore'); // DISABLED: Firestore removed
+  streamingRoutes_firestore = require('./routes/streaming-firestore');
   streamProviderRoutes = streamingRoutes_firestore;
   livestreamRoutes = streamingRoutes_firestore;
   console.log('✅ Streaming routes loaded (Firestore)');
@@ -263,14 +263,14 @@ try {
 }
 
 try {
-//   playerRoutes = require('./routes/player-firestore'); // DISABLED: Firestore removed
+  playerRoutes = require('./routes/player-firestore');
   console.log('✅ Player routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Player routes error:', error.message);
 }
 
 try {
-//   uploadsRoutes_firestore = require('./routes/uploads-firestore'); // DISABLED: Firestore removed
+  uploadsRoutes_firestore = require('./routes/uploads-firestore');
   uploadRoutes = uploadsRoutes_firestore;
   console.log('✅ Uploads routes loaded (Firestore)');
 } catch (error) {
@@ -278,7 +278,7 @@ try {
 }
 
 try {
-//   paymentsRoutes_firestore = require('./routes/payments-firestore'); // DISABLED: Firestore removed
+  paymentsRoutes_firestore = require('./routes/payments-firestore');
   paymentRoutes = paymentsRoutes_firestore;
   console.log('✅ Payments routes loaded (Firestore)');
 } catch (error) {
@@ -287,7 +287,7 @@ try {
 
 // Load gifts routes
 try {
-//   giftsRoutes = require('./routes/gifts-firestore'); // DISABLED: Firestore removed
+  giftsRoutes = require('./routes/gifts-firestore');
   console.log('✅ Gifts routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Gifts routes error:', error.message);
@@ -589,7 +589,7 @@ app.use('/api/rights', rightsRoutes);
 
 // Recommendation Engine API routes (Firestore)
 try {
-//   recommendationRoutes = require('./routes/recommendations-firestore'); // DISABLED: Firestore removed
+  recommendationRoutes = require('./routes/recommendations-firestore');
   console.log('✅ Recommendations routes loaded (Firestore)');
 } catch (error) {
   console.error('⚠️ Recommendations routes error:', error.message);
@@ -603,7 +603,7 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/feed', feedRoutes);
 
 // Search API routes (Firestore)
-// app.use('/api/search', require('./routes/search-firestore')); // DISABLED: Firestore removed
+app.use('/api/search', require('./routes/search-firestore'));
 
 // Trending & Explore API routes (Firestore)
 app.use('/api/trending', trendingRoutes); // ✅ Firestore stub
