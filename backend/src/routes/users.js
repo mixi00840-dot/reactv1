@@ -99,6 +99,75 @@ router.put('/profile', verifyJWT, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/users/search
+ * @desc    Search users
+ * @access  Public
+ */
+router.get('/search', async (req, res) => {
+  try {
+    const { q, limit = 20 } = req.query;
+
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search query must be at least 2 characters'
+      });
+    }
+
+    // Text search
+    const users = await User.find(
+      { $text: { $search: q } },
+      { score: { $meta: 'textScore' } }
+    )
+    .select('-password')
+    .sort({ score: { $meta: 'textScore' } })
+    .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { users }
+    });
+
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error searching users'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/users/stats
+ * @desc    Get user statistics
+ * @access  Public
+ */
+router.get('/stats', async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ status: 'active' });
+    const verifiedUsers = await User.countDocuments({ isVerified: true });
+    const sellers = await User.countDocuments({ role: 'seller' });
+
+    res.json({
+      success: true,
+      data: {
+        totalUsers,
+        activeUsers,
+        verifiedUsers,
+        sellers
+      }
+    });
+  } catch (error) {
+    console.error('Get user stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user statistics'
+    });
+  }
+});
+
+/**
  * @route   GET /api/users/:userId
  * @desc    Get user by ID
  * @access  Public (optional auth for follow status)
@@ -305,45 +374,6 @@ router.get('/:userId/following', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching following'
-    });
-  }
-});
-
-/**
- * @route   GET /api/users/search
- * @desc    Search users
- * @access  Public
- */
-router.get('/search', async (req, res) => {
-  try {
-    const { q, limit = 20 } = req.query;
-
-    if (!q || q.trim().length < 2) {
-      return res.status(400).json({
-        success: false,
-        message: 'Search query must be at least 2 characters'
-      });
-    }
-
-    // Text search
-    const users = await User.find(
-      { $text: { $search: q } },
-      { score: { $meta: 'textScore' } }
-    )
-    .select('-password')
-    .sort({ score: { $meta: 'textScore' } })
-    .limit(parseInt(limit));
-
-    res.json({
-      success: true,
-      data: { users }
-    });
-
-  } catch (error) {
-    console.error('Search users error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error searching users'
     });
   }
 });

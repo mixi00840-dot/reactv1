@@ -20,6 +20,51 @@ router.get('/health', (req, res) => {
 });
 
 /**
+ * @route   GET /api/comments/
+ * @desc    Get comments with query filters (for content, user, etc.)
+ * @access  Public
+ */
+router.get('/', async (req, res) => {
+  try {
+    const { contentId, userId, status = 'approved', limit = 20, page = 1 } = req.query;
+    const skip = (page - 1) * limit;
+
+    let query = { status };
+    if (contentId) query.contentId = contentId;
+    if (userId) query.userId = userId;
+
+    const comments = await Comment.find(query)
+      .populate('userId', 'username fullName avatar isVerified')
+      .populate('contentId', 'title thumbnail')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await Comment.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        comments,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching comments'
+    });
+  }
+});
+
+/**
  * @route   GET /api/comments/:id
  * @desc    Get comment by ID
  * @access  Public

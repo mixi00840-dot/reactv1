@@ -79,6 +79,87 @@ router.get('/', optionalAuth, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/content/feed
+ * @desc    Get personalized content feed
+ * @access  Public (better with auth)
+ */
+router.get('/feed', optionalAuth, async (req, res) => {
+  try {
+    const { limit = 20, page = 1 } = req.query;
+    const skip = (page - 1) * limit;
+
+    // If authenticated, get personalized feed
+    // For now, return trending/recent content
+    const content = await Content.find({ status: 'approved' })
+      .populate('userId', 'username fullName avatar isVerified')
+      .sort({ createdAt: -1, viewCount: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    res.json({
+      success: true,
+      data: { content }
+    });
+
+  } catch (error) {
+    console.error('Get feed error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching feed'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/content/trending
+ * @desc    Get trending content
+ * @access  Public
+ */
+router.get('/trending', async (req, res) => {
+  try {
+    const { limit = 20, timeframe = '7d' } = req.query;
+
+    // Calculate date based on timeframe
+    const now = new Date();
+    let sinceDate = new Date();
+    
+    switch(timeframe) {
+      case '24h':
+        sinceDate.setHours(now.getHours() - 24);
+        break;
+      case '7d':
+        sinceDate.setDate(now.getDate() - 7);
+        break;
+      case '30d':
+        sinceDate.setDate(now.getDate() - 30);
+        break;
+      default:
+        sinceDate.setDate(now.getDate() - 7);
+    }
+
+    const content = await Content.find({
+      status: 'approved',
+      createdAt: { $gte: sinceDate }
+    })
+      .populate('userId', 'username fullName avatar isVerified')
+      .sort({ viewCount: -1, likesCount: -1, commentsCount: -1 })
+      .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { content }
+    });
+
+  } catch (error) {
+    console.error('Get trending error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching trending content'
+    });
+  }
+});
+
+/**
  * @route   GET /api/content/:id
  * @desc    Get single content
  * @access  Public
