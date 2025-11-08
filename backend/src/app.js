@@ -392,6 +392,9 @@ if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
             app.use('/api/metrics/mongodb', require('./routes/metrics'));
             app.use('/api/uploads/mongodb', require('./routes/uploads'));
             app.use('/api/levels', require('./routes/levels')); // Levels & Badges
+            app.use('/api/featured', require('./routes/featured')); // Featured Content
+            app.use('/api/coins', require('./routes/coins')); // Coin Packages
+            app.use('/api/tags', require('./routes/tags')); // Tags Management
             
             // Override content route with full MongoDB implementation
             app.use('/api/content/mongodb', require('./routes/content'));
