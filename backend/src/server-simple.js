@@ -26,18 +26,18 @@ const io = socketIO(server, {
   pingInterval: 25000
 });
 
-// Setup Socket.io event handlers
+// Setup Socket.io event handlers (TEMPORARILY DISABLED - needs MongoDB migration)
 try {
-  console.log('🔌 Setting up Socket.IO handlers...');
-  const { setupSocketHandlers } = require('./socket/events');
-  const setupWebRTCHandlers = require('./socket/webrtc');
+  console.log('🔌 Socket.IO temporarily disabled (being migrated to MongoDB)');
+  // const { setupSocketHandlers } = require('./socket/events');
+  // const setupWebRTCHandlers = require('./socket/webrtc');
   
-  setupSocketHandlers(io);
-  setupWebRTCHandlers(io);
+  // setupSocketHandlers(io);
+  // setupWebRTCHandlers(io);
   
   // Make io accessible to routes
   app.set('io', io);
-  console.log('✅ Socket.IO handlers configured');
+  console.log('✅ Socket.IO instance available (handlers disabled)');
 } catch (error) {
   console.error('❌ Error setting up Socket.IO:', error.message);
 }
