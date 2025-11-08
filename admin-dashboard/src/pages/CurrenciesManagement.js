@@ -91,98 +91,16 @@ const CurrenciesManagement = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await api.get('/api/admin/currencies', {
+      const response = await api.get('/api/currencies/mongodb', {
         headers: { Authorization: `Bearer ${token}` },
-        params: filters
+        params: { includeInactive: true }
       });
       const list = response?.data?.data?.currencies || response?.data?.currencies || response?.currencies || response?.data || response;
       setCurrencies(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error('Error fetching currencies:', error);
-      // Generate dummy data since backend API doesn't exist yet
-      const dummyCurrencies = [
-        {
-          _id: 'curr_1',
-          code: 'USD',
-          name: 'US Dollar',
-          symbol: '$',
-          flag: '🇺🇸',
-          country: 'United States',
-          exchangeRate: 1.0,
-          isDefault: true,
-          isActive: true,
-          isSupported: true,
-          decimals: 2,
-          position: 'before', // before or after amount
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date()
-        },
-        {
-          _id: 'curr_2',
-          code: 'SAR',
-          name: 'Saudi Riyal',
-          symbol: 'ر.س',
-          flag: '🇸🇦',
-          country: 'Saudi Arabia',
-          exchangeRate: 3.75,
-          isDefault: false,
-          isActive: true,
-          isSupported: true,
-          decimals: 2,
-          position: 'after',
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date()
-        },
-        {
-          _id: 'curr_3',
-          code: 'EUR',
-          name: 'Euro',
-          symbol: '€',
-          flag: '🇪🇺',
-          country: 'European Union',
-          exchangeRate: 0.85,
-          isDefault: false,
-          isActive: true,
-          isSupported: true,
-          decimals: 2,
-          position: 'before',
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date()
-        },
-        {
-          _id: 'curr_4',
-          code: 'AED',
-          name: 'UAE Dirham',
-          symbol: 'د.إ',
-          flag: '🇦🇪',
-          country: 'United Arab Emirates',
-          exchangeRate: 3.67,
-          isDefault: false,
-          isActive: true,
-          isSupported: true,
-          decimals: 2,
-          position: 'after',
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date()
-        },
-        {
-          _id: 'curr_5',
-          code: 'GBP',
-          name: 'British Pound',
-          symbol: '£',
-          flag: '🇬🇧',
-          country: 'United Kingdom',
-          exchangeRate: 0.73,
-          isDefault: false,
-          isActive: false,
-          isSupported: true,
-          decimals: 2,
-          position: 'before',
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date()
-        }
-      ];
-      setCurrencies(dummyCurrencies);
+      setError('Failed to load currencies. Please try again.');
+      setCurrencies([]);
     }
     setLoading(false);
   };
@@ -221,11 +139,11 @@ const CurrenciesManagement = () => {
       const { currency, mode } = currencyDialog;
       
       if (mode === 'create') {
-        await api.post('/api/admin/currencies', currency, {
+        await api.post('/api/currencies/mongodb', currency, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await api.put(`/api/admin/currencies/${currency._id}`, currency, {
+        await api.put(`/api/currencies/mongodb/${currency.code}`, currency, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -248,10 +166,10 @@ const CurrenciesManagement = () => {
     }
   };
 
-  const handleDeleteCurrency = async (currencyId) => {
+  const handleDeleteCurrency = async (currencyCode) => {
     try {
       const token = localStorage.getItem('token');
-      await api.delete(`/api/admin/currencies/${currencyId}`, {
+      await api.delete(`/api/currencies/mongodb/${currencyCode}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -266,23 +184,26 @@ const CurrenciesManagement = () => {
       console.error('Error deleting currency:', error);
       setSnackbar({
         open: true,
-        message: 'Error deleting currency',
+        message: error.response?.data?.message || 'Error deleting currency',
         severity: 'error'
       });
     }
   };
 
-  const handleToggleStatus = async (currencyId, field, value) => {
+  const handleToggleStatus = async (currencyCode, field, value) => {
     try {
       const token = localStorage.getItem('token');
-      await api.patch(`/api/admin/currencies/${currencyId}`, {
+      const currency = currencies.find(c => c.code === currencyCode);
+      
+      await api.put(`/api/currencies/mongodb/${currencyCode}`, {
+        ...currency,
         [field]: value
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       setCurrencies(prev => prev.map(curr => 
-        curr._id === currencyId ? { ...curr, [field]: value } : curr
+        curr.code === currencyCode ? { ...curr, [field]: value } : curr
       ));
       
       setSnackbar({
@@ -294,22 +215,27 @@ const CurrenciesManagement = () => {
       console.error('Error updating currency:', error);
       setSnackbar({
         open: true,
-        message: 'Error updating currency',
+        message: error.response?.data?.message || 'Error updating currency',
         severity: 'error'
       });
     }
   };
 
-  const handleSetDefault = async (currencyId) => {
+  const handleSetDefault = async (currencyCode) => {
     try {
       const token = localStorage.getItem('token');
-      await api.patch(`/api/admin/currencies/${currencyId}/set-default`, {}, {
+      const currency = currencies.find(c => c.code === currencyCode);
+      
+      await api.put(`/api/currencies/mongodb/${currencyCode}`, {
+        ...currency,
+        isDefault: true
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       setCurrencies(prev => prev.map(curr => ({
         ...curr,
-        isDefault: curr._id === currencyId
+        isDefault: curr.code === currencyCode
       })));
       
       setSnackbar({
@@ -321,18 +247,38 @@ const CurrenciesManagement = () => {
       console.error('Error setting default currency:', error);
       setSnackbar({
         open: true,
-        message: 'Error setting default currency',
+        message: error.response?.data?.message || 'Error setting default currency',
         severity: 'error'
       });
     }
   };
 
   const handleUpdateExchangeRates = async () => {
+    // Note: This would require integration with a real-time exchange rate API
+    // like exchangerate-api.com, fixer.io, or openexchangerates.org
+    setSnackbar({
+      open: true,
+      message: 'Auto-update exchange rates feature requires API integration',
+      severity: 'info'
+    });
+    
+    /* Example implementation:
     try {
       const token = localStorage.getItem('token');
-      await api.post('/api/admin/currencies/update-rates', {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Call exchange rate API service
+      const rates = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const data = await rates.json();
+      
+      // Update each currency
+      for (const currency of currencies) {
+        if (currency.code !== 'USD' && data.rates[currency.code]) {
+          await api.put(`/api/currencies/mongodb/${currency.code}/rate`, {
+            rate: data.rates[currency.code]
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      }
       
       setSnackbar({
         open: true,
@@ -349,6 +295,7 @@ const CurrenciesManagement = () => {
         severity: 'error'
       });
     }
+    */
   };
 
   const formatAmount = (amount, currency) => {
@@ -570,7 +517,7 @@ const CurrenciesManagement = () => {
                             <Switch
                               size="small"
                               checked={currency.isActive}
-                              onChange={(e) => handleToggleStatus(currency._id, 'isActive', e.target.checked)}
+                              onChange={(e) => handleToggleStatus(currency.code, 'isActive', e.target.checked)}
                             />
                           }
                           label="Active"
@@ -580,7 +527,7 @@ const CurrenciesManagement = () => {
                             <Switch
                               size="small"
                               checked={currency.isSupported}
-                              onChange={(e) => handleToggleStatus(currency._id, 'isSupported', e.target.checked)}
+                              onChange={(e) => handleToggleStatus(currency.code, 'isSupported', e.target.checked)}
                             />
                           }
                           label="Supported"
@@ -598,7 +545,7 @@ const CurrenciesManagement = () => {
                       ) : (
                         <Button
                           size="small"
-                          onClick={() => handleSetDefault(currency._id)}
+                          onClick={() => handleSetDefault(currency.code)}
                           disabled={!currency.isActive}
                         >
                           Set Default
@@ -621,7 +568,7 @@ const CurrenciesManagement = () => {
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={() => handleDeleteCurrency(currency._id)}
+                          onClick={() => handleDeleteCurrency(currency.code)}
                           disabled={currency.isDefault}
                         >
                           <DeleteIcon />
