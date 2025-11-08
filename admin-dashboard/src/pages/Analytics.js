@@ -40,10 +40,11 @@ function Analytics() {
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const data = await api.get('/api/admin/analytics/dashboard');
-      setDashboardData(data || {});
+      const response = await api.get('/api/analytics/overview');
+      setDashboardData(response?.data?.data || response?.data || {});
     } catch (error) {
       console.error('Error fetching dashboard:', error);
+      toast.error('Failed to fetch analytics dashboard');
     } finally {
       setLoading(false);
     }
@@ -51,19 +52,23 @@ function Analytics() {
 
   const fetchUserAnalytics = async () => {
     try {
-      const data = await api.get('/api/admin/analytics/users');
-      setUserAnalytics(data || {});
+      const response = await api.get('/api/analytics/overview');
+      const data = response?.data?.data || response?.data || {};
+      setUserAnalytics(data.users || {});
     } catch (error) {
       console.error('Error fetching user analytics:', error);
+      toast.error('Failed to fetch user analytics');
     }
   };
 
   const fetchRevenueAnalytics = async () => {
     try {
-      const data = await api.get('/api/admin/analytics/revenue');
-      setRevenueAnalytics(data || {});
+      const response = await api.get('/api/analytics/overview');
+      const data = response?.data?.data || response?.data || {};
+      setRevenueAnalytics(data.orders || {});
     } catch (error) {
       console.error('Error fetching revenue analytics:', error);
+      toast.error('Failed to fetch revenue analytics');
     }
   };
 

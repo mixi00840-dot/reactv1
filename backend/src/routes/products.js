@@ -320,4 +320,187 @@ router.get('/featured/best-sellers', async (req, res) => {
   }
 });
 
+// ==================== ADMIN ENDPOINTS ====================
+const { requireAdmin: requireAdminMiddleware } = require('../middleware/adminMiddleware');
+
+/**
+ * @route   GET /api/products/admin/all
+ * @desc    Get all products (Admin)
+ * @access  Admin
+ */
+router.get('/admin/all', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 50, 
+      search,
+      status,
+      category,
+      isActive
+    } = req.query;
+    const skip = (page - 1) * limit;
+
+    let query = {};
+    
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    if (isActive !== undefined) {
+      query.isActive = isActive === 'true';
+    }
+    
+    if (category && category !== 'all') {
+      query.category = category;
+    }
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { sku: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const products = await Product.find(query)
+      .populate('sellerId', 'username storeName email')
+      .populate('category', 'name')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip)
+      .lean();
+
+    const total = await Product.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        products,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get all products error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching products'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/products/admin/stats
+ * @desc    Get product statistics (Admin)
+ * @access  Admin
+ */
+router.get('/admin/stats', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const [
+      totalProducts,
+      activeProducts,
+      draftProducts,
+      pendingApproval,
+      outOfStock
+    ] = await Promise.all([
+      Product.countDocuments(),
+      Product.countDocuments({ isActive: true }),
+      Product.countDocuments({ status: 'draft' }),
+      Product.countDocuments({ status: 'pending_approval' }),
+      Product.countDocuments({ 'inventory.quantity': 0, 'inventory.trackQuantity': true })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        total: totalProducts,
+        active: activeProducts,
+        draft: draftProducts,
+        pending: pendingApproval,
+        outOfStock
+      }
+    });
+
+  } catch (error) {
+    console.error('Get product stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching product statistics'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/products/admin/:id/status
+ * @desc    Update product status (Admin)
+ * @access  Admin
+ */
+router.put('/admin/:id/status', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    product.status = status;
+    if (status === 'active') {
+      product.isActive = true;
+    }
+    await product.save();
+
+    res.json({
+      success: true,
+      data: { product },
+      message: `Product status updated to ${status}`
+    });
+
+  } catch (error) {
+    console.error('Update product status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating product status'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/products/admin/:id
+ * @desc    Delete product permanently (Admin)
+ * @access  Admin
+ */
+router.delete('/admin/:id', verifyJWT, requireAdminMiddleware, async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Product deleted permanently'
+    });
+
+  } catch (error) {
+    console.error('Delete product error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting product'
+    });
+  }
+});
+
 module.exports = router;

@@ -72,11 +72,19 @@ const Livestreams = () => {
   const fetchStreams = async () => {
     setLoading(true);
     try {
-      const status = selectedTab === 0 ? 'live' : selectedTab === 1 ? 'ended' : 'all';
-      const payload = await api.get(`/api/livestreams?status=${status}&limit=50`);
-      setStreams(payload?.streams || []);
+      const status = selectedTab === 0 ? 'live' : selectedTab === 1 ? 'ended' : '';
+      const response = await api.get('/api/livestreams/admin/all', {
+        params: {
+          status,
+          limit: 50
+        }
+      });
+      const data = response?.data?.data?.streams || response?.data?.streams || [];
+      setStreams(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching streams:', error);
+      toast.error('Failed to fetch livestreams');
+      setStreams([]);
     } finally {
       setLoading(false);
     }
@@ -84,8 +92,9 @@ const Livestreams = () => {
 
   const fetchStats = async () => {
     try {
-      const payload = await api.get('/api/livestreams/stats');
-      setStats(payload?.stats || payload || {});
+      const response = await api.get('/api/livestreams/admin/stats');
+      const data = response?.data?.data || response?.data || {};
+      setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -95,7 +104,8 @@ const Livestreams = () => {
     if (!window.confirm('End this livestream?')) return;
 
     try {
-      await api.post(`/api/livestreams/${streamId}/end`, { reason: 'Admin ended stream' });
+      await api.post(`/api/livestreams/admin/${streamId}/end`, { reason: 'Admin ended stream' });
+      toast.success('Stream ended successfully');
       fetchStreams();
       fetchStats();
       alert('Stream ended successfully');
@@ -105,14 +115,16 @@ const Livestreams = () => {
     }
   };
 
-  const handleFeatureStream = async (streamId) => {
+  const handleFeatureStream = async (streamId, currentFeatured) => {
     try {
-      await api.post(`/api/livestreams/${streamId}/feature`, { featured: true });
+      await api.put(`/api/livestreams/admin/${streamId}/feature`, { 
+        featured: !currentFeatured 
+      });
+      toast.success(`Stream ${!currentFeatured ? 'featured' : 'unfeatured'} successfully`);
       fetchStreams();
-      alert('Stream featured successfully');
     } catch (error) {
       console.error('Error featuring stream:', error);
-      alert('Failed to feature stream');
+      toast.error('Failed to update featured status');
     }
   };
 

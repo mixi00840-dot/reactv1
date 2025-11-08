@@ -49,29 +49,31 @@ const Monetization = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/monetization/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(response?.data || response || {});
+      const response = await api.get('/api/monetization/mongodb/stats');
+      setStats(response?.data?.data || response?.data || {
+        totalRevenue: 0,
+        todayRevenue: 0,
+        giftRevenue: 0,
+        subscriptionRevenue: 0
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
+      toast.error('Failed to fetch monetization stats');
     }
   };
 
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/monetization/transactions?limit=50`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const data = response?.data?.transactions || response?.transactions || response?.data || response;
+      const response = await api.get('/api/monetization/mongodb/transactions', {
+        params: { limit: 50 }
+      });
+      const data = response?.data?.data?.transactions || response?.data?.transactions || [];
       setTransactions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      toast.error('Failed to fetch transactions');
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
@@ -79,12 +81,10 @@ const Monetization = () => {
 
   const fetchRevenueChart = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await api.get(
-        `/api/monetization/revenue-chart?days=30`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const chart = response?.data?.data || response?.data || response;
+      const response = await api.get('/api/monetization/mongodb/revenue-chart', {
+        params: { days: 30 }
+      });
+      const chart = response?.data?.data || response?.data || [];
       setRevenueChart(Array.isArray(chart) ? chart : []);
     } catch (error) {
       console.error('Error fetching revenue chart:', error);

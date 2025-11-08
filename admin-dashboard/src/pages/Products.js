@@ -149,14 +149,20 @@ function Products() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/products');
-      // Unwrapped client may return either {products, pagination} or array
-      const productsData = response?.data?.products || response?.products || (Array.isArray(response) ? response : []);
+      const response = await api.get('/api/products/admin/all', {
+        params: {
+          limit: 100,
+          ...(statusFilter !== 'all' && { status: statusFilter }),
+          ...(categoryFilter !== 'all' && { category: categoryFilter }),
+          ...(searchTerm && { search: searchTerm })
+        }
+      });
+      const productsData = response?.data?.data?.products || response?.data?.products || [];
       setProducts(Array.isArray(productsData) ? productsData : []);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast.error('Failed to fetch products');
-      setProducts([]); // Ensure products is always an array
+      setProducts([]);
     } finally {
       setLoading(false);
     }
