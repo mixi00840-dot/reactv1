@@ -3,8 +3,7 @@ const router = express.Router();
 const Livestream = require('../models/Livestream');
 const StreamProvider = require('../models/StreamProvider');
 const GiftTransaction = require('../models/GiftTransaction');
-const { unifiedAuth, requireAdmin } = require('../middleware/unifiedAuth');
-const { optionalAuth } = require('../middleware/jwtAuth');
+const { verifyJWT, requireAdmin, optionalAuth } = require('../middleware/jwtAuth');
 
 /**
  * Streaming Routes - MongoDB Implementation
@@ -20,7 +19,7 @@ router.get('/health', (req, res) => {
  * @desc    Get available streaming providers
  * @access  Private
  */
-router.get('/providers', unifiedAuth, async (req, res) => {
+router.get('/providers', verifyJWT, async (req, res) => {
   try {
     const providers = await StreamProvider.find({ enabled: true })
       .sort({ priority: 1 })
