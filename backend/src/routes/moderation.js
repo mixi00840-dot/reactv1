@@ -27,10 +27,11 @@ router.get('/health', (req, res) => {
  */
 router.get('/queue', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const { status = 'pending', priority, page = 1, limit = 50 } = req.query;
+    const { status, priority, page = 1, limit = 50 } = req.query;
     const skip = (page - 1) * limit;
 
-    let query = { status };
+    let query = {};
+    if (status && status !== 'all') query.status = status;
     if (priority) query.priority = priority;
 
     const queue = await ModerationQueue.find(query)
@@ -59,6 +60,50 @@ router.get('/queue', verifyJWT, requireAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching moderation queue'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/moderation/stats
+ * @desc    Get moderation statistics
+ * @access  Admin
+ */
+router.get('/stats', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const [
+      pendingCount,
+      flaggedCount,
+      approvedCount,
+      rejectedCount,
+      totalReports,
+      pendingReports
+    ] = await Promise.all([
+      ModerationQueue.countDocuments({ status: 'pending' }),
+      ModerationQueue.countDocuments({ status: 'flagged' }),
+      Content.countDocuments({ status: 'active', reviewedBy: { $exists: true } }),
+      Content.countDocuments({ status: 'removed' }),
+      Report.countDocuments(),
+      Report.countDocuments({ status: 'pending' })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        pending: pendingCount,
+        flagged: flaggedCount,
+        approved: approvedCount,
+        rejected: rejectedCount,
+        totalReports,
+        pendingReports
+      }
+    });
+
+  } catch (error) {
+    console.error('Get moderation stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching moderation stats'
     });
   }
 });

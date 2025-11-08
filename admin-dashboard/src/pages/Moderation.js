@@ -62,11 +62,16 @@ const Moderation = () => {
     try {
       const status = selectedTab === 0 ? 'pending' : selectedTab === 1 ? 'flagged' : 'all';
       
-      const response = await mongoAPI.moderation.getQueue({ status });
+      const response = await mongoAPI.get('/api/moderation/queue', {
+        params: { status, limit: 100 }
+      });
       
-      setQueue(response?.data?.items || response?.items || response?.data?.queue || []);
+      const items = response?.data?.data?.queue || response?.data?.queue || [];
+      setQueue(Array.isArray(items) ? items : []);
     } catch (error) {
       console.error('Error fetching moderation queue:', error);
+      toast.error('Failed to fetch moderation queue');
+      setQueue([]);
     } finally {
       setLoading(false);
     }
@@ -74,15 +79,14 @@ const Moderation = () => {
 
   const fetchStats = async () => {
     try {
-      // MongoDB doesn't have a separate stats endpoint yet, calculate from queue
-      const response = await mongoAPI.moderation.getQueue({ status: 'all' });
-      const allItems = response?.data?.items || response?.items || [];
+      const response = await mongoAPI.get('/api/moderation/stats');
       
+      const data = response?.data?.data || response?.data || {};
       setStats({
-        pending: allItems.filter(item => item.status === 'pending').length,
-        flagged: allItems.filter(item => item.status === 'flagged').length,
-        approved: allItems.filter(item => item.status === 'approved').length,
-        rejected: allItems.filter(item => item.status === 'rejected').length
+        pending: data.pending || 0,
+        flagged: data.flagged || 0,
+        approved: data.approved || 0,
+        rejected: data.rejected || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -91,13 +95,14 @@ const Moderation = () => {
 
   const handleApprove = async (itemId) => {
     try {
-      await mongoAPI.content.approve(itemId);
+      await mongoAPI.post(`/api/moderation/content/${itemId}/approve`, {});
+      toast.success('Content approved successfully');
       fetchQueue();
       fetchStats();
       setDetailsOpen(false);
-      toast.success('Content approved successfully');
     } catch (error) {
       console.error('Error approving content:', error);
+      toast.error('Failed to approve content');
       toast.error(error.response?.data?.message || 'Failed to approve content');
     }
   };
@@ -109,14 +114,17 @@ const Moderation = () => {
     }
 
     try {
-      await mongoAPI.content.reject(itemId, rejectReason);
+      await mongoAPI.post(`/api/moderation/content/${itemId}/reject`, {
+        reason: rejectReason
+      });
+      toast.success('Content rejected successfully');
       fetchQueue();
       fetchStats();
       setDetailsOpen(false);
       setRejectReason('');
-      toast.success('Content rejected successfully');
     } catch (error) {
       console.error('Error rejecting content:', error);
+      toast.error('Failed to reject content');
       toast.error(error.response?.data?.message || 'Failed to reject content');
     }
   };
