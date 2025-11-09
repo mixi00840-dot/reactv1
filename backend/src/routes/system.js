@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const os = require('os');
+const mongoose = require('mongoose');
 const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
-const { getConnectionStatus } = require('../config/database');
+
+// Helper function to get MongoDB connection status
+const getConnectionStatus = () => {
+  const state = mongoose.connection.readyState;
+  return {
+    isConnected: state === 1,
+    state: ['disconnected', 'connected', 'connecting', 'disconnecting'][state] || 'unknown'
+  };
+};
 
 // ===========================
 // ADMIN ROUTES - SYSTEM MONITORING
