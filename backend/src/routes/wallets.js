@@ -184,7 +184,7 @@ router.post('/:userId/add-funds', verifyJWT, requireAdmin, async (req, res) => {
 });
 
 // ==================== ADMIN ENDPOINTS ====================
-const { requireAdmin: requireAdminMiddleware } = require('../middleware/adminMiddleware');
+const { requireAdmin: requireAdminMiddleware } = require('../middleware/jwtAuth');
 
 /**
  * @route   GET /api/wallets/admin/all

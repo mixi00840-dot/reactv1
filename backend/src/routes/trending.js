@@ -204,7 +204,7 @@ router.get('/analytics', async (req, res) => {
 
 // ==================== ADMIN ENDPOINTS ====================
 const { verifyJWT } = require('../middleware/jwtAuth');
-const { requireAdmin } = require('../middleware/adminMiddleware');
+const { requireAdmin } = require('../middleware/jwtAuth');
 const TrendingConfig = require('../models/TrendingConfig');
 
 /**

@@ -321,7 +321,7 @@ router.get('/featured/best-sellers', async (req, res) => {
 });
 
 // ==================== ADMIN ENDPOINTS ====================
-const { requireAdmin: requireAdminMiddleware } = require('../middleware/adminMiddleware');
+const { requireAdmin: requireAdminMiddleware } = require('../middleware/jwtAuth');
 
 /**
  * @route   GET /api/products/admin/all

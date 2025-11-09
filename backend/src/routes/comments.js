@@ -250,7 +250,7 @@ router.post('/:id/like', verifyJWT, async (req, res) => {
 });
 
 // ==================== ADMIN ENDPOINTS ====================
-const { requireAdmin } = require('../middleware/adminMiddleware');
+const { requireAdmin } = require('../middleware/jwtAuth');
 
 /**
  * @route   GET /api/comments/admin/all
