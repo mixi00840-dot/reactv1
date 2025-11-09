@@ -3,7 +3,7 @@ const router = express.Router();
 const Featured = require('../models/Featured');
 const User = require('../models/User');
 const Content = require('../models/Content');
-const { verifyJWT, requireAdmin } = require('../middleware/authMiddleware');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 // ===========================
 // ADMIN ROUTES

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const CoinPackage = require('../models/CoinPackage');
 const Transaction = require('../models/Transaction');
-const { verifyJWT, requireAdmin } = require('../middleware/authMiddleware');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 // ===========================
 // ADMIN ROUTES

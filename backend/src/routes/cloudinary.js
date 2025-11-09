@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyJWT, requireAdmin } = require('../middleware/authMiddleware');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 // Note: Cloudinary Admin API integration would require cloudinary npm package
 // This is a placeholder structure for the routes
