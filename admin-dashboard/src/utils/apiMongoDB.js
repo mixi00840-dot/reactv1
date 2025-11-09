@@ -81,8 +81,14 @@ apiClient.interceptors.response.use(
 // Generic HTTP methods for backward compatibility
 const httpMethods = {
   get: async (url, config = {}) => {
-    // Remove leading /api if present and add /mongodb suffix
+    // Remove leading /api if present
     let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
+    
+    // Don't modify URLs that already have /database/, /health, /mongodb in them
+    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
+      const response = await apiClient.get(cleanUrl, config);
+      return response.data;
+    }
     
     // Add /mongodb suffix to route group (except health and auth)
     const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
@@ -106,6 +112,12 @@ const httpMethods = {
   post: async (url, data = {}, config = {}) => {
     let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
     
+    // Don't modify URLs that already have /database/, /health, /mongodb in them
+    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
+      const response = await apiClient.post(cleanUrl, data, config);
+      return response.data;
+    }
+    
     const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
       'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
       'search', 'settings', 'analytics', 'moderation', 'recommendations', 'trending', 'sounds', 
@@ -126,6 +138,12 @@ const httpMethods = {
   
   put: async (url, data = {}, config = {}) => {
     let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
+    
+    // Don't modify URLs that already have /database/, /health, /mongodb in them
+    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
+      const response = await apiClient.put(cleanUrl, data, config);
+      return response.data;
+    }
     
     const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
       'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
@@ -148,6 +166,12 @@ const httpMethods = {
   patch: async (url, data = {}, config = {}) => {
     let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
     
+    // Don't modify URLs that already have /database/, /health, /mongodb in them
+    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
+      const response = await apiClient.patch(cleanUrl, data, config);
+      return response.data;
+    }
+    
     const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
       'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
       'search', 'settings', 'analytics', 'moderation', 'recommendations', 'trending', 'sounds', 
@@ -168,6 +192,12 @@ const httpMethods = {
   
   delete: async (url, config = {}) => {
     let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
+    
+    // Don't modify URLs that already have /database/, /health, /mongodb in them
+    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
+      const response = await apiClient.delete(cleanUrl, config);
+      return response.data;
+    }
     
     const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
       'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
