@@ -49,7 +49,8 @@ let paymentRoutes = fallback2; // Changed to let for Firestore override
 const couponRoutes = fallback2;
 const shippingRoutes = fallback2;
 const customerServiceRoutes = fallback2;
-let analyticsRoutes = fallback2; // Changed to let for Firestore override
+// Analytics routes will be loaded from MongoDB later
+let analyticsRoutes = fallback2; // Changed to let for MongoDB override
 
 // CMS & Settings routes (Firestore - Phase 2 complete)
 let cmsRoutes, bannersRoutes;
@@ -144,8 +145,14 @@ console.log('⚠️ Cart routes using fallback (Firestore removed)');
 console.log('⚠️ Categories routes using fallback (Firestore removed)');
 // categoryRoutes already set to fallback2 above
 
-console.log('⚠️ Content routes using fallback (Firestore removed)');
-// contentRoutes already set to fallback4 above
+// Load MongoDB content routes
+try {
+  contentRoutes = require('./routes/content');
+  console.log('✅ Content routes loaded (MongoDB)');
+} catch (error) {
+  console.warn('⚠️ Content routes fallback:', error.message);
+  // contentRoutes already set to fallback4 above
+}
 
 console.log('⚠️ Comments (firestore version) using fallback (Firestore removed)');
 // commentsRoutes already created above
@@ -175,6 +182,15 @@ try {
 } catch (error) {
   console.warn('⚠️ Gifts routes fallback:', error.message);
   giftsRoutes = createFallbackRouter();
+}
+
+// Load analytics routes (MongoDB migrated)
+try {
+  analyticsRoutes = require('./routes/analytics');
+  console.log('✅ Analytics routes loaded (MongoDB)');
+} catch (error) {
+  console.warn('⚠️ Analytics routes fallback:', error.message);
+  // analyticsRoutes already set to fallback2 above
 }
 
 // Routes still needing full migration (return fallback 503)
