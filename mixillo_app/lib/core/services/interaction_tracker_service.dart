@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 
 /// Interaction Tracker Service
 /// Tracks user interactions for feed personalization
@@ -19,8 +19,7 @@ class InteractionTrackerService {
 
   final Map<String, List<InteractionEvent>> _sessionInteractions = {};
   Timer? _syncTimer;
-
-  /// Initialize tracker
+  final ApiHelper _api = ApiHelper();  /// Initialize tracker
   Future<void> initialize() async {
     // Start periodic sync to backend
     _syncTimer = Timer.periodic(const Duration(minutes: 5), (_) {
@@ -71,25 +70,22 @@ class InteractionTrackerService {
   /// Sync view immediately to backend
   Future<void> _syncViewToBackend(InteractionEvent event) async {
     try {
-      final apiService = await _getApiService();
-      if (apiService != null) {
-        // Calculate completion rate (assume 30s average for now)
-        final completionRate = event.durationSeconds != null
-            ? (event.durationSeconds! / 30.0).clamp(0.0, 1.0)
-            : null;
+      // Calculate completion rate (assume 30s average for now)
+      final completionRate = event.durationSeconds != null
+          ? (event.durationSeconds! / 30.0).clamp(0.0, 1.0)
+          : null;
 
-        await apiService.trackInteraction(
-          contentId: event.contentId,
-          interactionType: 'view',
-          watchTime: event.durationSeconds,
-          completionRate: completionRate,
-          metadata: {
-            'contentType': event.contentType,
-            'creatorId': event.creatorId,
-            'hashtags': event.hashtags,
-          },
-        );
-      }
+      await _api.dio.post('/analytics/interaction', data: {
+        'contentId': event.contentId,
+        'interactionType': 'view',
+        'watchTime': event.durationSeconds,
+        'completionRate': completionRate,
+        'metadata': {
+          'contentType': event.contentType,
+          'creatorId': event.creatorId,
+          'hashtags': event.hashtags,
+        },
+      });
     } catch (e) {
       debugPrint('Error syncing view to backend: $e');
     }
@@ -129,18 +125,15 @@ class InteractionTrackerService {
   /// Sync interaction immediately to backend
   Future<void> _syncInteractionToBackend(InteractionEvent event) async {
     try {
-      final apiService = await _getApiService();
-      if (apiService != null) {
-        await apiService.trackInteraction(
-          contentId: event.contentId,
-          interactionType: event.type.name,
-          metadata: {
-            'contentType': event.contentType,
-            'creatorId': event.creatorId,
-            'hashtags': event.hashtags,
-          },
-        );
-      }
+      await _api.dio.post('/analytics/interaction', data: {
+        'contentId': event.contentId,
+        'interactionType': event.type.name,
+        'metadata': {
+          'contentType': event.contentType,
+          'creatorId': event.creatorId,
+          'hashtags': event.hashtags,
+        },
+      });
     } catch (e) {
       debugPrint('Error syncing interaction to backend: $e');
     }
@@ -411,12 +404,6 @@ class InteractionTrackerService {
         'Syncing ${_sessionInteractions.length} interactions to backend');
 
     try {
-      final apiService = await _getApiService();
-      if (apiService == null) {
-        debugPrint('API service not available, skipping sync');
-        return;
-      }
-
       // Sync each interaction
       for (final entry in _sessionInteractions.entries) {
         final events = entry.value;
@@ -430,17 +417,17 @@ class InteractionTrackerService {
               completionRate = (event.durationSeconds! / 30.0).clamp(0.0, 1.0);
             }
 
-            await apiService.trackInteraction(
-              contentId: event.contentId,
-              interactionType: event.type.name,
-              watchTime: event.durationSeconds,
-              completionRate: completionRate,
-              metadata: {
+            await _api.dio.post('/analytics/interaction', data: {
+              'contentId': event.contentId,
+              'interactionType': event.type.name,
+              'watchTime': event.durationSeconds,
+              'completionRate': completionRate,
+              'metadata': {
                 'contentType': event.contentType,
                 'creatorId': event.creatorId,
                 'hashtags': event.hashtags,
               },
-            );
+            });
           } catch (e) {
             debugPrint('Error syncing interaction ${event.contentId}: $e');
           }
@@ -452,16 +439,6 @@ class InteractionTrackerService {
     } catch (e) {
       debugPrint('Error syncing to backend: $e');
       // Keep interactions for retry
-    }
-  }
-
-  /// Get API service instance
-  Future<ApiService?> _getApiService() async {
-    try {
-      return ApiService();
-    } catch (e) {
-      debugPrint('Error getting API service: $e');
-      return null;
     }
   }
 

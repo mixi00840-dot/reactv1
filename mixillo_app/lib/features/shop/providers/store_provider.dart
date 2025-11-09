@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/store_model.dart';
 
 class StoreProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   StoreModel? _currentStore;
   List<StoreModel> _stores = [];
@@ -29,13 +29,14 @@ class StoreProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final storesData = await _apiService.getStores(
-        category: category,
-        isVerified: isVerified,
-        isFeatured: isFeatured,
-        search: search,
-        limit: limit,
-      );
+      final response = await _api.dio.get('/stores', queryParameters: {
+        if (category != null) 'category': category,
+        if (isVerified != null) 'isVerified': isVerified,
+        if (isFeatured != null) 'isFeatured': isFeatured,
+        if (search != null) 'search': search,
+        'limit': limit,
+      });
+      final storesData = response.data['data'] ?? [];
       
       _stores = storesData
           .map((json) => StoreModel.fromJson(json))
@@ -58,7 +59,8 @@ class StoreProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final storeData = await _apiService.getStore(storeId);
+      final response = await _api.dio.get('/stores/$storeId');
+      final storeData = response.data['data'];
       _currentStore = StoreModel.fromJson(storeData);
       _error = null;
     } catch (e) {
@@ -85,15 +87,16 @@ class StoreProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final storeData = await _apiService.createStore(
-        name: name,
-        description: description,
-        logo: logo,
-        banner: banner,
-        businessInfo: businessInfo,
-        shipping: shipping,
-        policies: policies,
-      );
+      final response = await _api.dio.post('/stores', data: {
+        'name': name,
+        'description': description,
+        'logo': logo,
+        'banner': banner,
+        'businessInfo': businessInfo,
+        'shipping': shipping,
+        'policies': policies,
+      });
+      final storeData = response.data['data'];
       
       _currentStore = StoreModel.fromJson(storeData);
       _error = null;

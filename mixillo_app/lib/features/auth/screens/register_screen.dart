@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/widgets/social_login_button.dart';
-import '../providers/auth_provider.dart';
+import '../providers/mongodb_auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -44,23 +44,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     if (_formKey.currentState!.validate()) {
-      try {
-        await context.read<AuthProvider>().register(
-          email: _emailController.text,
-          password: _passwordController.text,
-          username: _usernameController.text,
-          fullName: _usernameController.text, // Using username as fullName
-        );
-        
-        if (mounted) {
+      final success = await context.read<MongoDBAuthProvider>().register(
+        email: _emailController.text,
+        password: _passwordController.text,
+        username: _usernameController.text,
+        fullName: _usernameController.text, // Using username as fullName
+      );
+      
+      if (mounted) {
+        if (success) {
           // Navigate to onboarding flow
           context.go('/onboarding/interests');
-        }
-      } catch (e) {
-        if (mounted) {
+        } else {
+          final authProvider = context.read<MongoDBAuthProvider>();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Registration failed: ${e.toString()}'),
+              content: Text(authProvider.errorMessage ?? 'Registration failed'),
               backgroundColor: AppColors.error,
             ),
           );
@@ -72,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authProvider = context.watch<AuthProvider>();
+    final authProvider = context.watch<MongoDBAuthProvider>();
     
     return Scaffold(
       body: SafeArea(

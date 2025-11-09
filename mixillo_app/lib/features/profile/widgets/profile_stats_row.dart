@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../screens/profile_screen.dart';
+import '../models/user_profile_model.dart';
 
 class ProfileStatsRow extends StatelessWidget {
   final UserProfile profile;

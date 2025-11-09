@@ -84,8 +84,8 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
       username: json['username'] as String,
       fullName: json['fullName'] as String?,
       avatar: json['avatar'] as String?,
-      isVerified: json['isVerified'] as bool,
-      isSeller: json['isSeller'] as bool,
+      isVerified: json['isVerified'] as bool? ?? false,
+      isSeller: json['isSeller'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{

@@ -148,7 +148,7 @@ router.get('/unread-count', verifyJWT, async (req, res) => {
 });
 
 // ==================== ADMIN ENDPOINTS ====================
-const { requireAdmin } = require('../middleware/adminMiddleware');
+const { requireAdmin } = require('../middleware/jwtAuth');
 const User = require('../models/User');
 
 /**

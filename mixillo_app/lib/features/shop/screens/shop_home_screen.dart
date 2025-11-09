@@ -3,7 +3,7 @@ import '../../../core/theme/app_colors.dart';
 import '../models/product_model.dart';
 import '../widgets/product_card.dart';
 import '../widgets/category_chip.dart';
-import 'product_details_screen.dart';
+// import 'product_details_screen.dart'; // Commented out - using new version
 import 'cart_screen.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
@@ -318,11 +318,9 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   }
 
   void _openProductDetails(ProductModel product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailsScreen(product: product),
-      ),
+    // TODO: Navigate to new ProductDetailsScreen when ready
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Product details coming soon!')),
     );
   }
 }

@@ -56,6 +56,10 @@ import Explorer from './pages/Explorer';
 import Featured from './pages/Featured';
 import Transactions from './pages/Transactions';
 
+// System Monitoring Pages
+import SystemHealth from './pages/SystemHealth';
+import DatabaseMonitoring from './pages/DatabaseMonitoring';
+
 // System Management Pages
 import CommentsManagement from './pages/CommentsManagement';
 import TranslationsManagement from './pages/TranslationsManagement';
@@ -180,6 +184,10 @@ function App() {
                 <Route path="/explorer" element={<Explorer />} />
                 <Route path="/featured" element={<Featured />} />
                 <Route path="/banners" element={<Banners />} />
+                
+                {/* System Monitoring */}
+                <Route path="/system-health" element={<SystemHealth />} />
+                <Route path="/database-monitoring" element={<DatabaseMonitoring />} />
                 
                 {/* System Configuration */}
                 <Route path="/api-settings" element={<APISettings />} />

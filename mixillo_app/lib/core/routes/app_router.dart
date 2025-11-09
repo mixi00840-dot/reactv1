@@ -14,7 +14,7 @@ import '../../features/auth/screens/verify_otp_screen.dart';
 import '../../features/auth/screens/reset_password_screen.dart';
 import '../../features/auth/screens/reset_success_screen.dart';
 import '../../features/home/screens/main_screen.dart';
-import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/profile_screen.dart' show ProfileScreenNew;
 import '../../features/profile/screens/settings_screen.dart';
 import '../../features/wallet/screens/wallet_screen.dart';
 import '../../features/wallet/screens/coin_purchase_screen.dart';
@@ -24,11 +24,14 @@ import '../../features/messages/screens/messages_screen.dart';
 import '../../features/shop/screens/shop_home_screen.dart';
 import '../../features/live/screens/pk_battle_screen.dart';
 import '../../features/stories/screens/stories_feed_screen.dart';
+import '../../features/feed/screens/vertical_feed_screen.dart';
+import './auth_guard.dart';
 //import '../../features/stories/screens/story_viewer_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/splash',
+    redirect: authGuard, // Apply auth guard globally
     routes: [
       // Splash & Onboarding
       GoRoute(
@@ -110,13 +113,13 @@ class AppRouter {
       GoRoute(
         path: '/profile/:userId',
         builder: (context, state) {
-          final userId = state.pathParameters['userId'] ?? '';
-          return ProfileScreen(userId: userId);
+          // TODO: Add support for viewing other user profiles
+          return const ProfileScreenNew();
         },
       ),
       GoRoute(
         path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
+        builder: (context, state) => const ProfileScreenNew(),
       ),
       GoRoute(
         path: '/settings',
@@ -181,6 +184,12 @@ class AppRouter {
       GoRoute(
         path: '/stories',
         builder: (context, state) => const StoriesFeedScreen(),
+      ),
+      
+      // Feed Routes
+      GoRoute(
+        path: '/feed',
+        builder: (context, state) => const VerticalFeedScreen(),
       ),
     ],
   );

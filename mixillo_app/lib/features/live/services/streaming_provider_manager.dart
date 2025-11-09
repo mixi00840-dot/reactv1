@@ -1,4 +1,4 @@
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/streaming_provider_model.dart';
 import 'streaming_service_interface.dart';
 import 'agora_streaming_service.dart';
@@ -14,7 +14,7 @@ class StreamingProviderManager {
   factory StreamingProviderManager() => _instance;
   StreamingProviderManager._internal();
 
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   StreamingServiceInterface? _currentService;
   StreamingProviderModel? _activeProvider;
   List<StreamingProviderModel> _availableProviders = [];
@@ -35,7 +35,7 @@ class StreamingProviderManager {
   Future<StreamingProviderModel> fetchActiveProvider() async {
     try {
       // Get providers list
-      final response = await _apiService.dio.get('/streaming/providers');
+      final response = await _api.dio.get('/streaming/providers');
       
       if (response.data['success'] == true) {
         final providersData = response.data['data']['providers'] ?? [];
@@ -44,7 +44,7 @@ class StreamingProviderManager {
             .toList();
 
         // Get default provider from settings
-        final settingsResponse = await _apiService.dio.get('/settings/public');
+        final settingsResponse = await _api.dio.get('/settings/public');
         final defaultProvider = settingsResponse.data['data']?['streaming']?['default_provider'] ?? 'agora';
 
         // Find active provider (enabled, active status, highest priority)
@@ -214,7 +214,7 @@ class StreamingProviderManager {
       _lastHealthCheck = DateTime.now();
       
       // Check with backend if provider is still active
-      final response = await _apiService.dio.get(
+      final response = await _api.dio.get(
         '/streaming/providers/${_activeProvider!.name}/health',
         options: Options(
           sendTimeout: const Duration(seconds: 5),

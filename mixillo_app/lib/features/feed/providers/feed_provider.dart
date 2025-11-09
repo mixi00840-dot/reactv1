@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/video_model.dart';
 
 class FeedProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   List<VideoModel> _videos = [];
   bool _isLoading = false;
@@ -33,12 +33,16 @@ class FeedProvider extends ChangeNotifier {
         _hasMore = true;
       }
       
-      final data = await _apiService.getFeed(
-        limit: 20,
-        page: _currentPage,
-        type: 'for-you',
+      // Use MongoDB API helper
+      final response = await _api.dio.get(
+        '/feed/for-you',
+        queryParameters: {
+          'limit': 20,
+          'offset': (_currentPage - 1) * 20,
+        },
       );
       
+      final data = response.data['data'] ?? {};
       final List<dynamic> videosJson = data['videos'] ?? [];
       final List<VideoModel> newVideos = videosJson
           .map((json) => VideoModel.fromJson(json))
@@ -88,8 +92,9 @@ class FeedProvider extends ChangeNotifier {
       );
       notifyListeners();
       
-      // Call API
-      final result = await _apiService.toggleLike(videoId);
+      // Call MongoDB API
+      final response = await _api.dio.post('/content/$videoId/like');
+      final result = response.data['data'] ?? {};
       
       // Update with server response
       _videos[index] = video.copyWith(
@@ -119,7 +124,8 @@ class FeedProvider extends ChangeNotifier {
   /// Follow/Unfollow creator
   Future<void> toggleFollow(String userId) async {
     try {
-      final result = await _apiService.toggleFollow(userId);
+      final response = await _api.dio.post('/users/$userId/follow');
+      final result = response.data['data'] ?? {};
       
       // Update all videos from this creator
       _videos = _videos.map((video) {

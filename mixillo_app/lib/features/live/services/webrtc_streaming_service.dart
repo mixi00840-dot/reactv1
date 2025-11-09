@@ -1,6 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/streaming_provider_model.dart';
 import 'streaming_service_interface.dart';
 
@@ -17,7 +17,7 @@ class WebRTCStreamingService implements StreamingServiceInterface {
   String? _currentStreamId;
   // ignore: unused_field
   String? _currentUserId; // Kept for future tracking/debugging
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
 
   // WebRTC configuration
   final Map<String, dynamic> _rtcConfiguration = {
@@ -197,7 +197,7 @@ class WebRTCStreamingService implements StreamingServiceInterface {
 
       // Call backend to start WebRTC stream
       try {
-        final response = await _apiService.dio.post(
+        final response = await _api.dio.post(
           '/webrtc/stream/start',
           data: {
             'streamId': streamId,
@@ -258,7 +258,7 @@ class WebRTCStreamingService implements StreamingServiceInterface {
       });
 
       try {
-        final response = await _apiService.dio.get('/webrtc/stream/$streamId/join');
+        final response = await _api.dio.get('/webrtc/stream/$streamId/join');
 
         if (response.data['success'] == true) {
           return {
@@ -326,7 +326,7 @@ class WebRTCStreamingService implements StreamingServiceInterface {
     
     // Notify backend
     try {
-      await _apiService.dio.post('/webrtc/stream/$streamId/end');
+      await _api.dio.post('/webrtc/stream/$streamId/end');
     } catch (e) {
       print('Warning: Failed to notify backend of stream end: $e');
     }

@@ -74,6 +74,28 @@ class AppColors {
   static const Color darkDivider = Color(0xFF2A2A2A);
   static const Color darkOverlay = Color(0x80000000);
   
+  // ========== WHITE OVERLAYS (for camera/video UI) ==========
+  static const Color whiteOverlay10 = Color(0x1AFFFFFF);
+  static const Color whiteOverlay20 = Color(0x33FFFFFF);
+  static const Color whiteOverlay30 = Color(0x4DFFFFFF);
+  static const Color whiteOverlay40 = Color(0x66FFFFFF);
+  static const Color whiteOverlay50 = Color(0x80FFFFFF);
+  static const Color whiteOverlay60 = Color(0x99FFFFFF);
+  static const Color whiteOverlay70 = Color(0xB3FFFFFF);
+  static const Color whiteOverlay80 = Color(0xCCFFFFFF);
+  static const Color whiteOverlay90 = Color(0xE6FFFFFF);
+  
+  // ========== BLACK OVERLAYS (for dimming) ==========
+  static const Color overlay10 = Color(0x1A000000);
+  static const Color overlay20 = Color(0x33000000);
+  static const Color overlay30 = Color(0x4D000000);
+  static const Color overlay40 = Color(0x66000000);
+  static const Color overlay50 = Color(0x80000000);
+  static const Color overlay60 = Color(0x99000000);
+  static const Color overlay70 = Color(0xB3000000);
+  static const Color overlay80 = Color(0xCC000000);
+  static const Color overlay90 = Color(0xE6000000);
+  
   // ========== GRADIENT COLORS ==========
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [Color(0xFF6C5CE7), Color(0xFF8B7DE8)],

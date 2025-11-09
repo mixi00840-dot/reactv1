@@ -351,7 +351,7 @@ router.get('/', verifyJWT, validationRules.pagination(), handleValidationErrors,
 });
 
 // ==================== ADMIN ENDPOINTS ====================
-const { requireAdmin: requireAdminMiddleware } = require('../middleware/adminMiddleware');
+const { requireAdmin: requireAdminMiddleware } = require('../middleware/jwtAuth');
 
 /**
  * @route   GET /api/payments/admin/all

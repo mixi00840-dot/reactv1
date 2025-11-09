@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/seller_application_model.dart';
 
 class SellerProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   SellerApplicationModel? _application;
   bool _isLoading = false;
@@ -28,7 +28,7 @@ class SellerProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.get('/sellers/check-eligibility');
+      final response = await _api.dio.get('/sellers/check-eligibility');
       
       if (response.data['success'] == true) {
         _isEligible = response.data['data']?['eligible'] ?? true;
@@ -54,7 +54,7 @@ class SellerProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.get('/sellers/application');
+      final response = await _api.dio.get('/sellers/application');
       
       if (response.data['success'] == true) {
         final appData = response.data['data']?['application'] ?? response.data['application'];
@@ -111,7 +111,7 @@ class SellerProvider extends ChangeNotifier {
         );
       }
       
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/sellers/apply',
         data: formData,
       );
@@ -148,7 +148,7 @@ class SellerProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.delete('/sellers/application');
+      final response = await _api.dio.delete('/sellers/application');
       
       if (response.data['success'] == true) {
         _application = null;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
-import '../screens/profile_screen.dart';
+import '../models/user_profile_model.dart';
 
 class ProfileHeader extends StatelessWidget {
   final UserProfile profile;
@@ -48,11 +48,16 @@ class ProfileHeader extends StatelessWidget {
                     color: AppColors.primary,
                     width: 2,
                   ),
-                  image: DecorationImage(
-                    image: NetworkImage(profile.avatarUrl),
-                    fit: BoxFit.cover,
-                  ),
+                  image: profile.avatarUrl != null
+                      ? DecorationImage(
+                          image: NetworkImage(profile.avatarUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
+                child: profile.avatarUrl == null
+                    ? Icon(Icons.person, size: 45, color: AppColors.primary)
+                    : null,
               ),
               const SizedBox(width: 24),
               
@@ -85,27 +90,29 @@ class ProfileHeader extends StatelessWidget {
           const SizedBox(height: 16),
           
           // Display Name
-          Text(
-            profile.displayName,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          if (profile.displayName != null)
+            Text(
+              profile.displayName!,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
           
           const SizedBox(height: 4),
           
           // Bio
-          Text(
-            profile.bio,
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? AppColors.darkText : AppColors.lightText,
+          if (profile.bio != null)
+            Text(
+              profile.bio!,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? AppColors.darkText : AppColors.lightText,
+              ),
             ),
-          ),
           
           // Links
-          if (profile.website != null) ...[
+          if (profile.website != null && profile.website!.isNotEmpty) ...[
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () => _launchUrl(profile.website!),

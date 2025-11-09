@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/product_model.dart';
 
 class ProductsProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   List<ProductModel> _products = [];
   ProductModel? _currentProduct;
@@ -35,14 +35,15 @@ class ProductsProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final productsData = await _apiService.getProducts(
-        storeId: storeId,
-        category: category,
-        status: status,
-        limit: limit,
-        orderBy: orderBy,
-        order: order,
-      );
+      final response = await _api.dio.get('/products', queryParameters: {
+        if (storeId != null) 'storeId': storeId,
+        if (category != null) 'category': category,
+        if (status != null) 'status': status,
+        'limit': limit,
+        if (orderBy != null) 'orderBy': orderBy,
+        if (order != null) 'order': order,
+      });
+      final productsData = response.data['data'] ?? [];
       
       _products = productsData
           .map((json) => ProductModel.fromJson(json))
@@ -69,7 +70,8 @@ class ProductsProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final productData = await _apiService.getProduct(productId);
+      final response = await _api.dio.get('/products/$productId');
+      final productData = response.data['data'];
       _currentProduct = ProductModel.fromJson(productData);
       _error = null;
     } catch (e) {
@@ -88,7 +90,8 @@ class ProductsProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final productsData = await _apiService.searchProducts(query);
+      final response = await _api.dio.get('/products/search', queryParameters: {'query': query});
+      final productsData = response.data['data'] ?? [];
       _products = productsData
           .map((json) => ProductModel.fromJson(json))
           .toList();

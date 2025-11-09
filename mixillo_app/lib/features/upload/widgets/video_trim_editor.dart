@@ -4,7 +4,7 @@ import 'package:video_player/video_player.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 
 /// Video Trim Editor - TikTok-style video trimming
 class VideoTrimEditor extends StatefulWidget {
@@ -28,7 +28,7 @@ class _VideoTrimEditorState extends State<VideoTrimEditor> {
   double _endTime = 0.0;
   bool _isTrimming = false;
   
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
 
   @override
   void initState() {
@@ -80,11 +80,12 @@ class _VideoTrimEditorState extends State<VideoTrimEditor> {
     try {
       // First, upload video to get URL
       // Then call trim API
-      final result = await _apiService.trimVideo(
-        videoUrl: widget.videoPath, // In production, this would be the uploaded URL
-        startTime: _startTime / 1000.0, // Convert to seconds
-        endTime: _endTime / 1000.0,
-      );
+      final response = await _api.dio.post('/video/trim', data: {
+        'videoUrl': widget.videoPath, // In production, this would be the uploaded URL
+        'startTime': _startTime / 1000.0, // Convert to seconds
+        'endTime': _endTime / 1000.0,
+      });
+      final result = response.data['data'] ?? {};
 
       if (mounted) {
         setState(() {

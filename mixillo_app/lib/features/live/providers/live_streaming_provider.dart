@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/mongodb_auth_service.dart';
 import '../models/streaming_provider_model.dart';
 import '../services/streaming_provider_manager.dart';
 
 class LiveStreamingProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final MongoDBAuthService _authService = MongoDBAuthService();
   final StreamingProviderManager _providerManager = StreamingProviderManager();
   
   StreamingProviderModel? _activeProvider;
@@ -52,8 +52,10 @@ class LiveStreamingProvider extends ChangeNotifier {
         _livestreams = [];
       }
       
-      final streamsData = await _apiService.getLivestreams(limit: 20);
-      final List<LiveStreamModel> newStreams = streamsData
+      // Use MongoDB auth service dio for API calls
+      final response = await _authService.dio.get('/streaming/livestreams', queryParameters: {'limit': 20});
+      final streamsData = response.data['data'] ?? [];
+      final List<LiveStreamModel> newStreams = (streamsData as List)
           .map((json) => LiveStreamModel.fromJson(json))
           .toList();
       
@@ -103,12 +105,16 @@ class LiveStreamingProvider extends ChangeNotifier {
       while (retryCount < maxRetries) {
         try {
           // Get stream configuration from backend
-          streamData = await _apiService.startLivestream(
-            title: title,
-            isPrivate: isPrivate,
+          final response = await _authService.dio.post(
+            '/streaming/livestreams/start',
+            data: {
+              'title': title,
+              'isPrivate': isPrivate,
+            },
           );
+          streamData = response.data['data'];
           
-          streamId = streamData['streamId'] ?? '';
+          streamId = streamData?['streamId'] ?? streamData?['id'] ?? '';
           
           // Start stream using active provider
           final service = _providerManager.currentService;
@@ -239,8 +245,9 @@ class LiveStreamingProvider extends ChangeNotifier {
       }
       
       // Load stream details
-      final streams = await _apiService.getLivestreams();
-      final streamData = streams.cast<Map<String, dynamic>>().firstWhere(
+      final response = await _authService.dio.get('/streaming/livestreams');
+      final streams = response.data['data'] ?? [];
+      final streamData = (streams as List).cast<Map<String, dynamic>>().firstWhere(
         (s) => (s['id'] ?? '') == streamId || (s['streamId'] ?? '') == streamId,
         orElse: () => <String, dynamic>{},
       );
@@ -273,7 +280,7 @@ class LiveStreamingProvider extends ChangeNotifier {
       }
       
       // Call backend to end stream
-      await _apiService.dio.post('/streaming/livestreams/${_currentStream!.id}/stop');
+      await _authService.dio.post('/streaming/livestreams/${_currentStream!.id}/stop');
       
       _currentStream = null;
       _isStreaming = false;

@@ -88,12 +88,6 @@ const Wallets = () => {
       return;
     }
 
-  const handleAdjustBalance = async (type) => {
-    if (!adjustAmount || parseFloat(adjustAmount) <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
-
     try {
       await mongoAPI.post(`/api/wallets/admin/${selectedWallet.userId._id}/adjust`, {
         amount: parseFloat(adjustAmount),

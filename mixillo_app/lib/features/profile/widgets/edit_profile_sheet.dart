@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_text_field.dart';
-import '../screens/profile_screen.dart';
+import '../models/user_profile_model.dart';
 
 class EditProfileSheet extends StatefulWidget {
   final UserProfile profile;
@@ -209,10 +209,12 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                                           image: FileImage(_profileImage!),
                                           fit: BoxFit.cover,
                                         )
-                                      : DecorationImage(
-                                          image: NetworkImage(widget.profile.avatarUrl),
-                                          fit: BoxFit.cover,
-                                        ),
+                                      : (widget.profile.avatarUrl != null
+                                          ? DecorationImage(
+                                              image: NetworkImage(widget.profile.avatarUrl!),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null),
                                 ),
                               ),
                               Positioned(

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Tag = require('../models/Tag');
 const Content = require('../models/Content');
-const { verifyJWT, requireAdmin } = require('../middleware/authMiddleware');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 // ===========================
 // ADMIN ROUTES

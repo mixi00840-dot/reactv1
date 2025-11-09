@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
+import 'package:dio/dio.dart';
 
 class ProfileProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   Map<String, dynamic>? _currentUserProfile;
   Map<String, dynamic>? _viewedUserProfile;
@@ -26,7 +27,7 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.get('/users/profile');
+      final response = await _api.dio.get('/users/profile');
       
       if (response.data['success'] == true) {
         _currentUserProfile = response.data['data']?['user'] ?? response.data['user'];
@@ -50,7 +51,7 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.get('/users/$userId');
+      final response = await _api.dio.get('/users/$userId');
       
       if (response.data['success'] == true) {
         _viewedUserProfile = response.data['data']?['user'] ?? response.data['user'];
@@ -79,7 +80,7 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.put(
+      final response = await _api.dio.put(
         '/users/profile',
         data: {
           if (fullName != null) 'fullName': fullName,
@@ -114,7 +115,12 @@ class ProfileProvider extends ChangeNotifier {
     
     try {
       final file = File(imagePath);
-      await _apiService.uploadAvatar(file);
+      
+      // Upload avatar using multipart form
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(file.path, filename: 'avatar.jpg'),
+      });
+      await _api.dio.post('/users/avatar', data: formData);
       
       // Reload profile to get updated avatar
       await loadCurrentUserProfile();
@@ -131,7 +137,7 @@ class ProfileProvider extends ChangeNotifier {
   /// Follow user
   Future<bool> followUser(String userId) async {
     try {
-      final response = await _apiService.dio.post('/users/$userId/follow');
+      final response = await _api.dio.post('/users/$userId/follow');
       
       if (response.data['success'] == true) {
         // Update local state
@@ -154,7 +160,7 @@ class ProfileProvider extends ChangeNotifier {
   /// Unfollow user
   Future<bool> unfollowUser(String userId) async {
     try {
-      final response = await _apiService.dio.delete('/users/$userId/unfollow');
+      final response = await _api.dio.delete('/users/$userId/unfollow');
       
       if (response.data['success'] == true) {
         // Update local state
@@ -181,7 +187,7 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.get('/users/$userId/followers');
+      final response = await _api.dio.get('/users/$userId/followers');
       
       if (response.data['success'] == true) {
         _followers = List<Map<String, dynamic>>.from(
@@ -207,7 +213,7 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.get('/users/$userId/following');
+      final response = await _api.dio.get('/users/$userId/following');
       
       if (response.data['success'] == true) {
         _following = List<Map<String, dynamic>>.from(
@@ -236,7 +242,7 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/users/change-password',
         data: {
           'currentPassword': currentPassword,
@@ -263,7 +269,7 @@ class ProfileProvider extends ChangeNotifier {
   /// Get user stats
   Future<Map<String, dynamic>?> getUserStats() async {
     try {
-      final response = await _apiService.dio.get('/users/stats');
+      final response = await _api.dio.get('/users/stats');
       
       if (response.data['success'] == true) {
         return response.data['data'] ?? {};

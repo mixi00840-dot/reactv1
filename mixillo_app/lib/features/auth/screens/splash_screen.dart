@@ -47,8 +47,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final isFirstLaunch = StorageService.isFirstLaunch();
     
     if (token != null) {
-      // User is authenticated, go to home
-      context.go('/home');
+      // User is authenticated, go to main screen
+      context.go('/main');
     } else if (isFirstLaunch) {
       // First time user, show walkthrough
       context.go('/walkthrough');

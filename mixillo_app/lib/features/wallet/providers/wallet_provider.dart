@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/wallet_model.dart';
 
 class WalletProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   WalletModel? _wallet;
   List<TransactionModel> _transactions = [];
@@ -24,7 +24,8 @@ class WalletProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final data = await _apiService.getWalletBalance();
+      final response = await _api.dio.get('/wallet/balance');
+      final data = response.data['data'];
       _wallet = WalletModel.fromJson(data);
       _error = null;
     } catch (e) {
@@ -49,7 +50,10 @@ class WalletProvider extends ChangeNotifier {
         _transactions = [];
       }
       
-      final transactionsData = await _apiService.getTransactions(limit: 50);
+      final response = await _api.dio.get('/wallet/transactions', 
+        queryParameters: {'limit': 50}
+      );
+      final transactionsData = response.data['data'] ?? [];
       final List<TransactionModel> newTransactions = transactionsData
           .map((json) => TransactionModel.fromJson(json))
           .toList();
@@ -84,12 +88,13 @@ class WalletProvider extends ChangeNotifier {
       // Generate idempotency key to prevent duplicate charges
       final idempotencyKey = 'purchase_${DateTime.now().millisecondsSinceEpoch}';
       
-      final result = await _apiService.purchaseCoins(
-        packageId: packageId,
-        amount: amount,
-        paymentMethod: paymentMethod,
-        idempotencyKey: idempotencyKey,
-      );
+      final response = await _api.dio.post('/wallet/purchase', data: {
+        'packageId': packageId,
+        'amount': amount,
+        'paymentMethod': paymentMethod,
+        'idempotencyKey': idempotencyKey,
+      });
+      final result = response.data['data'] ?? {};
       
       // Update wallet balance
       if (result['newBalance'] != null) {

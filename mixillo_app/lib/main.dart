@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:firebase_core/firebase_core.dart';
+// Removed Firebase imports - using MongoDB JWT auth
+// import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routes/app_router.dart';
-import 'core/services/api_service.dart';
+// Removed old ApiService - using MongoDBAuthService instead
+// import 'core/services/api_service.dart';
+import 'core/services/mongodb_auth_service.dart';
 import 'data/services/storage_service.dart';
-import 'features/auth/providers/auth_provider.dart';
+// Changed to MongoDB auth provider
+import 'features/auth/providers/mongodb_auth_provider.dart';
 import 'features/feed/providers/feed_provider.dart';
 import 'features/wallet/providers/wallet_provider.dart';
 import 'features/live/providers/live_streaming_provider.dart';
@@ -27,8 +31,8 @@ import 'features/live/widgets/streaming_provider_refresh_handler.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  // Removed Firebase initialization - using MongoDB JWT auth
+  // await Firebase.initializeApp();
   
   // Load environment variables
   try {
@@ -40,8 +44,8 @@ void main() async {
   // Initialize storage
   await StorageService.init();
   
-  // Initialize API service
-  await ApiService().initialize();
+  // Initialize MongoDB auth service (replaces Firebase + ApiService)
+  await MongoDBAuthService().initialize();
   
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -67,7 +71,8 @@ class MixilloApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        // Changed to MongoDB auth provider
+        ChangeNotifierProvider(create: (_) => MongoDBAuthProvider()),
         ChangeNotifierProvider(create: (_) => FeedProvider()),
         ChangeNotifierProvider(create: (_) => WalletProvider()),
         ChangeNotifierProvider(create: (_) => LiveStreamingProvider()),
@@ -85,7 +90,7 @@ class MixilloApp extends StatelessWidget {
         // Add more providers here as we build features
       ],
       child: StreamingProviderRefreshHandler(
-        child: Consumer<AuthProvider>(
+        child: Consumer<MongoDBAuthProvider>(
           builder: (context, authProvider, _) {
             // Initialize streaming provider on app start
             WidgetsBinding.instance.addPostFrameCallback((_) {

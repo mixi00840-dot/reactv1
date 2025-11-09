@@ -396,6 +396,9 @@ if (DB_MODE === 'mongodb' || DB_MODE === 'dual') {
             app.use('/api/coins', require('./routes/coins')); // Coin Packages
             app.use('/api/tags', require('./routes/tags')); // Tags Management
             app.use('/api/support', require('./routes/support')); // Customer Support & FAQs
+            app.use('/api', require('./routes/system')); // System Health & Monitoring
+            app.use('/api', require('./routes/database')); // Database Monitoring
+            app.use('/api', require('./routes/cloudinary')); // Cloudinary Management
             
             // Override content route with full MongoDB implementation
             app.use('/api/content/mongodb', require('./routes/content'));
@@ -464,8 +467,8 @@ app.use('/api/audit-logs', auditLogsRoutes);
 app.use('/api/languages', languageRoutes);
 app.use('/api/translations', translationRoutes);
 
-// Streaming API routes (Firestore)
-app.use('/api/streaming', streamProviderRoutes); // Handles both /providers and /livestreams
+// Streaming API routes (MongoDB)
+app.use('/api/streaming', require('./routes/streaming')); // MongoDB streaming routes
 
 // CMS API routes
 app.use('/api/cms', cmsRoutes);

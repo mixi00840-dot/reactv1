@@ -45,6 +45,7 @@ const APISettings = () => {
     webrtc: { enabled: true, stunServers: '', turnServers: '', turnUsername: '', turnCredential: '' },
     
     // Cloud Storage
+    cloudinary: { enabled: true, cloudName: '', apiKey: '', apiSecret: '', uploadPreset: 'mixillo_uploads', folder: 'mixillo' },
     aws: { enabled: false, accessKeyId: '', secretAccessKey: '', region: 'us-east-1', bucket: '' },
     firebase: { enabled: false, apiKey: '', authDomain: '', projectId: '', storageBucket: '' },
     cloudflare: { enabled: false, accountId: '', apiToken: '', r2Bucket: '' },
@@ -312,6 +313,37 @@ const APISettings = () => {
         {/* Cloud Storage */}
         {tabValue === 2 && (
           <Box sx={{ p: 3 }}>
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandIcon />}>
+                <Typography variant="h6">Cloudinary (Active)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={<Switch checked={settings.cloudinary.enabled} onChange={(e) => updateSetting('cloudinary', 'enabled', e.target.checked)} />}
+                      label="Enable Cloudinary"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField fullWidth label="Cloud Name" value={settings.cloudinary.cloudName} onChange={(e) => updateSetting('cloudinary', 'cloudName', e.target.value)} placeholder="your-cloud-name" />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField fullWidth label="API Key" value={settings.cloudinary.apiKey} onChange={(e) => updateSetting('cloudinary', 'apiKey', e.target.value)} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField fullWidth label="API Secret" type="password" value={settings.cloudinary.apiSecret} onChange={(e) => updateSetting('cloudinary', 'apiSecret', e.target.value)} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth label="Upload Preset" value={settings.cloudinary.uploadPreset} onChange={(e) => updateSetting('cloudinary', 'uploadPreset', e.target.value)} helperText="Default preset for unsigned uploads" />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth label="Default Folder" value={settings.cloudinary.folder} onChange={(e) => updateSetting('cloudinary', 'folder', e.target.value)} helperText="Root folder for uploads" />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
             <Accordion>
               <AccordionSummary expandIcon={<ExpandIcon />}>
                 <Typography variant="h6">AWS S3</Typography>

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/story_model.dart';
 
 class StoriesProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   List<StoryGroup> _storyGroups = [];
   List<StoryModel> _myStories = [];
@@ -23,7 +23,7 @@ class StoriesProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.get('/stories/feed');
+      final response = await _api.dio.get('/stories/feed');
       
       if (response.data['success'] == true) {
         final storiesData = response.data['data']?['stories'] ?? [];
@@ -54,7 +54,7 @@ class StoriesProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.get('/stories/user/$userId');
+      final response = await _api.dio.get('/stories/user/$userId');
       
       if (response.data['success'] == true) {
         final storiesData = response.data['data']?['stories'] ?? [];
@@ -93,7 +93,7 @@ class StoriesProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/stories',
         data: {
           'mediaUrl': mediaUrl,
@@ -130,7 +130,7 @@ class StoriesProvider extends ChangeNotifier {
   /// View story (track viewer)
   Future<void> viewStory(String storyId) async {
     try {
-      await _apiService.dio.post('/stories/$storyId/view');
+      await _api.dio.post('/stories/$storyId/view');
       
       // Update local state
       for (var group in _storyGroups) {
@@ -150,7 +150,7 @@ class StoriesProvider extends ChangeNotifier {
   /// Add reaction to story
   Future<bool> addReaction(String storyId, String type) async {
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/stories/$storyId/reactions',
         data: {'type': type},
       );
@@ -165,7 +165,7 @@ class StoriesProvider extends ChangeNotifier {
   /// Reply to story
   Future<bool> replyToStory(String storyId, String message) async {
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/stories/$storyId/replies',
         data: {'message': message},
       );
@@ -180,7 +180,7 @@ class StoriesProvider extends ChangeNotifier {
   /// Get story viewers
   Future<List<String>> getStoryViewers(String storyId) async {
     try {
-      final response = await _apiService.dio.get('/stories/$storyId/viewers');
+      final response = await _api.dio.get('/stories/$storyId/viewers');
       
       if (response.data['success'] == true) {
         return List<String>.from(response.data['data']?['viewers'] ?? []);
@@ -196,7 +196,7 @@ class StoriesProvider extends ChangeNotifier {
   /// Delete story
   Future<bool> deleteStory(String storyId) async {
     try {
-      final response = await _apiService.dio.delete('/stories/$storyId');
+      final response = await _api.dio.delete('/stories/$storyId');
       
       if (response.data['success'] == true) {
         // Remove from local state

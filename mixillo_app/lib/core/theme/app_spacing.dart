@@ -29,7 +29,14 @@ class AppSpacing {
   static const double radiusMd = 12.0;
   static const double radiusLg = 16.0;
   static const double radiusXl = 24.0;
-  static const double radiusRound = 999.0; // Fully rounded
+  static const double radiusFull = 999.0; // Fully rounded
+  static const double radiusRound = 999.0; // Alias for radiusFull
+  
+  // Camera interface
+  static const double cameraButtonSize = 68.0;
+  static const double cameraButtonInnerSize = 56.0;
+  static const double cameraBottomControlsHeight = 120.0;
+  static const double cameraTopBarHeight = 60.0;
   
   // Icon sizes
   static const double iconXs = 16.0;

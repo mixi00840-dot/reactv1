@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/widgets/social_login_button.dart';
-import '../providers/auth_provider.dart';
+import '../providers/mongodb_auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,20 +29,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      try {
-        await context.read<AuthProvider>().login(
-          _emailController.text,
-          _passwordController.text,
-        );
-        
-        if (mounted) {
-          context.go('/home');
-        }
-      } catch (e) {
-        if (mounted) {
+      final success = await context.read<MongoDBAuthProvider>().login(
+        _emailController.text, // Can be email or username
+        _passwordController.text,
+      );
+      
+      if (mounted) {
+        if (success) {
+          context.go('/main');
+        } else {
+          final authProvider = context.read<MongoDBAuthProvider>();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Login failed: ${e.toString()}'),
+              content: Text(authProvider.errorMessage ?? 'Login failed'),
               backgroundColor: AppColors.error,
             ),
           );
@@ -54,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authProvider = context.watch<AuthProvider>();
+    final authProvider = context.watch<MongoDBAuthProvider>();
     
     return Scaffold(
       body: SafeArea(

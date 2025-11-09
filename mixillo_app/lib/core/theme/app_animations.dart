@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'design_tokens.dart';
 
-/// Animation System - Premium transitions and animations
+/// Animation System - Premium transitions matching TikTok/Instagram quality
+/// Now powered by DesignTokens for consistency
 class AppAnimations {
-  // ========== DURATIONS ==========
-  static const Duration fast = Duration(milliseconds: 150);
-  static const Duration normal = Duration(milliseconds: 300);
-  static const Duration slow = Duration(milliseconds: 500);
-  static const Duration verySlow = Duration(milliseconds: 800);
+  // ========== DURATIONS (from DesignTokens) ==========
+  static const Duration instant = DesignTokens.durationInstant;
+  static const Duration fast = DesignTokens.durationFast;
+  static const Duration normal = DesignTokens.durationNormal;
+  static const Duration slow = DesignTokens.durationSlow;
+  static const Duration slower = DesignTokens.durationSlower;
   
-  // ========== CURVES ==========
-  static const Curve standard = Curves.easeInOut;
-  static const Curve decelerate = Curves.decelerate;
-  static const Curve accelerate = Curves.easeIn;
+  // ========== CURVES (iOS-like, from DesignTokens) ==========
+  static const Curve standard = DesignTokens.curveStandard;
+  static const Curve decelerate = DesignTokens.curveDecelerate;
+  static const Curve accelerate = DesignTokens.curveAccelerate;
+  static const Curve spring = DesignTokens.curveSpring;
   static const Curve bounce = Curves.bounceOut;
   static const Curve elastic = Curves.elasticOut;
-  static const Curve smooth = Curves.easeOutCubic;
   
   // ========== PAGE TRANSITIONS ==========
   

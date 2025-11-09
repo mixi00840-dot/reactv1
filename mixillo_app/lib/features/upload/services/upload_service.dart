@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart' as path;
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 
 class UploadService {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
 
   /// Get presigned URL for direct upload
   Future<Map<String, dynamic>> getPresignedUrl({
@@ -15,7 +15,7 @@ class UploadService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/upload/presigned-url',
         data: {
           'fileName': fileName,
@@ -47,7 +47,7 @@ class UploadService {
         ),
       });
 
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/upload/direct',
         data: formData,
       );
@@ -106,7 +106,7 @@ class UploadService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/content/upload/initialize',
         data: {
           'fileName': fileName,
@@ -143,7 +143,7 @@ class UploadService {
         ),
       });
 
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/content/upload/$sessionId/chunk',
         data: formData,
       );
@@ -158,7 +158,7 @@ class UploadService {
   /// Complete upload
   Future<Map<String, dynamic>> completeUpload(String sessionId) async {
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/content/upload/$sessionId/complete',
       );
 
@@ -176,7 +176,7 @@ class UploadService {
   /// Get upload status
   Future<Map<String, dynamic>> getUploadStatus(String sessionId) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _api.dio.get(
         '/content/upload/$sessionId/status',
       );
 

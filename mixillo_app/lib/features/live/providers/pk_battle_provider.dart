@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/pk_battle_model.dart';
 
 class PKBattleProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   PKBattleModel? _currentBattle;
   List<PKBattleModel> _activeBattles = [];
@@ -65,7 +65,8 @@ class PKBattleProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final battlesData = await _apiService.getActivePKBattles();
+      final response = await _api.dio.get('/pk-battles/active');
+      final battlesData = response.data['data'] ?? [];
       _activeBattles = battlesData
           .map((json) => PKBattleModel.fromJson(json))
           .toList();
@@ -96,16 +97,17 @@ class PKBattleProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final battleData = await _apiService.createPKBattle(
-        host2Id: host2Id,
-        stream1Id: host1StreamId,
-        stream2Id: host2StreamId,
-        host3Id: host3Id,
-        stream3Id: host3StreamId,
-        host4Id: host4Id,
-        stream4Id: host4StreamId,
-        duration: duration,
-      );
+      final response = await _api.dio.post('/pk-battles/create', data: {
+        'host2Id': host2Id,
+        'stream1Id': host1StreamId,
+        'stream2Id': host2StreamId,
+        if (host3Id != null) 'host3Id': host3Id,
+        if (host3StreamId != null) 'stream3Id': host3StreamId,
+        if (host4Id != null) 'host4Id': host4Id,
+        if (host4StreamId != null) 'stream4Id': host4StreamId,
+        'duration': duration,
+      });
+      final battleData = response.data['data'];
       
       _currentBattle = PKBattleModel.fromJson(battleData);
       _isInBattle = true;
@@ -128,7 +130,8 @@ class PKBattleProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final battleData = await _apiService.acceptPKBattle(battleId);
+      final response = await _api.dio.post('/pk-battles/$battleId/accept');
+      final battleData = response.data['data'];
       _currentBattle = PKBattleModel.fromJson(battleData);
       _isInBattle = true;
       _startBattleTimer();
@@ -147,7 +150,8 @@ class PKBattleProvider extends ChangeNotifier {
   /// Join battle as viewer
   Future<void> joinBattle(String battleId) async {
     try {
-      final battleData = await _apiService.getPKBattle(battleId);
+      final response = await _api.dio.get('/pk-battles/$battleId');
+      final battleData = response.data['data'];
       _currentBattle = PKBattleModel.fromJson(battleData);
       _isInBattle = true;
       _startBattleTimer();
@@ -169,12 +173,11 @@ class PKBattleProvider extends ChangeNotifier {
     required int amount,
   }) async {
     try {
-      await _apiService.sendPKBattleGift(
-        battleId: battleId,
-        hostNumber: hostNumber,
-        giftId: giftId,
-        amount: amount,
-      );
+      await _api.dio.post('/pk-battles/$battleId/gift', data: {
+        'hostNumber': hostNumber,
+        'giftId': giftId,
+        'amount': amount,
+      });
       
       // Update will come via socket
       return true;

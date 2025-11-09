@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/sound_model.dart';
 
 /// Sound Provider - Manages sound/music selection for camera
 class SoundProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   // Sound state
   List<SoundModel> _sounds = [];
@@ -38,7 +38,8 @@ class SoundProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final soundsData = await _apiService.getSounds(limit: limit);
+      final response = await _api.dio.get('/sounds', queryParameters: {'limit': limit});
+      final soundsData = response.data['data'] ?? [];
       
       _sounds = soundsData
           .map((json) => SoundModel.fromJson(json))
@@ -56,7 +57,8 @@ class SoundProvider extends ChangeNotifier {
   /// Load trending sounds
   Future<void> loadTrendingSounds({int limit = 20}) async {
     try {
-      final soundsData = await _apiService.getTrendingSounds(limit: limit);
+      final response = await _api.dio.get('/sounds/trending', queryParameters: {'limit': limit});
+      final soundsData = response.data['data'] ?? [];
       
       _trendingSounds = soundsData
           .map((json) => SoundModel.fromJson(json))
@@ -71,7 +73,8 @@ class SoundProvider extends ChangeNotifier {
   /// Load featured sounds
   Future<void> loadFeaturedSounds({int limit = 20}) async {
     try {
-      final soundsData = await _apiService.getFeaturedSounds(limit: limit);
+      final response = await _api.dio.get('/sounds/featured', queryParameters: {'limit': limit});
+      final soundsData = response.data['data'] ?? [];
       
       _featuredSounds = soundsData
           .map((json) => SoundModel.fromJson(json))
@@ -97,7 +100,8 @@ class SoundProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final soundsData = await _apiService.searchSounds(query, limit: limit);
+      final response = await _api.dio.get('/sounds/search', queryParameters: {'query': query, 'limit': limit});
+      final soundsData = response.data['data'] ?? [];
       
       _searchResults = soundsData
           .map((json) => SoundModel.fromJson(json))
@@ -185,7 +189,10 @@ class SoundProvider extends ChangeNotifier {
   /// Record sound usage
   Future<bool> recordSoundUsage(String soundId, {String? contentId}) async {
     try {
-      return await _apiService.recordSoundUsage(soundId, contentId: contentId);
+      final response = await _api.dio.post('/sounds/$soundId/usage', data: {
+        if (contentId != null) 'contentId': contentId,
+      });
+      return response.data['success'] == true;
     } catch (e) {
       debugPrint('Error recording sound usage: $e');
       return false;

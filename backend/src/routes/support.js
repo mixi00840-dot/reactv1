@@ -3,7 +3,7 @@ const router = express.Router();
 const Ticket = require('../models/Ticket');
 const FAQ = require('../models/FAQ');
 const User = require('../models/User');
-const { verifyJWT, requireAdmin } = require('../middleware/authMiddleware');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 // ===========================
 // ADMIN ROUTES - TICKETS

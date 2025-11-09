@@ -269,7 +269,7 @@ router.put('/:id/status', verifyJWT, async (req, res) => {
 });
 
 // ==================== ADMIN ENDPOINTS ====================
-const { requireAdmin: requireAdminMiddleware } = require('../middleware/adminMiddleware');
+const { requireAdmin: requireAdminMiddleware } = require('../middleware/jwtAuth');
 
 /**
  * @route   GET /api/orders/admin/all

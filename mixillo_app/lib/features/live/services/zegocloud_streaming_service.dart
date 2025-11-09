@@ -1,5 +1,5 @@
 import 'package:zego_express_engine/zego_express_engine.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/streaming_provider_model.dart';
 import 'streaming_service_interface.dart';
 
@@ -12,7 +12,7 @@ class ZegoCloudStreamingService implements StreamingServiceInterface {
   // ignore: unused_field
   String? _currentUserId; // Kept for future tracking/debugging
   ZegoExpressEngine? _engine;
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
 
   @override
   Future<void> initialize(StreamingProviderConfig config) async {
@@ -99,7 +99,7 @@ class ZegoCloudStreamingService implements StreamingServiceInterface {
 
       // Call backend to register stream
       try {
-        await _apiService.dio.post(
+        await _api.dio.post(
           '/streaming/streams',
           data: {
             'streamId': streamId,
@@ -182,7 +182,7 @@ class ZegoCloudStreamingService implements StreamingServiceInterface {
     
     // Notify backend
     try {
-      await _apiService.dio.post('/streaming/streams/$streamId/end');
+      await _api.dio.post('/streaming/streams/$streamId/end');
     } catch (e) {
       print('Warning: Failed to notify backend of stream end: $e');
     }
@@ -195,7 +195,7 @@ class ZegoCloudStreamingService implements StreamingServiceInterface {
     int expireTime = 3600,
   }) async {
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/streaming/token/zegocloud',
         data: {
           'streamId': streamId,

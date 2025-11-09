@@ -1,296 +1,436 @@
-import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
-import '../models/chat_model.dart';
-import '../widgets/chat_list_item.dart';
-import 'conversation_screen.dart';
-import 'new_message_screen.dart';
+﻿import 'package:flutter/material.dart';
+import '../../../core/theme/design_tokens.dart';
+import '../../../core/theme/app_typography.dart';
+import 'chat_screen.dart';
 
 class MessagesScreen extends StatefulWidget {
-  const MessagesScreen({super.key});
+  const MessagesScreen({Key? key}) : super(key: key);
 
   @override
   State<MessagesScreen> createState() => _MessagesScreenState();
 }
 
-class _MessagesScreenState extends State<MessagesScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _MessagesScreenState extends State<MessagesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
-
-  // Sample chat data
-  final List<ChatModel> _chats = [
-    ChatModel(
-      id: '1',
-      userId: 'user1',
-      username: '@sarah_designs',
-      displayName: 'Sarah Wilson',
-      avatarUrl: 'https://i.pravatar.cc/150?img=1',
-      lastMessage: 'Hey! Did you see my latest video?',
-      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 5)),
-      unreadCount: 2,
-      isOnline: true,
-      isTyping: false,
-    ),
-    ChatModel(
-      id: '2',
-      userId: 'user2',
-      username: '@tech_master',
-      displayName: 'Alex Johnson',
-      avatarUrl: 'https://i.pravatar.cc/150?img=2',
-      lastMessage: 'Thanks for the follow! 🎉',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 1)),
-      unreadCount: 0,
-      isOnline: true,
-      isTyping: false,
-    ),
-    ChatModel(
-      id: '3',
-      userId: 'user3',
-      username: '@creative_soul',
-      displayName: 'Emma Davis',
-      avatarUrl: 'https://i.pravatar.cc/150?img=3',
-      lastMessage: 'Love your content! Keep it up 💪',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 3)),
-      unreadCount: 1,
-      isOnline: false,
-      isTyping: false,
-    ),
-    ChatModel(
-      id: '4',
-      userId: 'user4',
-      username: '@mike_photos',
-      displayName: 'Mike Anderson',
-      avatarUrl: 'https://i.pravatar.cc/150?img=4',
-      lastMessage: 'Can we collaborate on a project?',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 5)),
-      unreadCount: 0,
-      isOnline: false,
-      isTyping: false,
-    ),
-    ChatModel(
-      id: '5',
-      userId: 'user5',
-      username: '@lisa_art',
-      displayName: 'Lisa Martinez',
-      avatarUrl: 'https://i.pravatar.cc/150?img=5',
-      lastMessage: 'That\'s awesome! 😊',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
-      unreadCount: 0,
-      isOnline: true,
-      isTyping: false,
-    ),
-    ChatModel(
-      id: '6',
-      userId: 'user6',
-      username: '@john_dev',
-      displayName: 'John Smith',
-      avatarUrl: 'https://i.pravatar.cc/150?img=6',
-      lastMessage: 'See you tomorrow!',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 2)),
-      unreadCount: 0,
-      isOnline: false,
-      isTyping: false,
-    ),
+  
+  final List<Map<String, dynamic>> _messages = [
+    {
+      'id': '1',
+      'name': 'Sarah Wilson',
+      'username': '@sarah_designs',
+      'lastMessage': 'Hey! Did you see my latest video? 🎥',
+      'time': '5m',
+      'unread': 2,
+      'online': true,
+      'typing': false,
+      'verified': true,
+    },
+    {
+      'id': '2',
+      'name': 'Alex Johnson',
+      'username': '@tech_master',
+      'lastMessage': 'Thanks for the follow! 🎉',
+      'time': '1h',
+      'unread': 0,
+      'online': true,
+      'typing': false,
+      'verified': false,
+    },
+    {
+      'id': '3',
+      'name': 'Emma Davis',
+      'username': '@creative_soul',
+      'lastMessage': 'Love your content! Keep it up 💖',
+      'time': '2h',
+      'unread': 0,
+      'online': false,
+      'typing': false,
+      'verified': true,
+    },
+    {
+      'id': '4',
+      'name': 'Michael Brown',
+      'username': '@mike_photo',
+      'lastMessage': null,
+      'time': '3h',
+      'unread': 0,
+      'online': false,
+      'typing': true,
+      'verified': false,
+    },
+    {
+      'id': '5',
+      'name': 'TechStore Official',
+      'username': '@techstore',
+      'lastMessage': 'Your order has been shipped! 📦',
+      'time': '1d',
+      'unread': 1,
+      'online': true,
+      'typing': false,
+      'verified': true,
+    },
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _openChat(ChatModel chat) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ConversationScreen(chat: chat),
-      ),
-    );
-  }
-
-  void _openNewMessage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const NewMessageScreen(),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-      appBar: AppBar(
-        backgroundColor: isDark ? AppColors.darkCard : AppColors.lightCard,
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                decoration: InputDecoration(
-                  hintText: 'Search messages...',
-                  hintStyle: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.black54,
-                  ),
-                  border: InputBorder.none,
-                ),
-                onChanged: (value) {
-                  setState(() {});
-                },
-              )
-            : const Text('Messages'),
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                }
-              });
-            },
+      backgroundColor: isDark ? DesignTokens.darkBackground : DesignTokens.lightBackground,
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(isDark),
+          SliverToBoxAdapter(child: _buildSearchBar(isDark)),
+          SliverToBoxAdapter(child: _buildStoriesSection(isDark)),
+          _buildMessagesList(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(bool isDark) {
+    return SliverAppBar(
+      backgroundColor: isDark ? DesignTokens.darkBackground : DesignTokens.lightBackground,
+      elevation: 0,
+      pinned: true,
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignTokens.space2,
+              vertical: DesignTokens.space1,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: DesignTokens.brandGradient),
+              borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
+            ),
+            child: const Icon(
+              Icons.chat_bubble,
+              color: DesignTokens.darkTextPrimary,
+              size: 20,
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.add_comment_outlined),
-            onPressed: _openNewMessage,
+          const SizedBox(width: DesignTokens.space2),
+          Text(
+            'Messages',
+            style: AppTypography.h2(context).copyWith(
+              fontWeight: DesignTokens.fontWeightBold,
+            ),
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.primary,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: isDark ? Colors.white70 : Colors.black54,
-          tabs: const [
-            Tab(text: 'All'),
-            Tab(text: 'Unread'),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.video_call_outlined),
+          onPressed: () {},
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit_outlined),
+          onPressed: () {},
+        ),
+        const SizedBox(width: DesignTokens.space2),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(DesignTokens.space4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: DesignTokens.space3),
+        decoration: BoxDecoration(
+          color: isDark ? DesignTokens.darkSurface : DesignTokens.lightSurface,
+          borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+          border: Border.all(
+            color: isDark ? DesignTokens.darkBorder : DesignTokens.lightBorder,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search,
+              color: isDark ? DesignTokens.darkTextSecondary : DesignTokens.lightTextSecondary,
+            ),
+            const SizedBox(width: DesignTokens.space2),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                style: AppTypography.bodyMedium(context),
+                decoration: InputDecoration(
+                  hintText: 'Search messages...',
+                  hintStyle: AppTypography.bodyMedium(context).copyWith(
+                    color: isDark ? DesignTokens.darkTextSecondary : DesignTokens.lightTextSecondary,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                onChanged: (value) => setState(() {}),
+              ),
+            ),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildChatList(_chats),
-          _buildChatList(_chats.where((chat) => chat.unreadCount > 0).toList()),
-        ],
+    );
+  }
+
+  Widget _buildStoriesSection(bool isDark) {
+    return SizedBox(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: DesignTokens.space4),
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(right: DesignTokens.space3),
+            child: Column(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    gradient: index == 0
+                        ? LinearGradient(colors: DesignTokens.brandGradient)
+                        : null,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: index == 0
+                          ? Colors.transparent
+                          : (isDark ? DesignTokens.darkBorder : DesignTokens.lightBorder),
+                      width: 2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: isDark ? DesignTokens.darkSurface : DesignTokens.lightSurface,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        index == 0 ? Icons.add : Icons.person,
+                        color: isDark ? DesignTokens.darkTextPrimary : DesignTokens.lightTextPrimary,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: DesignTokens.space1),
+                Text(
+                  index == 0 ? 'Your story' : 'User $index',
+                  style: AppTypography.labelSmall(context),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildChatList(List<ChatModel> chats) {
-    if (chats.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    final filteredChats = _searchController.text.isEmpty
-        ? chats
-        : chats.where((chat) {
+  Widget _buildMessagesList(bool isDark) {
+    final filteredMessages = _searchController.text.isEmpty
+        ? _messages
+        : _messages.where((msg) {
             final query = _searchController.text.toLowerCase();
-            return chat.displayName.toLowerCase().contains(query) ||
-                   chat.username.toLowerCase().contains(query) ||
-                   chat.lastMessage.toLowerCase().contains(query);
+            return (msg['name'] as String).toLowerCase().contains(query) ||
+                (msg['username'] as String).toLowerCase().contains(query) ||
+                ((msg['lastMessage'] as String?) ?? '').toLowerCase().contains(query);
           }).toList();
 
-    if (filteredChats.isEmpty) {
-      return _buildNoResults();
-    }
-
-    return ListView.builder(
-      itemCount: filteredChats.length,
-      itemBuilder: (context, index) {
-        return ChatListItem(
-          chat: filteredChats[index],
-          onTap: () => _openChat(filteredChats[index]),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 80,
-            color: isDark ? Colors.white24 : Colors.black12,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No messages yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start a conversation',
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? Colors.white54 : Colors.black45,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _openNewMessage,
-            icon: const Icon(Icons.add),
-            label: const Text('New Message'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-          ),
-        ],
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final message = filteredMessages[index];
+          return _buildMessageItem(message, isDark);
+        },
+        childCount: filteredMessages.length,
       ),
     );
   }
 
-  Widget _buildNoResults() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 80,
-            color: isDark ? Colors.white24 : Colors.black12,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No results found',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white70 : Colors.black54,
+  Widget _buildMessageItem(Map<String, dynamic> message, bool isDark) {
+    final hasUnread = (message['unread'] as int) > 0;
+    final isTyping = message['typing'] as bool;
+    final isOnline = message['online'] as bool;
+    final isVerified = message['verified'] as bool;
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(
+              name: message['name'],
+              username: message['username'],
+              isOnline: isOnline,
+              isVerified: isVerified,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Try a different search',
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? Colors.white54 : Colors.black45,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignTokens.space4,
+          vertical: DesignTokens.space3,
+        ),
+        decoration: BoxDecoration(
+          color: hasUnread
+              ? (isDark
+                  ? DesignTokens.brandPrimary.withOpacity(0.05)
+                  : DesignTokens.brandPrimary.withOpacity(0.03))
+              : null,
+        ),
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: hasUnread
+                        ? LinearGradient(colors: DesignTokens.brandGradient)
+                        : LinearGradient(
+                            colors: [
+                              isDark ? DesignTokens.darkSurface : DesignTokens.lightSurface,
+                              isDark ? DesignTokens.darkSurface : DesignTokens.lightSurface,
+                            ],
+                          ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark ? DesignTokens.darkBorder : DesignTokens.lightBorder,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.person,
+                      color: hasUnread
+                          ? DesignTokens.darkTextPrimary
+                          : (isDark ? DesignTokens.darkTextPrimary : DesignTokens.lightTextPrimary),
+                      size: 28,
+                    ),
+                  ),
+                ),
+                if (isOnline)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: DesignTokens.successDefault,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? DesignTokens.darkBackground : DesignTokens.lightBackground,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(width: DesignTokens.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                message['name'],
+                                style: AppTypography.titleSmall(context).copyWith(
+                                  fontWeight: hasUnread
+                                      ? DesignTokens.fontWeightBold
+                                      : DesignTokens.fontWeightSemiBold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isVerified) ...[
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.verified,
+                                size: 16,
+                                color: DesignTokens.brandSecondary,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Text(
+                        message['time'],
+                        style: AppTypography.labelSmall(context).copyWith(
+                          color: hasUnread
+                              ? DesignTokens.brandPrimary
+                              : (isDark ? DesignTokens.darkTextSecondary : DesignTokens.lightTextSecondary),
+                          fontWeight: hasUnread ? DesignTokens.fontWeightSemiBold : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          isTyping
+                              ? 'Typing...'
+                              : (message['lastMessage'] ?? 'Sent a photo'),
+                          style: AppTypography.bodyMedium(context).copyWith(
+                            color: isTyping
+                                ? DesignTokens.brandPrimary
+                                : hasUnread
+                                    ? (isDark ? DesignTokens.darkTextPrimary : DesignTokens.lightTextPrimary)
+                                    : (isDark ? DesignTokens.darkTextSecondary : DesignTokens.lightTextSecondary),
+                            fontWeight: hasUnread ? DesignTokens.fontWeightSemiBold : null,
+                            fontStyle: isTyping ? FontStyle.italic : null,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (hasUnread)
+                        Container(
+                          margin: const EdgeInsets.only(left: DesignTokens.space2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: DesignTokens.brandGradient),
+                            borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+                          ),
+                          child: Text(
+                            '${message['unread']}',
+                            style: AppTypography.labelSmall(context).copyWith(
+                              color: DesignTokens.darkTextPrimary,
+                              fontWeight: DesignTokens.fontWeightBold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

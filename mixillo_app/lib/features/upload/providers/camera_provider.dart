@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/ar_filter_model.dart';
 
 /// Camera Provider - Manages camera state, filters, and effects
 class CameraProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   // Filter state
   List<ARFilterModel> _filters = [];
@@ -44,12 +44,13 @@ class CameraProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final filtersData = await _apiService.getFilters(
-        category: category?.name,
-        type: type?.name,
-        limit: 100,
-      );
+      final response = await _api.dio.get('/filters', queryParameters: {
+        if (category != null) 'category': category.name,
+        if (type != null) 'type': type.name,
+        'limit': 100,
+      });
       
+      final filtersData = response.data['data'] as List;
       _filters = filtersData
           .map((json) => ARFilterModel.fromJson(json))
           .toList();
@@ -66,8 +67,9 @@ class CameraProvider extends ChangeNotifier {
   /// Load trending filters
   Future<void> loadTrendingFilters() async {
     try {
-      final filtersData = await _apiService.getTrendingFilters(limit: 20);
+      final response = await _api.dio.get('/filters/trending', queryParameters: {'limit': 20});
       
+      final filtersData = response.data['data'] as List;
       _trendingFilters = filtersData
           .map((json) => ARFilterModel.fromJson(json))
           .toList();
@@ -81,8 +83,9 @@ class CameraProvider extends ChangeNotifier {
   /// Load featured filters
   Future<void> loadFeaturedFilters() async {
     try {
-      final filtersData = await _apiService.getFeaturedFilters(limit: 20);
+      final response = await _api.dio.get('/filters/featured', queryParameters: {'limit': 20});
       
+      final filtersData = response.data['data'] as List;
       _featuredFilters = filtersData
           .map((json) => ARFilterModel.fromJson(json))
           .toList();
@@ -158,23 +161,22 @@ class CameraProvider extends ChangeNotifier {
     
     try {
       if (isVideo) {
-        return await _apiService.processVideo(
-          videoUrl: mediaUrl,
-          filterId: _selectedFilter!.id,
-          effects: {
+        final response = await _api.dio.post('/video/process', data: {
+          'videoUrl': mediaUrl,
+          'filterId': _selectedFilter!.id,
+          'effects': {
             'beauty': _beautyModeEnabled ? _beautyEffects : null,
             'speed': _videoSpeed != 1.0 ? _videoSpeed : null,
           },
-        );
+        });
+        return response.data['data'] ?? {};
       } else {
         // For images, apply filter via backend
-        return await _apiService.applyFilter(
-          _selectedFilter!.id,
-          parameters: {
-            'imageUrl': mediaUrl,
-            'beauty': _beautyModeEnabled ? _beautyEffects : null,
-          },
-        );
+        final response = await _api.dio.post('/filters/${_selectedFilter!.id}/apply', data: {
+          'imageUrl': mediaUrl,
+          'beauty': _beautyModeEnabled ? _beautyEffects : null,
+        });
+        return response.data['data'] ?? {};
       }
     } catch (e) {
       debugPrint('Error applying filter: $e');
@@ -185,7 +187,8 @@ class CameraProvider extends ChangeNotifier {
   /// Favorite filter
   Future<bool> favoriteFilter(String filterId) async {
     try {
-      return await _apiService.favoriteFilter(filterId);
+      await _api.dio.post('/filters/$filterId/favorite');
+      return true;
     } catch (e) {
       debugPrint('Error favoriting filter: $e');
       return false;
@@ -195,7 +198,8 @@ class CameraProvider extends ChangeNotifier {
   /// Unlock premium filter
   Future<bool> unlockPremiumFilter(String filterId) async {
     try {
-      return await _apiService.unlockFilter(filterId);
+      await _api.dio.post('/filters/$filterId/unlock');
+      return true;
     } catch (e) {
       debugPrint('Error unlocking filter: $e');
       return false;

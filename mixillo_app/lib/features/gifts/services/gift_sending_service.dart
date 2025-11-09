@@ -1,7 +1,7 @@
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 
 class GiftSendingService {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
 
   /// Send gift to a user
   Future<Map<String, dynamic>?> sendGift({
@@ -13,7 +13,7 @@ class GiftSendingService {
     GiftContext? context,
   }) async {
     try {
-      final response = await _apiService.dio.post(
+      final response = await _api.dio.post(
         '/supporters/gifts/send',
         data: {
           'giftId': giftId,
@@ -46,7 +46,7 @@ class GiftSendingService {
     int offset = 0,
   }) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _api.dio.get(
         '/supporters/gifts/transactions',
         queryParameters: {
           'limit': limit,
@@ -70,7 +70,7 @@ class GiftSendingService {
   /// Get gifts for a livestream
   Future<List<Map<String, dynamic>>> getLivestreamGifts(String livestreamId) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _api.dio.get(
         '/supporters/gifts/livestream/$livestreamId',
       );
 

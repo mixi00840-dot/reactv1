@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/gift_model.dart';
 
 class GiftsProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   List<GiftModel> _gifts = [];
   List<String> _categories = [];
@@ -26,11 +26,12 @@ class GiftsProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final giftsData = await _apiService.getGifts(
-        category: category,
-        featured: featured,
-        limit: 100,
-      );
+      final response = await _api.dio.get('/gifts', queryParameters: {
+        if (category != null) 'category': category,
+        'featured': featured,
+        'limit': 100,
+      });
+      final giftsData = response.data['data'] ?? [];
       
       _gifts = giftsData
           .map((json) => GiftModel.fromJson(json))
@@ -56,7 +57,8 @@ class GiftsProvider extends ChangeNotifier {
   /// Load gift categories
   Future<void> loadCategories() async {
     try {
-      _categories = await _apiService.getGiftCategories();
+      final response = await _api.dio.get('/gifts/categories');
+      _categories = List<String>.from(response.data['data'] ?? []);
     } catch (e) {
       print('Error loading categories: $e');
     }
@@ -65,7 +67,11 @@ class GiftsProvider extends ChangeNotifier {
   /// Load featured gifts
   Future<void> loadFeaturedGifts() async {
     try {
-      final giftsData = await _apiService.getGifts(featured: true, limit: 20);
+      final response = await _api.dio.get('/gifts', queryParameters: {
+        'featured': true,
+        'limit': 20,
+      });
+      final giftsData = response.data['data'] ?? [];
       _featuredGifts = giftsData
           .map((json) => GiftModel.fromJson(json))
           .where((gift) => gift.isAvailable)

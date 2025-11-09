@@ -61,6 +61,8 @@ import {
   Translate as TranslateIcon,
   CloudUpload as UploadIcon,
   AttachMoney as CurrencyIcon,
+  MonitorHeart as MonitorHeartIcon,
+  Cloud as CloudIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 // MongoDB Migration - Use MongoDB auth
@@ -195,6 +197,16 @@ const menuItems = [
     text: 'API Settings',
     icon: <ApiIcon />,
     path: '/api-settings',
+  },
+  {
+    text: 'System Health',
+    icon: <CloudIcon />,
+    path: '/system-health',
+  },
+  {
+    text: 'Database Monitoring',
+    icon: <StorageIcon />,
+    path: '/database-monitoring',
   },
   {
     text: 'Streaming Providers',

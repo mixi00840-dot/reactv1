@@ -1,9 +1,23 @@
 class ApiConstants {
-  // Base URL - Production backend
+  // Base URL - Production backend on Google Cloud Run
   static const String baseUrl = 'https://mixillo-backend-52242135857.europe-west1.run.app';
+  
+  // For local development, uncomment below:
+  // static const String baseUrl = 'http://localhost:5000';
   
   // API Version
   static const String apiVersion = '/api';
+  
+  // Timeout durations (in milliseconds)
+  static const Duration connectTimeout = Duration(milliseconds: 30000);
+  static const Duration receiveTimeout = Duration(milliseconds: 30000);
+  static const Duration sendTimeout = Duration(milliseconds: 30000);
+  
+  // Default headers
+  static const Map<String, String> defaultHeaders = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
   
   // Auth Endpoints
   static const String login = '/auth/login';

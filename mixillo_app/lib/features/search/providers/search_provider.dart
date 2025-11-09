@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/api_helper.dart';
 import '../models/trending_model.dart';
 
 class SearchProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiHelper _api = ApiHelper();
   
   SearchResultModel? _searchResults;
   List<TrendingHashtagModel> _trendingHashtags = [];
@@ -38,13 +38,13 @@ class SearchProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.search(
-        query: query,
-        type: type,
-      );
+      final response = await _api.dio.get('/search', queryParameters: {
+        'query': query,
+        'type': type,
+      });
       
-      if (response['success'] == true) {
-        _searchResults = SearchResultModel.fromJson(response['data'] ?? response);
+      if (response.data['success'] == true) {
+        _searchResults = SearchResultModel.fromJson(response.data['data'] ?? response.data);
         
         // Add to search history
         if (!_searchHistory.contains(query)) {
@@ -56,7 +56,7 @@ class SearchProvider extends ChangeNotifier {
         
         _error = null;
       } else {
-        throw Exception(response['message'] ?? 'Search failed');
+        throw Exception(response.data['message'] ?? 'Search failed');
       }
     } catch (e) {
       _error = e.toString();
@@ -70,7 +70,7 @@ class SearchProvider extends ChangeNotifier {
   /// Load trending hashtags
   Future<void> loadTrendingHashtags({int limit = 20}) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _api.dio.get(
         '/trending/hashtags',
         queryParameters: {'limit': limit},
       );
@@ -89,7 +89,7 @@ class SearchProvider extends ChangeNotifier {
   /// Load trending videos
   Future<void> loadTrendingVideos({int limit = 50}) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _api.dio.get(
         '/trending/global',
         queryParameters: {'limit': limit},
       );
@@ -110,7 +110,7 @@ class SearchProvider extends ChangeNotifier {
     try {
       // Use search with empty query to get trending users
       // Or use a dedicated endpoint if available
-      final response = await _apiService.dio.get(
+      final response = await _api.dio.get(
         '/users',
         queryParameters: {
           'limit': limit,
@@ -136,7 +136,7 @@ class SearchProvider extends ChangeNotifier {
     List<String>? categories,
   }) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _api.dio.get(
         '/trending/explore',
         queryParameters: {
           'limit': limit,
