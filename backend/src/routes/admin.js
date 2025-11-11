@@ -981,5 +981,19 @@ router.get('/wallets/transactions/stats', verifyJWT, requireAdmin, async (req, r
   }
 });
 
+/**
+ * @route   GET /api/admin/realtime/stats
+ * @desc    Get real-time interaction statistics
+ * @access  Admin
+ */
+const adminRealtimeController = require('../controllers/adminRealtimeController');
+
+router.get('/realtime/stats', verifyJWT, requireAdmin, adminRealtimeController.getRealtimeStats);
+router.get('/ai/moderation-stats', verifyJWT, requireAdmin, adminRealtimeController.getAIModerationStats);
+router.get('/cache/stats', verifyJWT, requireAdmin, adminRealtimeController.getCacheStats);
+router.get('/ai/vertex-usage', verifyJWT, requireAdmin, adminRealtimeController.getVertexAIUsage);
+router.get('/webhooks/activity', verifyJWT, requireAdmin, adminRealtimeController.getWebhookActivity);
+router.get('/interactions/recent', verifyJWT, requireAdmin, adminRealtimeController.getRecentInteractions);
+
 module.exports = router;
 

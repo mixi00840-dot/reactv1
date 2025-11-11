@@ -23,6 +23,12 @@ import {
   TrendingUp,
   Block,
   Pause,
+  ThumbUp,
+  Chat,
+  Visibility,
+  Share,
+  PeopleAlt,
+  Gavel,
 } from '@mui/icons-material';
 import { Line, Doughnut } from 'react-chartjs-2';
 import {
@@ -38,6 +44,7 @@ import {
 } from 'chart.js';
 // MongoDB Migration - Use MongoDB API instead of Firebase
 import mongoAPI from '../utils/apiMongoDB';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 ChartJS.register(
@@ -98,10 +105,16 @@ const UserStatusChip = ({ status }) => {
 
 function Dashboard() {
   const [stats, setStats] = useState(null);
+  const [realtimeStats, setRealtimeStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
+    fetchRealtimeStats();
+    
+    // Auto-refresh realtime stats every 30 seconds
+    const interval = setInterval(fetchRealtimeStats, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardData = async () => {
@@ -131,6 +144,18 @@ function Dashboard() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRealtimeStats = async () => {
+    try {
+      const response = await api.get('/api/admin/realtime/stats');
+      if (response.data?.success) {
+        setRealtimeStats(response.data.data);
+      }
+    } catch (error) {
+      console.error('Realtime stats fetch error:', error);
+      // Don't show toast for auto-refresh failures
     }
   };
 
@@ -224,7 +249,62 @@ function Dashboard() {
         Dashboard Overview
       </Typography>
 
-      {/* Stats Cards */}
+      {/* Real-Time Interaction Stats */}
+      {realtimeStats && (
+        <>
+          <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 2 }}>
+            Real-Time Platform Activity
+          </Typography>
+          <Grid container spacing={3} mb={4}>
+            <Grid item xs={12} sm={6} md={2.4}>
+              <StatCard
+                title="Likes Today"
+                value={(realtimeStats.interactions?.likesToday || 0).toLocaleString()}
+                icon={<ThumbUp sx={{ fontSize: 40 }} />}
+                color="error"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2.4}>
+              <StatCard
+                title="Comments Today"
+                value={(realtimeStats.interactions?.commentsToday || 0).toLocaleString()}
+                icon={<Chat sx={{ fontSize: 40 }} />}
+                color="primary"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2.4}>
+              <StatCard
+                title="Views Today"
+                value={(realtimeStats.interactions?.viewsToday || 0).toLocaleString()}
+                icon={<Visibility sx={{ fontSize: 40 }} />}
+                color="success"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2.4}>
+              <StatCard
+                title="Shares Today"
+                value={(realtimeStats.interactions?.sharesToday || 0).toLocaleString()}
+                icon={<Share sx={{ fontSize: 40 }} />}
+                color="info"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2.4}>
+              <StatCard
+                title="Active Viewers"
+                value={(realtimeStats.socketIO?.connectedClients || 0).toLocaleString()}
+                icon={<PeopleAlt sx={{ fontSize: 40 }} />}
+                color="warning"
+              />
+            </Grid>
+          </Grid>
+        </>
+      )}
+
+      <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+        User Statistics
+      </Typography>
+
+      {/* User Stats Cards */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard

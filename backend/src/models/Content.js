@@ -163,6 +163,29 @@ const ContentSchema = new mongoose.Schema({
   metaDescription: String,
   keywords: [String],
 
+  // AI Features
+  embeddings: {
+    type: [Number],
+    default: undefined,
+    index: false // Don't index large arrays
+  },
+  moderationScore: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+  feedScore: {
+    type: Number,
+    default: 0,
+    index: true // For efficient feed ranking
+  },
+  aiTags: [{
+    type: String,
+    lowercase: true
+  }],
+  aiCaption: String,
+
   // Related Content
   originalContentId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -215,6 +238,15 @@ ContentSchema.index({
   caption: 'text',
   hashtags: 'text'
 });
+
+// Indexes for performance
+ContentSchema.index({ userId: 1, createdAt: -1 });
+ContentSchema.index({ status: 1, createdAt: -1 });
+ContentSchema.index({ hashtags: 1, createdAt: -1 });
+ContentSchema.index({ 'soundId': 1 });
+ContentSchema.index({ viewsCount: -1, likesCount: -1 }); // For trending
+ContentSchema.index({ feedScore: -1, createdAt: -1 }); // For AI-ranked feed
+ContentSchema.index({ moderationScore: 1 }); // For moderation filtering
 
 // Virtual for engagement rate
 ContentSchema.virtual('engagementRate').get(function() {

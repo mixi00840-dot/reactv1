@@ -54,6 +54,29 @@ const APISettings = () => {
     // AI Services
     sightengine: { enabled: false, apiUser: '', apiSecret: '' },
     openai: { enabled: false, apiKey: '', model: 'gpt-4', organization: '' },
+    vertexAI: { 
+      enabled: true, 
+      projectId: 'mixillo', 
+      location: 'us-central1', 
+      credentialsPath: '/backend/vertex-ai-key.json',
+      quotaLimit: 1000000,
+      currentUsage: 0 
+    },
+    redis: { 
+      enabled: true, 
+      host: '10.167.115.67', 
+      port: 6379, 
+      password: '', 
+      maxMemory: '1gb',
+      currentMemory: '0mb',
+      cacheHitRate: 0 
+    },
+    socketIO: { 
+      enabled: true, 
+      corsOrigin: '*',
+      connectedClients: 0,
+      activeRooms: 0 
+    },
     
     // SMS & Communication
     twilio: { enabled: false, accountSid: '', authToken: '', phoneNumber: '' },
@@ -99,6 +122,11 @@ const APISettings = () => {
 
   useEffect(() => {
     fetchSettings();
+    fetchRealtimeServiceStats();
+    
+    // Auto-refresh service stats every 30 seconds
+    const interval = setInterval(fetchRealtimeServiceStats, 30000);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -110,6 +138,53 @@ const APISettings = () => {
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
+    }
+  };
+
+  const fetchRealtimeServiceStats = async () => {
+    try {
+      // Fetch realtime stats to update service status
+      const realtimeResponse = await api.get('/api/admin/realtime/stats');
+      if (realtimeResponse.data?.success) {
+        const socketData = realtimeResponse.data.data.socketIO;
+        setSettings(prev => ({
+          ...prev,
+          socketIO: {
+            ...prev.socketIO,
+            connectedClients: socketData?.connectedClients || 0,
+            activeRooms: socketData?.activeRooms || 0
+          }
+        }));
+      }
+
+      // Fetch cache stats
+      const cacheResponse = await api.get('/api/admin/cache/stats');
+      if (cacheResponse.data?.success) {
+        const redisData = cacheResponse.data.data.redis;
+        setSettings(prev => ({
+          ...prev,
+          redis: {
+            ...prev.redis,
+            currentMemory: redisData?.memoryUsed || '0mb',
+            cacheHitRate: parseFloat(redisData?.hitRate) || 0
+          }
+        }));
+      }
+
+      // Fetch Vertex AI usage
+      const vertexResponse = await api.get('/api/admin/ai/vertex-usage');
+      if (vertexResponse.data?.success) {
+        const vertexData = vertexResponse.data.data;
+        setSettings(prev => ({
+          ...prev,
+          vertexAI: {
+            ...prev.vertexAI,
+            currentUsage: vertexData?.quotaUsed || 0
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching realtime service stats:', error);
     }
   };
 
@@ -462,6 +537,177 @@ const APISettings = () => {
         {/* AI Services */}
         {tabValue === 3 && (
           <Box sx={{ p: 3 }}>
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandIcon />}>
+                <Typography variant="h6">Google Vertex AI (Primary AI)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={<Switch checked={settings.vertexAI?.enabled} onChange={(e) => updateSetting('vertexAI', 'enabled', e.target.checked)} />}
+                      label="Enable Vertex AI"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Project ID" 
+                      value={settings.vertexAI?.projectId || ''} 
+                      onChange={(e) => updateSetting('vertexAI', 'projectId', e.target.value)} 
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Location" 
+                      value={settings.vertexAI?.location || ''} 
+                      onChange={(e) => updateSetting('vertexAI', 'location', e.target.value)} 
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField 
+                      fullWidth 
+                      label="Credentials Path" 
+                      value={settings.vertexAI?.credentialsPath || ''} 
+                      onChange={(e) => updateSetting('vertexAI', 'credentialsPath', e.target.value)} 
+                      helperText="Path to service account JSON key file"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Monthly Quota Limit" 
+                      type="number"
+                      value={settings.vertexAI?.quotaLimit || 0} 
+                      onChange={(e) => updateSetting('vertexAI', 'quotaLimit', parseInt(e.target.value))} 
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Current Usage" 
+                      type="number"
+                      value={settings.vertexAI?.currentUsage || 0} 
+                      disabled
+                      helperText="Auto-updated"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandIcon />}>
+                <Typography variant="h6">Redis Cache (Cloud Memorystore)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={<Switch checked={settings.redis?.enabled} onChange={(e) => updateSetting('redis', 'enabled', e.target.checked)} />}
+                      label="Enable Redis Caching"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Host" 
+                      value={settings.redis?.host || ''} 
+                      onChange={(e) => updateSetting('redis', 'host', e.target.value)} 
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Port" 
+                      type="number"
+                      value={settings.redis?.port || 6379} 
+                      onChange={(e) => updateSetting('redis', 'port', parseInt(e.target.value))} 
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField 
+                      fullWidth 
+                      label="Password (optional)" 
+                      type="password"
+                      value={settings.redis?.password || ''} 
+                      onChange={(e) => updateSetting('redis', 'password', e.target.value)} 
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField 
+                      fullWidth 
+                      label="Max Memory" 
+                      value={settings.redis?.maxMemory || '1gb'} 
+                      onChange={(e) => updateSetting('redis', 'maxMemory', e.target.value)} 
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField 
+                      fullWidth 
+                      label="Current Memory" 
+                      value={settings.redis?.currentMemory || '0mb'} 
+                      disabled
+                      helperText="Auto-updated"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField 
+                      fullWidth 
+                      label="Cache Hit Rate" 
+                      value={settings.redis?.cacheHitRate ? `${settings.redis.cacheHitRate}%` : '0%'} 
+                      disabled
+                      helperText="Auto-updated"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandIcon />}>
+                <Typography variant="h6">Socket.IO (Real-Time Events)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={<Switch checked={settings.socketIO?.enabled} onChange={(e) => updateSetting('socketIO', 'enabled', e.target.checked)} />}
+                      label="Enable Socket.IO"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField 
+                      fullWidth 
+                      label="CORS Origin" 
+                      value={settings.socketIO?.corsOrigin || '*'} 
+                      onChange={(e) => updateSetting('socketIO', 'corsOrigin', e.target.value)} 
+                      helperText="Allowed origins for Socket.IO connections"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Connected Clients" 
+                      value={settings.socketIO?.connectedClients || 0} 
+                      disabled
+                      helperText="Current active connections"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Active Rooms" 
+                      value={settings.socketIO?.activeRooms || 0} 
+                      disabled
+                      helperText="Active video rooms"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
             <Accordion>
               <AccordionSummary expandIcon={<ExpandIcon />}>
                 <Typography variant="h6">Sightengine (Content Moderation)</Typography>
@@ -470,15 +716,15 @@ const APISettings = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <FormControlLabel
-                      control={<Switch checked={settings.sightengine.enabled} onChange={(e) => updateSetting('sightengine', 'enabled', e.target.checked)} />}
+                      control={<Switch checked={settings.sightengine?.enabled} onChange={(e) => updateSetting('sightengine', 'enabled', e.target.checked)} />}
                       label="Enable Sightengine"
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="API User" value={settings.sightengine.apiUser} onChange={(e) => updateSetting('sightengine', 'apiUser', e.target.value)} />
+                    <TextField fullWidth label="API User" value={settings.sightengine?.apiUser || ''} onChange={(e) => updateSetting('sightengine', 'apiUser', e.target.value)} />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="API Secret" type="password" value={settings.sightengine.apiSecret} onChange={(e) => updateSetting('sightengine', 'apiSecret', e.target.value)} />
+                    <TextField fullWidth label="API Secret" type="password" value={settings.sightengine?.apiSecret || ''} onChange={(e) => updateSetting('sightengine', 'apiSecret', e.target.value)} />
                   </Grid>
                 </Grid>
               </AccordionDetails>
@@ -492,18 +738,18 @@ const APISettings = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <FormControlLabel
-                      control={<Switch checked={settings.openai.enabled} onChange={(e) => updateSetting('openai', 'enabled', e.target.checked)} />}
+                      control={<Switch checked={settings.openai?.enabled} onChange={(e) => updateSetting('openai', 'enabled', e.target.checked)} />}
                       label="Enable OpenAI"
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField fullWidth label="API Key" type="password" value={settings.openai.apiKey} onChange={(e) => updateSetting('openai', 'apiKey', e.target.value)} />
+                    <TextField fullWidth label="API Key" type="password" value={settings.openai?.apiKey || ''} onChange={(e) => updateSetting('openai', 'apiKey', e.target.value)} />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="Model" value={settings.openai.model} onChange={(e) => updateSetting('openai', 'model', e.target.value)} />
+                    <TextField fullWidth label="Model" value={settings.openai?.model || 'gpt-4'} onChange={(e) => updateSetting('openai', 'model', e.target.value)} />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="Organization ID (optional)" value={settings.openai.organization} onChange={(e) => updateSetting('openai', 'organization', e.target.value)} />
+                    <TextField fullWidth label="Organization ID (optional)" value={settings.openai?.organization || ''} onChange={(e) => updateSetting('openai', 'organization', e.target.value)} />
                   </Grid>
                 </Grid>
               </AccordionDetails>

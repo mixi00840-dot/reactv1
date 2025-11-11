@@ -3,6 +3,7 @@ const socketIO = require('socket.io');
 const app = require('./app');
 const { setupSocketHandlers } = require('./socket/events');
 const setupWebRTCHandlers = require('./socket/webrtc');
+const socketService = require('./services/socketService');
 const { initializeTrendingCron } = require('./jobs/trendingCalculation');
 const { initializeStoryCleanup } = require('./jobs/storyCleanup');
 const { scheduledContentJob, livestreamReminderJob } = require('./jobs/scheduledContentJob');
@@ -38,7 +39,10 @@ setupSocketHandlers(io);
 // Setup WebRTC socket handlers
 setupWebRTCHandlers(io);
 
-// Make io accessible to routes
+// Initialize socket service
+socketService.initialize(io);
+
+// Make io accessible to routes (legacy support)
 app.set('io', io);
 
 // Initialize cron jobs only when explicitly enabled via env

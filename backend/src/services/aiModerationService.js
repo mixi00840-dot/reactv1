@@ -1,10 +1,19 @@
 const AIModeration = require('../models/AIModeration');
 const User = require('../models/User');
 
+// Try to load Vertex AI service
+let vertexAI = null;
+try {
+  vertexAI = require('./vertexAI');
+  console.log('✅ Vertex AI service loaded for moderation');
+} catch (error) {
+  console.log('⚠️  Vertex AI not available, using fallback moderation');
+}
+
 /**
  * AI Moderation Service
  * 
- * Handles automated content moderation using AI/ML to detect
+ * Handles automated content moderation using Vertex AI (Gemini) to detect
  * inappropriate content, toxic behavior, and policy violations.
  */
 
@@ -120,18 +129,88 @@ class AIModerationService {
   }
   
   /**
-   * Run AI moderation analysis (simulated)
+   * Run AI moderation analysis
+   * Uses Vertex AI if available, otherwise falls back to mock data
    * @private
    */
   async _runModerationAnalysis(contentType, contentUrl) {
-    // In production, integrate with:
-    // - OpenAI Moderation API
-    // - Perspective API (toxicity)
-    // - AWS Rekognition (NSFW, violence)
-    // - Google SafeSearch
-    // - Microsoft Content Moderator
-    // - Custom ML models
+    // Try Vertex AI first if available
+    if (vertexAI) {
+      try {
+        return await this._runVertexAIModeration(contentType, contentUrl);
+      } catch (error) {
+        console.error('Vertex AI moderation failed, using fallback:', error.message);
+      }
+    }
     
+    // Fallback to mock moderation
+    return this._runMockModeration(contentType, contentUrl);
+  }
+
+  /**
+   * Run Vertex AI moderation
+   * @private
+   */
+  async _runVertexAIModeration(contentType, contentUrl) {
+    const results = {
+      nsfwDetection: { isNSFW: false, confidence: 0, categories: [], detectedRegions: [] },
+      toxicityDetection: { isToxic: false, toxicityScore: 0, categories: [], detectedPhrases: [], sentiment: 'neutral' },
+      spamDetection: { isSpam: false, spamScore: 0, indicators: [], suspiciousLinks: [] },
+      violenceDetection: { hasViolence: false, severity: 'none', confidence: 0, types: [] },
+      copyrightDetection: { hasCopyright: false, confidence: 0, matches: [] },
+      misinformationDetection: { isMisinformation: false, confidence: 0, topics: [] },
+      minorSafetyDetection: { hasMinors: false, riskLevel: 'none', confidence: 0 },
+      aiModel: { name: 'Vertex AI Gemini', version: '1.5', provider: 'google' }
+    };
+
+    // For image/video content
+    if (contentType === 'content' && contentUrl) {
+      const imageAnalysis = await vertexAI.moderateImage(contentUrl);
+      if (imageAnalysis.success) {
+        results.nsfwDetection = {
+          isNSFW: imageAnalysis.scores.nsfw > 50,
+          confidence: imageAnalysis.scores.nsfw / 100,
+          categories: imageAnalysis.flags.filter(f => f.includes('nsfw')).map(f => ({ category: f, score: imageAnalysis.scores.nsfw / 100 })),
+          detectedRegions: []
+        };
+        results.violenceDetection = {
+          hasViolence: imageAnalysis.scores.violence > 50,
+          severity: imageAnalysis.scores.violence > 70 ? 'high' : imageAnalysis.scores.violence > 40 ? 'medium' : 'low',
+          confidence: imageAnalysis.scores.violence / 100,
+          types: imageAnalysis.flags.filter(f => f.includes('violence'))
+        };
+      }
+    }
+
+    // For text content
+    if ((contentType === 'comment' || contentType === 'message') && contentUrl) {
+      const textAnalysis = await vertexAI.moderateText(contentUrl);
+      if (textAnalysis.success) {
+        results.toxicityDetection = {
+          isToxic: textAnalysis.scores.overall > 50,
+          toxicityScore: textAnalysis.scores.overall / 100,
+          categories: textAnalysis.flags.map(f => ({ category: f, score: textAnalysis.scores.overall / 100 })),
+          detectedPhrases: [],
+          sentiment: textAnalysis.scores.overall > 60 ? 'negative' : 'neutral'
+        };
+        results.spamDetection = {
+          isSpam: textAnalysis.scores.spam > 50,
+          spamScore: textAnalysis.scores.spam / 100,
+          indicators: textAnalysis.flags.filter(f => f.includes('spam')).map(f => ({ indicator: f, confidence: textAnalysis.scores.spam / 100 })),
+          suspiciousLinks: []
+        };
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Run mock moderation (fallback)
+   * @private
+   */
+  async _runMockModeration(contentType, contentUrl) {
+    // Original mock implementation
     const results = {
       nsfwDetection: {
         isNSFW: false,

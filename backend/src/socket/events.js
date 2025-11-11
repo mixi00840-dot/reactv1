@@ -210,6 +210,122 @@ const setupSocketHandlers = (io) => {
       });
     });
     
+    // ==================== VIDEO INTERACTIONS ====================
+    
+    // Join video room (for real-time interaction updates)
+    socket.on('video:join', (data) => {
+      const { contentId } = data;
+      socket.join(`video_${contentId}`);
+      socket.emit('video:joined', { contentId });
+    });
+    
+    // Leave video room
+    socket.on('video:leave', (data) => {
+      const { contentId } = data;
+      socket.leave(`video_${contentId}`);
+      socket.emit('video:left', { contentId });
+    });
+    
+    // Handle like event (broadcasted from route, but can also be triggered here)
+    socket.on('video:like_action', (data) => {
+      const { contentId, isLiked, likesCount } = data;
+      socket.to(`video_${contentId}`).emit('video:like', {
+        contentId,
+        userId: socket.userId,
+        isLiked,
+        likesCount,
+        timestamp: new Date()
+      });
+    });
+    
+    // Handle comment event (broadcasted from route, but listeners can track here)
+    socket.on('video:comment_typing', (data) => {
+      const { contentId } = data;
+      socket.to(`video_${contentId}`).emit('video:user_typing', {
+        contentId,
+        userId: socket.userId,
+        username: socket.user.username
+      });
+    });
+    
+    // Handle share event tracking
+    socket.on('video:share_action', (data) => {
+      const { contentId, platform } = data;
+      socket.to(`video_${contentId}`).emit('video:shared', {
+        contentId,
+        userId: socket.userId,
+        platform,
+        timestamp: new Date()
+      });
+    });
+    
+    // ==================== FEED UPDATES ====================
+    
+    // Subscribe to feed updates
+    socket.on('feed:subscribe', () => {
+      socket.join(`feed_${socket.userId}`);
+      socket.emit('feed:subscribed', { userId: socket.userId });
+    });
+    
+    // Unsubscribe from feed updates
+    socket.on('feed:unsubscribe', () => {
+      socket.leave(`feed_${socket.userId}`);
+      socket.emit('feed:unsubscribed', { userId: socket.userId });
+    });
+    
+    // Request feed refresh (notify followers when new content is posted)
+    socket.on('feed:new_content', async (data) => {
+      try {
+        const { contentId, contentType } = data;
+        const User = require('../models/User');
+        
+        // Get user's followers
+        const followers = await User.find({ following: socket.userId })
+          .select('_id')
+          .lean();
+        
+        // Notify all followers
+        followers.forEach(follower => {
+          io.to(`feed_${follower._id}`).emit('feed:refresh', {
+            type: 'new_content',
+            contentId,
+            contentType,
+            creator: {
+              id: socket.userId,
+              username: socket.user.username,
+              avatar: socket.user.avatar
+            },
+            timestamp: new Date()
+          });
+        });
+        
+        socket.emit('feed:content_broadcasted', { 
+          contentId, 
+          followersNotified: followers.length 
+        });
+        
+      } catch (error) {
+        console.error('Error broadcasting new content:', error);
+        socket.emit('feed:broadcast_error', { error: error.message });
+      }
+    });
+    
+    // ==================== ENGAGEMENT ANALYTICS ====================
+    
+    // Track video watch time
+    socket.on('video:watch_progress', (data) => {
+      const { contentId, watchTime, completed } = data;
+      // Can be used for analytics - store in database or cache
+      socket.emit('video:progress_tracked', { contentId, watchTime });
+    });
+    
+    // Track video quality change
+    socket.on('video:quality_change', (data) => {
+      const { contentId, quality, buffering } = data;
+      // Analytics for video performance
+      socket.emit('video:quality_logged', { contentId, quality });
+    });
+    
     // Handle presence
     socket.on('presence:update', (data) => {
       const { status } = data; // online, away, busy, offline
@@ -231,6 +347,49 @@ const setupSocketHandlers = (io) => {
       });
     });
   });
+  
+  // ==================== BROADCAST HELPERS ====================
+  
+  /**
+   * Broadcast video interaction to all clients watching
+   */
+  const broadcastVideoInteraction = (io, contentId, eventType, data) => {
+    io.to(`video_${contentId}`).emit(eventType, {
+      contentId,
+      ...data,
+      timestamp: new Date()
+    });
+  };
+  
+  /**
+   * Notify user's followers about new content
+   */
+  const notifyFollowers = async (io, userId, contentData) => {
+    try {
+      const User = require('../models/User');
+      const followers = await User.find({ following: userId })
+        .select('_id')
+        .lean();
+      
+      followers.forEach(follower => {
+        io.to(`feed_${follower._id}`).emit('feed:refresh', {
+          type: 'new_content',
+          ...contentData,
+          timestamp: new Date()
+        });
+      });
+      
+      return followers.length;
+    } catch (error) {
+      console.error('Error notifying followers:', error);
+      return 0;
+    }
+  };
+  
+  return {
+    broadcastVideoInteraction,
+    notifyFollowers
+  };
 };
 
 module.exports = {

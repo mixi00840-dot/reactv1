@@ -34,9 +34,13 @@ import {
   Speed as SpeedIcon,
   Storage as StorageIcon,
   TrendingUp as TrendingIcon,
-  AttachMoney as CostIcon
+  AttachMoney as CostIcon,
+  Cast as SocketIcon,
+  SmartToy as AIIcon,
+  Webhook as WebhookIcon
 } from '@mui/icons-material';
 import mongoAPI from '../utils/apiMongoDB';
+import api_direct from '../utils/api';
 import toast from 'react-hot-toast';
 import { Line } from 'react-chartjs-2';
 import {
@@ -62,10 +66,17 @@ function SystemHealth() {
   const [logs, setLogs] = useState([]);
   const [logFilter, setLogFilter] = useState('all');
   const [timeRange, setTimeRange] = useState('1h');
+  const [realtimeStats, setRealtimeStats] = useState(null);
+  const [cacheStats, setCacheStats] = useState(null);
+  const [vertexStats, setVertexStats] = useState(null);
+  const [webhookStats, setWebhookStats] = useState(null);
 
   useEffect(() => {
     fetchAllData();
-    const interval = setInterval(fetchMetrics, 30000); // Refresh metrics every 30s
+    const interval = setInterval(() => {
+      fetchMetrics();
+      fetchGCPServiceStats();
+    }, 30000); // Refresh metrics every 30s
     return () => clearInterval(interval);
   }, []);
 
@@ -75,13 +86,32 @@ function SystemHealth() {
       await Promise.all([
         fetchSystemHealth(),
         fetchMetrics(),
-        fetchLogs()
+        fetchLogs(),
+        fetchGCPServiceStats()
       ]);
     } catch (error) {
       console.error('Error fetching system data:', error);
       toast.error('Failed to fetch system data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGCPServiceStats = async () => {
+    try {
+      const [realtimeRes, cacheRes, vertexRes, webhookRes] = await Promise.all([
+        api_direct.get('/api/admin/realtime/stats').catch(err => ({ data: null })),
+        api_direct.get('/api/admin/cache/stats').catch(err => ({ data: null })),
+        api_direct.get('/api/admin/ai/vertex-usage').catch(err => ({ data: null })),
+        api_direct.get('/api/admin/webhooks/activity').catch(err => ({ data: null }))
+      ]);
+
+      if (realtimeRes.data?.success) setRealtimeStats(realtimeRes.data.data);
+      if (cacheRes.data?.success) setCacheStats(cacheRes.data.data);
+      if (vertexRes.data?.success) setVertexStats(vertexRes.data.data);
+      if (webhookRes.data?.success) setWebhookStats(webhookRes.data.data);
+    } catch (error) {
+      console.error('Error fetching GCP service stats:', error);
     }
   };
 
@@ -307,6 +337,121 @@ function SystemHealth() {
               </Typography>
               <Typography variant="body2" sx={{ mt: 1 }}>
                 Total Errors: {metrics?.errors?.total || 0}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* GCP Services Status */}
+      <Typography variant="h5" sx={{ mb: 2 }}>GCP Services Status</Typography>
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        {/* Redis Cache Status */}
+        <Grid item xs={12} md={6} lg={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Memory Icon color="error" sx={{ mr: 1 }} />
+                <Typography variant="h6">Redis Cache</Typography>
+              </Box>
+              <Chip 
+                label={cacheStats?.redis?.connected ? 'Connected' : 'Disconnected'} 
+                color={cacheStats?.redis?.connected ? 'success' : 'error'}
+                size="small"
+                sx={{ mb: 1 }}
+              />
+              <Typography variant="body2" color="textSecondary">
+                Memory: {cacheStats?.redis?.memoryUsed || '0mb'} / {cacheStats?.redis?.memoryLimit || '1gb'}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Hit Rate: {cacheStats?.redis?.hitRate || '0%'}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Keys: {cacheStats?.redis?.keys || 0}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Uptime: {cacheStats?.redis?.uptime || 'N/A'}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Socket.IO Status */}
+        <Grid item xs={12} md={6} lg={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <SocketIcon color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6">Socket.IO</Typography>
+              </Box>
+              <Chip 
+                label={realtimeStats?.socketIO?.enabled ? 'Online' : 'Offline'} 
+                color={realtimeStats?.socketIO?.enabled ? 'success' : 'error'}
+                size="small"
+                sx={{ mb: 1 }}
+              />
+              <Typography variant="h3" color="primary">
+                {realtimeStats?.socketIO?.connectedClients || 0}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Connected Clients
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                Active Rooms: {realtimeStats?.socketIO?.activeRooms || 0}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Vertex AI Status */}
+        <Grid item xs={12} md={6} lg={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <AIIcon color="secondary" sx={{ mr: 1 }} />
+                <Typography variant="h6">Vertex AI</Typography>
+              </Box>
+              <Chip 
+                label={vertexStats?.enabled ? vertexStats.status : 'Disabled'} 
+                color={vertexStats?.enabled && vertexStats?.status === 'healthy' ? 'success' : 'warning'}
+                size="small"
+                sx={{ mb: 1 }}
+              />
+              <Typography variant="body2" color="textSecondary">
+                Requests Today: {vertexStats?.requestsToday || 0}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Quota: {vertexStats?.usagePercentage || 0}% used
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Cost Estimate: {vertexStats?.costEstimate || '$0.00'}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Cloudinary Webhook Status */}
+        <Grid item xs={12} md={6} lg={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <WebhookIcon color="warning" sx={{ mr: 1 }} />
+                <Typography variant="h6">Webhooks</Typography>
+              </Box>
+              <Chip 
+                label={webhookStats?.cloudinary?.enabled ? 'Active' : 'Inactive'} 
+                color={webhookStats?.cloudinary?.enabled ? 'success' : 'default'}
+                size="small"
+                sx={{ mb: 1 }}
+              />
+              <Typography variant="body2" color="textSecondary">
+                Processed Today: {webhookStats?.cloudinary?.processedToday || 0}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Total: {webhookStats?.cloudinary?.totalProcessed || 0}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Errors: {webhookStats?.cloudinary?.errors || 0}
               </Typography>
             </CardContent>
           </Card>

@@ -3,129 +3,177 @@ const router = express.Router();
 const Content = require('../models/Content');
 const User = require('../models/User');
 const { verifyJWT, optionalAuth } = require('../middleware/jwtAuth');
+const feedRanking = require('../services/feedRanking');
+const cache = require('../services/redisCache');
 
 /**
- * Feed Routes - MongoDB Implementation (OPTIMIZED)
- * Uses cursor-based pagination for better performance
+ * Feed Routes - AI-Powered Personalized Feed
+ * Uses AI ranking with Redis caching for performance
  */
 
 /**
  * @route   GET /api/feed
- * @desc    Get personalized feed (CURSOR-BASED PAGINATION)
+ * @desc    Get AI-powered personalized feed
  * @access  Private/Public
  */
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { cursor, limit = 20 } = req.query;
+    const { cursor, limit = 20, useAI = 'true' } = req.query;
     const userId = req.user?.id;
 
-    // Build query
-    let query = { status: 'active', visibility: 'public' };
-    
-    // Cursor-based pagination (better than offset for large datasets)
-    if (cursor) {
-      query.createdAt = { $lt: new Date(cursor) };
-    }
-
-    // Get user's following list for personalized feed
-    let followingIds = [];
-    if (userId) {
-      const user = await User.findById(userId).select('following');
-      followingIds = user?.following || [];
-    }
-
-    // Personalized feed: prioritize content from followed users
-    const aggregation = [
-      { $match: query },
-      {
-        $addFields: {
-          isFollowing: followingIds.length > 0 
-            ? { $in: ['$userId', followingIds] }
-            : false,
-          engagementScore: {
-            $add: [
-              { $multiply: ['$likesCount', 1] },
-              { $multiply: ['$commentsCount', 2] },
-              { $multiply: ['$sharesCount', 3] },
-              { $multiply: ['$viewsCount', 0.01] }
-            ]
-          }
-        }
-      },
-      {
-        $sort: {
-          isFollowing: -1, // Prioritize following
-          engagementScore: -1, // Then by engagement
-          createdAt: -1 // Then by recency
-        }
-      },
-      { $limit: parseInt(limit) + 1 }, // Get one extra to check if there's more
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'user'
-        }
-      },
-      { $unwind: '$user' },
-      {
-        $project: {
-          _id: 1,
-          type: 1,
-          title: 1,
-          description: 1,
-          videoUrl: 1,
-          thumbnailUrl: 1,
-          duration: 1,
-          viewsCount: 1,
-          likesCount: 1,
-          commentsCount: 1,
-          sharesCount: 1,
-          tags: 1,
-          createdAt: 1,
-          'user._id': 1,
-          'user.username': 1,
-          'user.fullName': 1,
-          'user.avatar': 1,
-          'user.isVerified': 1
-        }
-      }
-    ];
-
-    const content = await Content.aggregate(aggregation);
-
-    // Check if there's more
-    const hasMore = content.length > limit;
-    if (hasMore) {
-      content.pop(); // Remove the extra item
-    }
-
-    // Get next cursor
-    const nextCursor = hasMore && content.length > 0
-      ? content[content.length - 1].createdAt.toISOString()
-      : null;
-
-    res.json({
-      success: true,
-      data: {
-        content,
-        pagination: {
-          nextCursor,
-          hasMore,
+    // Use AI ranking if user is logged in and AI is enabled
+    if (userId && useAI === 'true' && process.env.ENABLE_FEED_CACHING === 'true') {
+      try {
+        const result = await feedRanking.generateFeed(userId, {
+          cursor,
           limit: parseInt(limit)
-        }
+        });
+
+        return res.json({
+          success: true,
+          data: {
+            content: result.content,
+            pagination: {
+              nextCursor: result.cursor,
+              hasMore: result.hasMore,
+              limit: parseInt(limit)
+            },
+            meta: {
+              source: result.source,
+              avgScore: result.avgScore,
+              aiRanked: true
+            }
+          }
+        });
+      } catch (aiError) {
+        console.error('AI feed error, falling back to basic:', aiError.message);
+        // Fall through to basic feed
       }
-    });
+    }
+
+    // Fallback to basic feed (original logic)
+    return await getBasicFeed(req, res, cursor, limit, userId);
 
   } catch (error) {
-    console.error('Get feed error:', error);
+    console.error('Feed error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching feed'
+      message: 'Failed to fetch feed',
+      error: error.message
     });
   }
 });
+
+/**
+ * Basic feed (fallback when AI not available)
+ */
+async function getBasicFeed(req, res, cursor, limit, userId) {
+  // Build query
+  let query = { status: 'active', visibility: 'public' };
+  
+  // Cursor-based pagination
+  if (cursor) {
+    query.createdAt = { $lt: new Date(cursor) };
+  }
+
+  // Get user's following list for personalized feed
+  let followingIds = [];
+  if (userId) {
+    const user = await User.findById(userId).select('following');
+    followingIds = user?.following || [];
+  }
+
+  // Personalized feed: prioritize content from followed users
+  const aggregation = [
+    { $match: query },
+    {
+      $addFields: {
+        isFollowing: followingIds.length > 0 
+          ? { $in: ['$userId', followingIds] }
+          : false,
+        engagementScore: {
+          $add: [
+            { $multiply: ['$likesCount', 1] },
+            { $multiply: ['$commentsCount', 2] },
+            { $multiply: ['$sharesCount', 3] },
+            { $multiply: ['$viewsCount', 0.01] }
+          ]
+        }
+      }
+    },
+    {
+      $sort: {
+        isFollowing: -1, // Prioritize following
+        feedScore: -1,   // Then by AI feed score
+        engagementScore: -1, // Then by engagement
+        createdAt: -1 // Then by recency
+      }
+    },
+    { $limit: parseInt(limit) + 1 }, // Get one extra to check if there's more
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'user'
+      }
+    },
+    { $unwind: '$user' },
+    {
+      $project: {
+        _id: 1,
+        type: 1,
+        title: 1,
+        description: 1,
+        caption: 1,
+        videoUrl: 1,
+        thumbnailUrl: 1,
+        duration: 1,
+        viewsCount: 1,
+        likesCount: 1,
+        commentsCount: 1,
+        sharesCount: 1,
+        hashtags: 1,
+        feedScore: 1,
+        createdAt: 1,
+        'user._id': 1,
+        'user.username': 1,
+        'user.fullName': 1,
+        'user.avatar': 1,
+        'user.isVerified': 1
+      }
+    }
+  ];
+
+  const content = await Content.aggregate(aggregation);
+
+  // Check if there's more
+  const hasMore = content.length > limit;
+  if (hasMore) {
+    content.pop(); // Remove the extra item
+  }
+
+  // Get next cursor
+  const nextCursor = hasMore && content.length > 0
+    ? content[content.length - 1].createdAt.toISOString()
+    : null;
+
+  return res.json({
+    success: true,
+    data: {
+      content,
+      pagination: {
+        nextCursor,
+        hasMore,
+        limit: parseInt(limit)
+      },
+      meta: {
+        source: 'basic',
+        aiRanked: false
+      }
+    }
+  });
+}
 
 /**
  * @route   GET /api/feed/trending

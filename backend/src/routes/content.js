@@ -6,6 +6,7 @@ const Comment = require('../models/Comment');
 const Like = require('../models/Like');
 const { verifyJWT, optionalAuth } = require('../middleware/jwtAuth');
 const { validationRules, handleValidationErrors } = require('../middleware/validation');
+const socketService = require('../services/socketService');
 
 /**
  * Content Routes - MongoDB Implementation
@@ -449,6 +450,277 @@ router.delete('/:id', verifyJWT, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting content'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/content/:id/like
+ * @desc    Like or unlike content
+ * @access  Private
+ */
+router.post('/:id/like', verifyJWT, async (req, res) => {
+  try {
+    const content = await Content.findById(req.params.id);
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    // Check if already liked
+    const existingLike = await Like.findOne({
+      userId: req.user.id,
+      contentId: req.params.id
+    });
+
+    let isLiked = false;
+    
+    if (existingLike) {
+      // Unlike
+      await Like.deleteOne({ _id: existingLike._id });
+      content.likesCount = Math.max(0, content.likesCount - 1);
+      isLiked = false;
+    } else {
+      // Like
+      await Like.create({
+        userId: req.user.id,
+        contentId: req.params.id
+      });
+      content.likesCount += 1;
+      isLiked = true;
+    }
+
+    await content.save();
+
+    // Emit socket event for real-time updates
+    socketService.emitVideoLike(
+      req.params.id,
+      req.user.id,
+      isLiked,
+      content.likesCount
+    );
+
+    res.json({
+      success: true,
+      data: {
+        isLiked,
+        likesCount: content.likesCount
+      },
+      message: isLiked ? 'Content liked' : 'Content unliked'
+    });
+
+  } catch (error) {
+    console.error('Like content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error toggling like'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/content/:id/view
+ * @desc    Record content view
+ * @access  Public
+ */
+router.post('/:id/view', optionalAuth, async (req, res) => {
+  try {
+    const content = await Content.findById(req.params.id);
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    // Increment view count
+    content.viewsCount += 1;
+    await content.save();
+
+    // Emit socket event for live viewer count
+    socketService.emitVideoView(req.params.id, content.viewsCount);
+
+    res.json({
+      success: true,
+      data: {
+        viewsCount: content.viewsCount
+      }
+    });
+
+  } catch (error) {
+    console.error('Record view error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error recording view'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/content/:id/share
+ * @desc    Record content share
+ * @access  Private
+ */
+router.post('/:id/share', verifyJWT, async (req, res) => {
+  try {
+    const content = await Content.findById(req.params.id);
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    // Increment share count
+    content.sharesCount += 1;
+    await content.save();
+
+    // Emit socket event
+    socketService.emitVideoShare(
+      req.params.id,
+      req.user.id,
+      content.sharesCount
+    );
+
+    res.json({
+      success: true,
+      data: {
+        sharesCount: content.sharesCount
+      },
+      message: 'Share recorded'
+    });
+
+  } catch (error) {
+    console.error('Record share error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error recording share'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/content/:id/comments
+ * @desc    Create comment on content
+ * @access  Private
+ */
+router.post('/:id/comments', verifyJWT, async (req, res) => {
+  try {
+    const { text, parentId } = req.body;
+
+    if (!text || text.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment text is required'
+      });
+    }
+
+    const content = await Content.findById(req.params.id);
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    // Create comment
+    const comment = new Comment({
+      contentId: req.params.id,
+      userId: req.user.id,
+      text,
+      parentId: parentId || null
+    });
+
+    await comment.save();
+    await comment.populate('userId', 'username fullName avatar isVerified');
+
+    // Update content comment count
+    content.commentsCount += 1;
+    await content.save();
+
+    // Emit socket event for real-time comment
+    socketService.emitVideoComment(
+      req.params.id,
+      {
+        _id: comment._id,
+        text: comment.text,
+        user: {
+          _id: comment.userId._id,
+          username: comment.userId.username,
+          avatar: comment.userId.avatar,
+          isVerified: comment.userId.isVerified
+        },
+        createdAt: comment.createdAt
+      },
+      content.commentsCount
+    );
+
+    res.status(201).json({
+      success: true,
+      data: { 
+        comment,
+        commentsCount: content.commentsCount
+      },
+      message: 'Comment created'
+    });
+
+  } catch (error) {
+    console.error('Create comment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating comment'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/content/:id/comments
+ * @desc    Get content comments
+ * @access  Public
+ */
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const { limit = 20, page = 1 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const comments = await Comment.find({ 
+      contentId: req.params.id,
+      parentId: null // Only top-level comments
+    })
+      .populate('userId', 'username fullName avatar isVerified')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await Comment.countDocuments({ 
+      contentId: req.params.id,
+      parentId: null
+    });
+
+    res.json({
+      success: true,
+      data: {
+        comments,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching comments'
     });
   }
 });
