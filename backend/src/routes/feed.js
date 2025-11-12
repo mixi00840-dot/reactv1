@@ -29,10 +29,32 @@ router.get('/', optionalAuth, async (req, res) => {
           limit: parseInt(limit)
         });
 
+        // Transform AI content to match Flutter app's VideoModel format
+        const videos = result.content.map(item => ({
+          id: item._id.toString(),
+          title: item.title || item.caption || 'Untitled',
+          description: item.description || item.caption || '',
+          videoUrl: item.videoUrl,
+          thumbnailUrl: item.thumbnailUrl,
+          duration: item.duration,
+          userId: item.user?._id?.toString() || item.userId?.toString(),
+          username: item.user?.username || 'Unknown',
+          userAvatar: item.user?.avatar || '',
+          isVerified: item.user?.isVerified || false,
+          likesCount: item.likesCount || 0,
+          commentsCount: item.commentsCount || 0,
+          sharesCount: item.sharesCount || 0,
+          viewsCount: item.viewsCount || 0,
+          isLiked: false,
+          isBookmarked: false,
+          createdAt: item.createdAt,
+          hashtags: item.hashtags || []
+        }));
+
         return res.json({
           success: true,
           data: {
-            content: result.content,
+            videos,
             pagination: {
               nextCursor: result.cursor,
               hasMore: result.hasMore,
@@ -158,10 +180,32 @@ async function getBasicFeed(req, res, cursor, limit, userId) {
     ? content[content.length - 1].createdAt.toISOString()
     : null;
 
+  // Transform content to match Flutter app's VideoModel format
+  const videos = content.map(item => ({
+    id: item._id.toString(),
+    title: item.title || item.caption || 'Untitled',
+    description: item.description || item.caption || '',
+    videoUrl: item.videoUrl,
+    thumbnailUrl: item.thumbnailUrl,
+    duration: item.duration,
+    userId: item.user._id.toString(),
+    username: item.user.username,
+    userAvatar: item.user.avatar,
+    isVerified: item.user.isVerified || false,
+    likesCount: item.likesCount || 0,
+    commentsCount: item.commentsCount || 0,
+    sharesCount: item.sharesCount || 0,
+    viewsCount: item.viewsCount || 0,
+    isLiked: false, // TODO: Check if current user liked (requires auth)
+    isBookmarked: false, // TODO: Check if current user bookmarked
+    createdAt: item.createdAt,
+    hashtags: item.hashtags || []
+  }));
+
   return res.json({
     success: true,
     data: {
-      content,
+      videos,
       pagination: {
         nextCursor,
         hasMore,

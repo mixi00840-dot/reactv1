@@ -157,8 +157,14 @@ try {
 console.log('⚠️ Comments (firestore version) using fallback (Firestore removed)');
 // commentsRoutes already created above
 
-console.log('⚠️ Feed routes using fallback (Firestore removed)');
-// feedRoutes already set to fallback4 above
+// Load MongoDB feed routes
+try {
+  feedRoutes = require('./routes/feed');
+  console.log('✅ Feed routes loaded (MongoDB)');
+} catch (error) {
+  console.warn('⚠️ Feed routes fallback:', error.message);
+  // feedRoutes already set to fallback4 above
+}
 
 console.log('⚠️ Messaging (firestore version) using fallback (Firestore removed)');
 // messagingRoutes already created above
