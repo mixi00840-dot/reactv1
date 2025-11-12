@@ -60,13 +60,13 @@ class AuthService {
       if (refreshToken == null) return false;
 
       final apiService = ApiService();
-      final response = await apiService.post('/auth/refresh', data: {
+      final response = await apiService.post('/auth/mongodb/refresh', data: {
         'refreshToken': refreshToken,
       });
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final newToken = response.data['data']['token'];
-        final newRefreshToken = response.data['data']['refreshToken'];
+      if (response['success'] == true) {
+        final newToken = response['data']['token'];
+        final newRefreshToken = response['data']['refreshToken'];
         
         await saveToken(newToken);
         if (newRefreshToken != null) {
@@ -85,15 +85,15 @@ class AuthService {
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final apiService = ApiService();
-      final response = await apiService.post('/auth/login', data: {
+      final response = await apiService.post('/auth/mongodb/login', data: {
         'email': email,
         'password': password,
       });
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final token = response.data['data']['token'];
-        final refreshToken = response.data['data']['refreshToken'];
-        final userId = response.data['data']['user']['_id'];
+      if (response['success'] == true) {
+        final token = response['data']['token'];
+        final refreshToken = response['data']['refreshToken'];
+        final userId = response['data']['user']['_id'];
 
         await saveToken(token);
         if (refreshToken != null) {
@@ -101,9 +101,9 @@ class AuthService {
         }
         await saveUserId(userId);
 
-        return {'success': true, 'user': response.data['data']['user']};
+        return {'success': true, 'user': response['data']['user']};
       }
-      return {'success': false, 'message': response.data['message']};
+      return {'success': false, 'message': response['message']};
     } catch (e) {
       debugPrint('Login error: $e');
       return {'success': false, 'message': 'Login failed. Please try again.'};

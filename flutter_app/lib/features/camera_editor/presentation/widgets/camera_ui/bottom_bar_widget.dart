@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'dart:io';
 import 'main_record_button.dart';
+import '../../../models/camera_mode.dart';
 
 /// Bottom bar widget for TikTok-style camera interface
-/// Contains gallery thumbnail, main record button, and upload button
+/// Contains gallery thumbnail, delete button, main record button, and upload button
 class BottomBarWidget extends StatelessWidget {
+  final CameraMode mode;
   final VoidCallback? onGalleryTap;
   final VoidCallback? onRecordTap;
   final VoidCallback? onRecordLongPressStart;
   final VoidCallback? onRecordLongPressEnd;
   final VoidCallback? onUploadTap;
+  final VoidCallback? onDeleteSegment;
   final String? latestVideoPath;
   final bool isRecording;
   final bool isPaused;
@@ -19,11 +22,13 @@ class BottomBarWidget extends StatelessWidget {
 
   const BottomBarWidget({
     super.key,
+    required this.mode,
     this.onGalleryTap,
     this.onRecordTap,
     this.onRecordLongPressStart,
     this.onRecordLongPressEnd,
     this.onUploadTap,
+    this.onDeleteSegment,
     this.latestVideoPath,
     this.isRecording = false,
     this.isPaused = false,
@@ -56,22 +61,36 @@ class BottomBarWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Gallery Thumbnail Button
-          _GalleryThumbnailButton(
-            latestVideoPath: latestVideoPath,
-            onTap: isRecording ? null : onGalleryTap,
-            segmentCount: segmentCount,
+          // Left section: Gallery + Delete (if has segments)
+          Row(
+            children: [
+              // Gallery Thumbnail Button
+              _GalleryThumbnailButton(
+                latestVideoPath: latestVideoPath,
+                onTap: isRecording ? null : onGalleryTap,
+                segmentCount: segmentCount,
+              ),
+              
+              // Delete Segment Button (appears when segments > 0)
+              if (segmentCount > 0 && !isRecording)
+                Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: _DeleteSegmentButton(
+                    onTap: onDeleteSegment,
+                  ),
+                ),
+            ],
           ),
 
           const Spacer(),
 
           // Main Record Button
           MainRecordButton(
+            mode: mode,
             onTap: onRecordTap,
             onLongPressStart: onRecordLongPressStart,
             onLongPressEnd: onRecordLongPressEnd,
             isRecording: isRecording,
-            isPaused: isPaused,
             isProcessing: isProcessing,
           ),
 
@@ -309,6 +328,91 @@ class _UploadButtonState extends State<_UploadButton>
               Iconsax.document_upload,
               color: Colors.white,
               size: 24,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Delete segment button (trash icon)
+class _DeleteSegmentButton extends StatefulWidget {
+  final VoidCallback? onTap;
+
+  const _DeleteSegmentButton({this.onTap});
+
+  @override
+  State<_DeleteSegmentButton> createState() => _DeleteSegmentButtonState();
+}
+
+class _DeleteSegmentButtonState extends State<_DeleteSegmentButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    if (widget.onTap != null) _controller.forward();
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    if (widget.onTap != null) _controller.reverse();
+  }
+
+  void _handleTapCancel() {
+    if (widget.onTap != null) _controller.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      onTap: widget.onTap,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.red.withValues(alpha: 0.8),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.5),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.red.withValues(alpha: 0.4),
+                blurRadius: 12,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const Center(
+            child: Icon(
+              Iconsax.trash,
+              color: Colors.white,
+              size: 22,
             ),
           ),
         ),

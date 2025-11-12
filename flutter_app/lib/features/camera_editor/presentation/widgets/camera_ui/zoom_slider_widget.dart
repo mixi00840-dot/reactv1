@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// Zoom slider widget that appears when user pinches to zoom
+/// TikTok-style VERTICAL zoom slider widget
+/// Appears on the right side when user pinches to zoom
 /// Shows current zoom level and fades out after inactivity
 class ZoomSliderWidget extends StatefulWidget {
   final double currentZoom;
@@ -60,7 +62,16 @@ class _ZoomSliderWidgetState extends State<ZoomSliderWidget>
   }
 
   String _formatZoom(double zoom) {
+    if (zoom == zoom.roundToDouble()) {
+      return '${zoom.toInt()}x';
+    }
     return '${zoom.toStringAsFixed(1)}x';
+  }
+
+  // Check if current zoom is on a tick mark (1x, 2x, 4x, 8x)
+  bool _isOnTickMark(double zoom) {
+    const tickMarks = [1.0, 2.0, 4.0, 8.0];
+    return tickMarks.any((tick) => (zoom - tick).abs() < 0.1);
   }
 
   @override
@@ -68,63 +79,120 @@ class _ZoomSliderWidgetState extends State<ZoomSliderWidget>
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Container(
-        width: 200,
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        width: 60,
+        height: 200,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 8,
+              blurRadius: 12,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Min zoom label
-            Text(
-              _formatZoom(widget.minZoom),
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            // Slider
-            Expanded(
-              child: SliderTheme(
-                data: SliderThemeData(
-                  trackHeight: 2,
-                  thumbShape: const RoundSliderThumbShape(
-                    enabledThumbRadius: 6,
-                  ),
-                  overlayShape: const RoundSliderOverlayShape(
-                    overlayRadius: 12,
-                  ),
-                  activeTrackColor: Colors.white,
-                  inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
-                  thumbColor: Colors.white,
-                  overlayColor: Colors.white.withValues(alpha: 0.2),
-                ),
-                child: Slider(
-                  value: widget.currentZoom.clamp(widget.minZoom, widget.maxZoom),
-                  min: widget.minZoom,
-                  max: widget.maxZoom,
-                  onChanged: widget.onZoomChanged,
-                ),
-              ),
-            ),
-            // Max zoom label
+            // Max zoom label (top)
             Text(
               _formatZoom(widget.maxZoom),
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                shadows: const [
+                  Shadow(
+                    color: Colors.black45,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+
+            // Vertical slider
+            Expanded(
+              child: RotatedBox(
+                quarterTurns: 3, // Rotate 270 degrees to make vertical
+                child: SliderTheme(
+                  data: SliderThemeData(
+                    trackHeight: 3,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 8,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 14,
+                    ),
+                    activeTrackColor: Colors.white,
+                    inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
+                    thumbColor: Colors.white,
+                    overlayColor: Colors.white.withValues(alpha: 0.2),
+                    tickMarkShape: const RoundSliderTickMarkShape(
+                      tickMarkRadius: 2,
+                    ),
+                    activeTickMarkColor: Colors.white.withValues(alpha: 0.6),
+                    inactiveTickMarkColor: Colors.white.withValues(alpha: 0.3),
+                  ),
+                  child: Slider(
+                    value: widget.currentZoom.clamp(widget.minZoom, widget.maxZoom),
+                    min: widget.minZoom,
+                    max: widget.maxZoom,
+                    divisions: 28, // Smooth granular control
+                    onChanged: (value) {
+                      // Haptic feedback on tick marks
+                      if (_isOnTickMark(value)) {
+                        HapticFeedback.selectionClick();
+                      }
+                      widget.onZoomChanged(value);
+                    },
+                  ),
+                ),
+              ),
+            ),
+
+            // Current zoom value (center, floating above slider)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                _formatZoom(widget.currentZoom),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            // Min zoom label (bottom)
+            Text(
+              _formatZoom(widget.minZoom),
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                shadows: const [
+                  Shadow(
+                    color: Colors.black45,
+                    blurRadius: 4,
+                  ),
+                ],
               ),
             ),
           ],

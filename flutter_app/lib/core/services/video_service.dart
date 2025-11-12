@@ -9,53 +9,47 @@ class VideoService {
   static final List<VideoModel> _mockVideos = [
     VideoModel(
       id: 'mock-1',
-      title: 'Welcome to Mixillo!',
-      description: 'Discover amazing content from creators',
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
       thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg',
       userId: 'user-1',
       username: 'mixillo_team',
       userAvatar: 'https://i.pravatar.cc/150?img=1',
-      likesCount: 1234,
-      commentsCount: 89,
-      sharesCount: 45,
-      viewsCount: 12345,
+      caption: 'Welcome to Mixillo! Discover amazing content from creators',
+      likes: 1234,
+      comments: 89,
+      shares: 45,
+      views: 12345,
       isLiked: false,
-      isBookmarked: false,
       createdAt: DateTime.now().subtract(const Duration(hours: 2)),
     ),
     VideoModel(
       id: 'mock-2',
-      title: 'Trending Now',
-      description: 'Check out what\'s hot right now',
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg',
       userId: 'user-2',
       username: 'creator_pro',
       userAvatar: 'https://i.pravatar.cc/150?img=2',
-      likesCount: 5678,
-      commentsCount: 234,
-      sharesCount: 123,
-      viewsCount: 45678,
+      caption: 'Trending Now - Check out what\'s hot right now',
+      likes: 5678,
+      comments: 234,
+      shares: 123,
+      views: 45678,
       isLiked: false,
-      isBookmarked: false,
       createdAt: DateTime.now().subtract(const Duration(hours: 5)),
     ),
     VideoModel(
       id: 'mock-3',
-      title: 'Live Shopping',
-      description: 'Shop while you watch!',
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg',
       userId: 'user-3',
       username: 'shop_master',
       userAvatar: 'https://i.pravatar.cc/150?img=3',
-      likesCount: 9012,
-      commentsCount: 456,
-      sharesCount: 234,
-      viewsCount: 78901,
+      caption: 'Live Shopping - Shop while you watch!',
+      likes: 9012,
+      comments: 456,
+      shares: 234,
+      views: 78901,
       isLiked: false,
-      isBookmarked: false,
       createdAt: DateTime.now().subtract(const Duration(hours: 8)),
     ),
   ];
@@ -75,8 +69,8 @@ class VideoService {
 
       final response = await _apiService.get('/feed', queryParameters: queryParams);
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> videosData = response.data['data']['videos'] ?? [];
+      if (response['success'] == true) {
+        final List<dynamic> videosData = response['data']['videos'] ?? [];
         return videosData.map((json) => VideoModel.fromJson(json)).toList();
       }
       
@@ -104,8 +98,8 @@ class VideoService {
 
       final response = await _apiService.get('/feed', queryParameters: queryParams);
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> videosData = response.data['data']['videos'] ?? [];
+      if (response['success'] == true) {
+        final List<dynamic> videosData = response['data']['videos'] ?? [];
         return videosData.map((json) => VideoModel.fromJson(json)).toList();
       }
       
@@ -132,8 +126,8 @@ class VideoService {
     try {
       final response = await _apiService.get('/content/$videoId');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return VideoModel.fromJson(response.data['data']);
+      if (response['success'] == true) {
+        return VideoModel.fromJson(response['data']);
       }
       return null;
     } catch (e) {

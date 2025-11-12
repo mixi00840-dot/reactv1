@@ -1,4 +1,6 @@
 import 'video_segment.dart';
+import 'camera_mode.dart';
+import 'flash_mode.dart';
 
 /// Camera recording state
 enum RecordingState {
@@ -11,6 +13,7 @@ enum RecordingState {
 /// Camera recording state model
 class CameraRecordingState {
   final RecordingState state;
+  final CameraMode mode;
   final List<VideoSegment> segments;
   final Duration totalDuration;
   final Duration maxDuration;
@@ -21,14 +24,14 @@ class CameraRecordingState {
   final int countdownRemaining;
   final String? selectedSoundId;
   final Duration? soundDuration;
-  final bool isFlashOn;
+  final AppFlashMode flashMode;
   final bool isFrontCamera;
   final double zoomLevel;
-  final bool isPhotoMode;
   final String? lastPhotoPath;
 
   const CameraRecordingState({
     this.state = RecordingState.idle,
+    this.mode = CameraMode.video60s,
     this.segments = const [],
     this.totalDuration = Duration.zero,
     this.maxDuration = const Duration(seconds: 60),
@@ -39,13 +42,20 @@ class CameraRecordingState {
     this.countdownRemaining = 0,
     this.selectedSoundId,
     this.soundDuration,
-    this.isFlashOn = false,
+    this.flashMode = AppFlashMode.off,
     this.isFrontCamera = true,
     this.zoomLevel = 1.0,
-    this.isPhotoMode = false,
     this.lastPhotoPath,
   });
 
+  // Computed properties based on mode
+  bool get isPhotoMode => mode.isPhotoMode;
+  bool get isVideoMode => mode.isVideoMode;
+  bool get isLiveMode => mode.isLiveMode;
+  
+  // Backward compatibility
+  bool get isFlashOn => flashMode != AppFlashMode.off;
+  
   bool get canRecord => totalDuration < maxDuration && state != RecordingState.processing;
   bool get hasSegments => segments.isNotEmpty;
   double get progress => maxDuration.inMilliseconds > 0
@@ -54,6 +64,7 @@ class CameraRecordingState {
 
   CameraRecordingState copyWith({
     RecordingState? state,
+    CameraMode? mode,
     List<VideoSegment>? segments,
     Duration? totalDuration,
     Duration? maxDuration,
@@ -64,14 +75,14 @@ class CameraRecordingState {
     int? countdownRemaining,
     String? selectedSoundId,
     Duration? soundDuration,
-    bool? isFlashOn,
+    AppFlashMode? flashMode,
     bool? isFrontCamera,
     double? zoomLevel,
-    bool? isPhotoMode,
     String? lastPhotoPath,
   }) {
     return CameraRecordingState(
       state: state ?? this.state,
+      mode: mode ?? this.mode,
       segments: segments ?? this.segments,
       totalDuration: totalDuration ?? this.totalDuration,
       maxDuration: maxDuration ?? this.maxDuration,
@@ -82,10 +93,9 @@ class CameraRecordingState {
       countdownRemaining: countdownRemaining ?? this.countdownRemaining,
       selectedSoundId: selectedSoundId ?? this.selectedSoundId,
       soundDuration: soundDuration ?? this.soundDuration,
-      isFlashOn: isFlashOn ?? this.isFlashOn,
+      flashMode: flashMode ?? this.flashMode,
       isFrontCamera: isFrontCamera ?? this.isFrontCamera,
       zoomLevel: zoomLevel ?? this.zoomLevel,
-      isPhotoMode: isPhotoMode ?? this.isPhotoMode,
       lastPhotoPath: lastPhotoPath ?? this.lastPhotoPath,
     );
   }

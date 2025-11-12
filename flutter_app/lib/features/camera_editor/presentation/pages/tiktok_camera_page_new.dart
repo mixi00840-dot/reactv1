@@ -7,21 +7,28 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../models/camera_recording_state.dart';
+import '../../models/camera_mode.dart';
+import '../../models/flash_mode.dart';
 import '../../providers/camera_recording_provider.dart';
 import '../../providers/face_effects_provider.dart';
 import '../widgets/camera_ui/top_bar_widget.dart';
 import '../widgets/camera_ui/right_side_bar_widget.dart';
 import '../widgets/camera_ui/bottom_bar_widget.dart';
+import '../widgets/camera_ui/mode_selector_widget.dart';
 import '../widgets/camera_ui/recording_indicator_widget.dart';
 import '../widgets/camera_ui/zoom_slider_widget.dart';
 import '../widgets/camera_ui/camera_preview_widget.dart';
+import '../widgets/camera_ui/speed_selector_sheet.dart';
+import '../widgets/camera_ui/sound_pill_widget.dart';
 import '../widgets/common/countdown_overlay.dart';
 import '../widgets/common/segment_indicator.dart';
 import '../widgets/face_effects/beauty_selector.dart';
 // Replaced legacy immediate-apply filter selector with staged FiltersSheet
 import '../widgets/camera_ui/filters_sheet.dart';
-import 'video_editor_page.dart';
+import 'video_editor_page_tiktok.dart';
 import 'photo_preview_page.dart';
+import '../../../sounds/presentation/pages/sound_library_page.dart';
+import '../../../sounds/providers/selected_sound_provider.dart';
 
 /// TikTok-style camera page with professional UI and animations
 class TikTokCameraPageNew extends ConsumerStatefulWidget {
@@ -170,15 +177,24 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
       _showError('Cannot change flash while recording');
       return;
     }
-    final newFlashMode = !recordingState.isFlashOn;
 
+    // Cycle through flash modes
     ref.read(cameraRecordingProvider.notifier).toggleFlash();
-
+    
+    // Get new flash mode and apply to camera
+    final newFlashMode = ref.read(cameraRecordingProvider).flashMode;
+    
     if (_cameraController != null) {
-      await _cameraController!.setFlashMode(
-        newFlashMode ? FlashMode.torch : FlashMode.off,
-      );
+      await _cameraController!.setFlashMode(newFlashMode.toCameraFlashMode());
     }
+
+    // Show feedback
+    final modeNames = {
+      AppFlashMode.off: 'Flash off',
+      AppFlashMode.auto: 'Flash auto',
+      AppFlashMode.on: 'Flash on',
+    };
+    _showInfo(modeNames[newFlashMode] ?? 'Flash updated');
   }
 
   void _applyZoom() {
@@ -196,6 +212,32 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
     _zoomSliderTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) setState(() => _showZoomSlider = false);
     });
+  }
+
+  void _onModeChanged(CameraMode mode) {
+    if (_isRecording) {
+      _showError('Cannot change mode while recording');
+      return;
+    }
+
+    // Update mode in provider (this will also update maxDuration)
+    ref.read(cameraRecordingProvider.notifier).setMode(mode);
+    
+    // Show feedback
+    final modeNames = {
+      CameraMode.live: 'Live streaming',
+      CameraMode.video15s: '15 second video',
+      CameraMode.video60s: '60 second video',
+      CameraMode.video10m: '10 minute video',
+      CameraMode.photo: 'Photo mode',
+    };
+    
+    _showInfo('Switched to ${modeNames[mode]}');
+    
+    // Handle live mode (future implementation)
+    if (mode.isLiveMode) {
+      _showInfo('Live streaming coming soon');
+    }
   }
 
   Future<void> _startRecording() async {
@@ -377,7 +419,7 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => VideoEditorPage(
+        builder: (context) => VideoEditorPageTikTok(
           segmentPaths: recordingState.segments.map((s) => s.filePath).toList(),
           totalDuration: recordingState.totalDuration,
           selectedFilter: recordingState.selectedFilter,
@@ -451,8 +493,53 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                     child: TopBarWidget(
                       onClose: () => Navigator.pop(context),
                       timerSeconds: recordingState.timerSeconds,
+                      onMoreMenu: () {
+                        _showInfo('More options coming soon');
+                      },
                     ),
                   ),
+
+                  // Sound Pill (below top bar, if sound selected)
+                  if (recordingState.selectedSoundId != null)
+                    Positioned(
+                      top: 70,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Consumer(
+                          builder: (context, ref, child) {
+                            final selectedSound = ref.watch(selectedSoundProvider);
+                            if (!selectedSound.hasSound) return const SizedBox.shrink();
+                            
+                            return SoundPillWidget(
+                              soundName: selectedSound.sound!.title,
+                              artistName: selectedSound.sound!.artistName,
+                              onTap: () async {
+                                // Open sound library to change
+                                await SoundLibraryPage.show(context);
+                                
+                                // Sync selected sound
+                                if (mounted) {
+                                  final newSound = ref.read(selectedSoundProvider);
+                                  if (newSound.hasSound) {
+                                    ref.read(cameraRecordingProvider.notifier).setSound(
+                                      newSound.soundId,
+                                      newSound.soundDuration,
+                                    );
+                                  }
+                                }
+                              },
+                              onRemove: () {
+                                ref.read(cameraRecordingProvider.notifier).setSound(null, null);
+                                ref.read(selectedSoundProvider.notifier).clearSound();
+                                HapticFeedback.mediumImpact();
+                                _showInfo('Sound removed');
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
 
                   // Recording Indicator (top-left)
                   if (_isRecording)
@@ -482,6 +569,28 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                     child: RightSideBarWidget(
                       onFlipCamera: _toggleCamera,
                       onFlashToggle: _toggleFlash,
+                      onSpeedSelector: () async {
+                        if (_isRecording || recordingState.isCountingDown) {
+                          _showError('Cannot change speed while recording');
+                          return;
+                        }
+                        final newSpeed = await SpeedSelectorSheet.show(
+                          context,
+                          recordingState.currentSpeed,
+                        );
+                        if (newSpeed != null) {
+                          ref.read(cameraRecordingProvider.notifier).setSpeed(newSpeed);
+                          HapticFeedback.selectionClick();
+                          final speedNames = {
+                            0.3: 'Very slow',
+                            0.5: 'Slow',
+                            1.0: 'Normal',
+                            2.0: 'Fast',
+                            3.0: 'Very fast',
+                          };
+                          _showInfo('Speed set to ${speedNames[newSpeed]}');
+                        }
+                      },
                       onBeautyEffects: () {
                         // Open staged beauty modal directly (avoid nested sheets)
                         BeautySelector.show(context, ref);
@@ -495,8 +604,25 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                           builder: (context) => const FiltersSheet(),
                         );
                       },
-                      onSoundPicker: () {
-                        _showInfo('Sound picker coming soon');
+                      onSoundPicker: () async {
+                        if (_isRecording || recordingState.isCountingDown) {
+                          _showError('Cannot change sound while recording');
+                          return;
+                        }
+                        
+                        // Open sound library
+                        await SoundLibraryPage.show(context);
+                        
+                        // Sync selected sound with camera recording state
+                        if (mounted) {
+                          final selectedSound = ref.read(selectedSoundProvider);
+                          if (selectedSound.hasSound) {
+                            ref.read(cameraRecordingProvider.notifier).setSound(
+                              selectedSound.soundId,
+                              selectedSound.soundDuration,
+                            );
+                          }
+                        }
                       },
                       onTimerSettings: () {
                         if (_isRecording || recordingState.isCountingDown) {
@@ -508,7 +634,8 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                       onToggleMode: () {
                         ref.read(cameraRecordingProvider.notifier).togglePhotoMode();
                       },
-                      isFlashOn: recordingState.isFlashOn,
+                      flashMode: recordingState.flashMode,
+                      currentSpeed: recordingState.currentSpeed,
                       hasBeautyEffects: faceEffectsState.hasBeautyEffects,
                       hasFilters: recordingState.selectedFilter != null,
                       isRecording: _isRecording,
@@ -516,12 +643,12 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                     ),
                   ),
 
-                  // Zoom Slider (center-bottom)
+                  // Zoom Slider (right side, vertically centered - TikTok style)
                   if (_showZoomSlider)
                     Positioned(
-                      bottom: 200,
-                      left: 0,
-                      right: 0,
+                      right: 80, // Left of the sidebar (sidebar is 60px wide + 20px padding)
+                      top: 0,
+                      bottom: 0,
                       child: Center(
                         child: ZoomSliderWidget(
                           currentZoom: recordingState.zoomLevel,
@@ -533,12 +660,25 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                       ),
                     ),
 
+                  // Mode Selector (above bottom bar)
+                  Positioned(
+                    bottom: 85,  // Reduced from 120 to 85 for tighter TikTok-style spacing
+                    left: 0,
+                    right: 0,
+                    child: ModeSelectorWidget(
+                      selectedMode: recordingState.mode,
+                      onModeChanged: _onModeChanged,
+                      isRecording: _isRecording,
+                    ),
+                  ),
+
                   // Bottom Bar
                   Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
                     child: BottomBarWidget(
+                      mode: recordingState.mode,
                       onGalleryTap: () {
                         _showInfo('Gallery coming soon');
                       },
@@ -553,6 +693,11 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                         },
                       onUploadTap: () {
                         _showInfo('Upload coming soon');
+                      },
+                      onDeleteSegment: () {
+                        HapticFeedback.mediumImpact();
+                        ref.read(cameraRecordingProvider.notifier).deleteLastSegment();
+                        _showInfo('Last segment deleted');
                       },
                       latestVideoPath: recordingState.isPhotoMode
                           ? recordingState.lastPhotoPath

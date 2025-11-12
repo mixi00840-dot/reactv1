@@ -9,11 +9,11 @@ class InteractionService {
     try {
       final response = await _apiService.post('/content/$videoId/like');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response['success'] == true) {
         return {
           'success': true,
-          'isLiked': response.data['data']['isLiked'],
-          'likesCount': response.data['data']['likesCount'],
+          'isLiked': response['data']['isLiked'],
+          'likesCount': response['data']['likesCount'],
         };
       }
       return {'success': false};
@@ -28,10 +28,10 @@ class InteractionService {
     try {
       final response = await _apiService.post('/content/$videoId/share');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response['success'] == true) {
         return {
           'success': true,
-          'sharesCount': response.data['data']['sharesCount'],
+          'sharesCount': response['data']['sharesCount'],
         };
       }
       return {'success': false};
@@ -58,8 +58,8 @@ class InteractionService {
         queryParameters: queryParams,
       );
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> comments = response.data['data']['comments'] ?? [];
+      if (response['success'] == true) {
+        final List<dynamic> comments = response['data']['comments'] ?? [];
         return comments.cast<Map<String, dynamic>>();
       }
       return [];
@@ -77,11 +77,11 @@ class InteractionService {
         data: {'text': text},
       );
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response['success'] == true) {
         return {
           'success': true,
-          'comment': response.data['data']['comment'],
-          'commentsCount': response.data['data']['commentsCount'],
+          'comment': response['data']['comment'],
+          'commentsCount': response['data']['commentsCount'],
         };
       }
       return {'success': false};
@@ -102,7 +102,7 @@ class InteractionService {
         },
       );
 
-      return response.statusCode == 200 && response.data['success'] == true;
+      return response['success'] == true;
     } catch (e) {
       debugPrint('Error reporting video: $e');
       return false;

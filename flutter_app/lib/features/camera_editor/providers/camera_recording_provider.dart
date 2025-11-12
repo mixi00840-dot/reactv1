@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../models/camera_recording_state.dart';
 import '../models/video_segment.dart';
+import '../models/camera_mode.dart';
+import '../models/flash_mode.dart';
 
 /// Camera recording state provider
 final cameraRecordingProvider =
@@ -116,9 +118,15 @@ class CameraRecordingNotifier extends StateNotifier<CameraRecordingState> {
     );
   }
 
-  /// Toggle flash
+  /// Cycle through flash modes (Off → Auto → On → Off)
   void toggleFlash() {
-    state = state.copyWith(isFlashOn: !state.isFlashOn);
+    final nextMode = state.flashMode.next();
+    state = state.copyWith(flashMode: nextMode);
+  }
+
+  /// Set specific flash mode
+  void setFlashMode(AppFlashMode flashMode) {
+    state = state.copyWith(flashMode: flashMode);
   }
 
   /// Toggle camera (front/back)
@@ -144,13 +152,40 @@ class CameraRecordingNotifier extends StateNotifier<CameraRecordingState> {
     state = const CameraRecordingState();
   }
 
-  /// Toggle between photo and video mode
+  /// Set camera mode (Live/15s/60s/10m/Photo)
+  void setMode(CameraMode mode) {
+    // Update mode and maxDuration based on selected mode
+    final maxDuration = mode.maxDuration;
+    
+    state = state.copyWith(
+      mode: mode,
+      maxDuration: maxDuration,
+    );
+    
+    // Clear segments when switching to photo or live mode
+    if (mode.isPhotoMode || mode.isLiveMode) {
+      clearSegments();
+    }
+  }
+
+  /// Toggle between photo and video mode (backward compatibility)
   void togglePhotoMode() {
-    state = state.copyWith(isPhotoMode: !state.isPhotoMode);
+    if (state.isPhotoMode) {
+      // Switch from photo to video
+      setMode(CameraMode.video60s);
+    } else {
+      // Switch from video to photo
+      setMode(CameraMode.photo);
+    }
   }
 
   /// Set last captured photo path
   void setLastPhoto(String path) {
     state = state.copyWith(lastPhotoPath: path);
+  }
+
+  /// Delete last segment (for UI delete button)
+  void deleteLastSegment() {
+    removeLastSegment();
   }
 }

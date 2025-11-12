@@ -16,6 +16,7 @@ import '../widgets/editor/text_overlay_editor.dart';
 import '../widgets/editor/sticker_selector.dart';
 import '../widgets/audio/audio_mixer_widget.dart';
 import '../../services/ffmpeg_video_processor.dart';
+import '../../../posts/presentation/pages/video_post_page.dart';
 
 class VideoEditorPage extends ConsumerStatefulWidget {
   final List<String> segmentPaths;
@@ -297,6 +298,7 @@ class _VideoEditorPageState extends ConsumerState<VideoEditorPage> {
   void _showSuccessDialog(String outputPath) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Row(
           children: [
@@ -305,32 +307,42 @@ class _VideoEditorPageState extends ConsumerState<VideoEditorPage> {
             Text('Export Complete'),
           ],
         ),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Your video has been exported successfully!'),
-            const SizedBox(height: 16),
-            Text(
-              'Saved to:\n$outputPath',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            Text('Your video has been exported successfully!'),
+            SizedBox(height: 8),
+            Text('Ready to add caption and publish?'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Close dialog
               Navigator.of(context).pop(); // Return to camera
             },
-            child: const Text('Done'),
+            child: const Text('Save for Later'),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Share video
+              Navigator.of(context).pop(); // Close dialog
+              
+              // Navigate to Post Page
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => VideoPostPage(
+                    videoPath: outputPath,
+                    thumbnailPath: null, // Will be generated in post page
+                  ),
+                ),
+              );
             },
-            child: const Text('Share'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4AB7FF),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Post Now'),
           ),
         ],
       ),

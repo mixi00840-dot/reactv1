@@ -2,20 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 
-/// Top bar widget for TikTok-style camera interface
-/// Contains close, settings, timer display, and help buttons
+/// Top bar widget for TikTok-style camera interface (CLEAN VERSION)
+/// Contains only: close button, timer display (if set), and optional more menu
 class TopBarWidget extends ConsumerWidget {
   final VoidCallback onClose;
-  final VoidCallback? onSettings;
-  final VoidCallback? onHelp;
+  final VoidCallback? onMoreMenu;
   final int? timerSeconds;
   final VoidCallback? onTimerTap;
 
   const TopBarWidget({
     super.key,
     required this.onClose,
-    this.onSettings,
-    this.onHelp,
+    this.onMoreMenu,
     this.timerSeconds,
     this.onTimerTap,
   });
@@ -45,20 +43,12 @@ class TopBarWidget extends ConsumerWidget {
             onTap: onClose,
           ),
           const Spacer(),
-          // Right side buttons
+          // Right side: Timer (if set) + More menu
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Settings button
-              if (onSettings != null)
-                _TopBarButton(
-                  icon: Iconsax.setting_2,
-                  onTap: onSettings!,
-                ),
-              if (onSettings != null) const SizedBox(width: 12),
-              
-              // Timer display chip
-              if (timerSeconds != null && timerSeconds! > 0)
+              // Timer display chip (TikTok-style)
+              if (timerSeconds != null && timerSeconds! > 0) ...[
                 GestureDetector(
                   onTap: onTimerTap,
                   child: Container(
@@ -99,14 +89,14 @@ class TopBarWidget extends ConsumerWidget {
                     ),
                   ),
                 ),
-              if (timerSeconds != null && timerSeconds! > 0)
                 const SizedBox(width: 12),
+              ],
               
-              // Help button
-              if (onHelp != null)
+              // More menu button (⋮)
+              if (onMoreMenu != null)
                 _TopBarButton(
-                  icon: Iconsax.info_circle,
-                  onTap: onHelp!,
+                  icon: Icons.more_vert,
+                  onTap: onMoreMenu!,
                 ),
             ],
           ),

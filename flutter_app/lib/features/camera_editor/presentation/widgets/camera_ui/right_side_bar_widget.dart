@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'circular_icon_button.dart';
+import '../../../models/flash_mode.dart';
 
 /// Right side vertical bar for TikTok-style camera interface
-/// Contains flip camera, flash, beauty, filters, sound, and timer buttons
+/// Contains flip camera, flash, speed, beauty, filters, sound, and timer buttons
 class RightSideBarWidget extends StatelessWidget {
   final VoidCallback onFlipCamera;
   final VoidCallback onFlashToggle;
+  final VoidCallback onSpeedSelector;
   final VoidCallback onBeautyEffects;
   final VoidCallback onFilters;
   final VoidCallback onSoundPicker;
   final VoidCallback onTimerSettings;
   final VoidCallback? onToggleMode;
-  final bool isFlashOn;
+  final AppFlashMode flashMode;
+  final double currentSpeed;
   final bool hasBeautyEffects;
   final bool hasFilters;
   final String? selectedSound;
@@ -23,12 +26,14 @@ class RightSideBarWidget extends StatelessWidget {
     super.key,
     required this.onFlipCamera,
     required this.onFlashToggle,
+    required this.onSpeedSelector,
     required this.onBeautyEffects,
     required this.onFilters,
     required this.onSoundPicker,
     required this.onTimerSettings,
     this.onToggleMode,
-    this.isFlashOn = false,
+    this.flashMode = AppFlashMode.off,
+    this.currentSpeed = 1.0,
     this.hasBeautyEffects = false,
     this.hasFilters = false,
     this.selectedSound,
@@ -53,22 +58,40 @@ class RightSideBarWidget extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Flash Toggle Button
+          // Flash Toggle Button (Off/Auto/On with cycling)
           CircularIconButton(
-            icon: isFlashOn ? Iconsax.flash_15 : Iconsax.flash_slash,
+            icon: _getFlashIcon(),
             onTap: onFlashToggle,
             size: 48,
-            isActive: isFlashOn,
-            badge: isFlashOn
+            isActive: flashMode != AppFlashMode.off,
+            badge: _getFlashBadge(),
+          ),
+          const SizedBox(height: 12),
+
+          // Speed Selector Button
+          CircularIconButton(
+            icon: Iconsax.speedometer,
+            onTap: isRecording ? () {} : onSpeedSelector,
+            size: 48,
+            iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
+            isActive: currentSpeed != 1.0,
+            badge: currentSpeed != 1.0
                 ? Container(
-                    width: 12,
-                    height: 12,
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.yellow,
+                      color: const Color(0xFF00D9FF),
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: Colors.white,
                         width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      '${currentSpeed}x',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   )
@@ -135,7 +158,7 @@ class RightSideBarWidget extends StatelessWidget {
                     height: 12,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.green,
+                      color: const Color(0xFF2ECC71),
                       border: Border.all(
                         color: Colors.white,
                         width: 1.5,
@@ -192,5 +215,59 @@ class RightSideBarWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Get flash icon based on mode
+  IconData _getFlashIcon() {
+    switch (flashMode) {
+      case AppFlashMode.off:
+        return Iconsax.flash_slash;
+      case AppFlashMode.auto:
+        return Iconsax.flash;
+      case AppFlashMode.on:
+        return Iconsax.flash_15;
+    }
+  }
+
+  /// Get flash badge widget
+  Widget? _getFlashBadge() {
+    if (flashMode == AppFlashMode.off) return null;
+
+    if (flashMode == AppFlashMode.auto) {
+      // Auto mode: White badge with "A"
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Colors.white,
+            width: 1.5,
+          ),
+        ),
+        child: const Text(
+          'A',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    } else {
+      // On mode: Yellow circle
+      return Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFFFFD700),
+          border: Border.all(
+            color: Colors.white,
+            width: 1.5,
+          ),
+        ),
+      );
+    }
   }
 }
