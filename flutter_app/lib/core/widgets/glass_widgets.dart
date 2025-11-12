@@ -56,8 +56,8 @@ class GlassContainer extends StatelessWidget {
               gradient: gradient ??
                   LinearGradient(
                     colors: [
-                      Colors.white.withOpacity(opacity),
-                      Colors.white.withOpacity(opacity * 0.5),
+                      Colors.white.withValues(alpha: opacity),
+                      Colors.white.withValues(alpha: opacity * 0.5),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -65,7 +65,7 @@ class GlassContainer extends StatelessWidget {
               borderRadius: borderRadius ?? BorderRadius.circular(AppRadius.md),
               border: border ??
                   Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
             ),

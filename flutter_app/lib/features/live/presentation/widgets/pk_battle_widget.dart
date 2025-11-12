@@ -51,13 +51,13 @@ class _PkBattleWidgetState extends State<PkBattleWidget> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.6),
-            Colors.black.withOpacity(0.4),
+            Colors.black.withValues(alpha: 0.6),
+            Colors.black.withValues(alpha: 0.4),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFFFD700).withOpacity(0.5),
+          color: const Color(0xFFFFD700).withValues(alpha: 0.5),
           width: 2,
         ),
       ),
@@ -80,8 +80,8 @@ class _PkBattleWidgetState extends State<PkBattleWidget> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppTheme.primary.withOpacity(0.3),
-                            AppTheme.primary.withOpacity(0.1),
+                            AppTheme.primary.withValues(alpha: 0.3),
+                            AppTheme.primary.withValues(alpha: 0.1),
                           ],
                         ),
                       ),
@@ -94,8 +94,8 @@ class _PkBattleWidgetState extends State<PkBattleWidget> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppTheme.accent.withOpacity(0.1),
-                            AppTheme.accent.withOpacity(0.3),
+                            AppTheme.accent.withValues(alpha: 0.1),
+                            AppTheme.accent.withValues(alpha: 0.3),
                           ],
                         ),
                       ),
@@ -202,7 +202,7 @@ class _PkBattleWidgetState extends State<PkBattleWidget> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(

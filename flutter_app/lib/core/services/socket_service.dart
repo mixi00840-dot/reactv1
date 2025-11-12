@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/foundation.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'auth_service.dart';
 
 class SocketService {
@@ -8,7 +9,7 @@ class SocketService {
   factory SocketService() => _instance;
   SocketService._internal();
 
-  IO.Socket? _socket;
+  io.Socket? _socket;
   final AuthService _authService = AuthService();
   String? _currentVideoRoom;
 
@@ -29,7 +30,7 @@ class SocketService {
     final socketUrl = dotenv.env['SOCKET_URL'] ?? 'http://localhost:5000';
     final token = await _authService.getToken();
 
-    _socket = IO.io(socketUrl, <String, dynamic>{
+    _socket = io.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
       'auth': {'token': token},
@@ -38,19 +39,19 @@ class SocketService {
     _socket!.connect();
 
     _socket!.onConnect((_) {
-      print('✅ Socket.IO connected');
+      debugPrint('✅ Socket.IO connected');
     });
 
     _socket!.onDisconnect((_) {
-      print('❌ Socket.IO disconnected');
+      debugPrint('❌ Socket.IO disconnected');
     });
 
     _socket!.onConnectError((error) {
-      print('❌ Socket.IO connection error: $error');
+      debugPrint('❌ Socket.IO connection error: $error');
     });
 
     _socket!.onError((error) {
-      print('❌ Socket.IO error: $error');
+      debugPrint('❌ Socket.IO error: $error');
     });
 
     // Listen to video interaction events
@@ -60,36 +61,36 @@ class SocketService {
   void _setupEventListeners() {
     // Video like event
     _socket!.on('video:like', (data) {
-      print('📥 Received video:like event: $data');
+      debugPrint('📥 Received video:like event: $data');
       _videoLikeController.add(Map<String, dynamic>.from(data));
     });
 
     // Video comment event
     _socket!.on('video:comment', (data) {
-      print('📥 Received video:comment event: $data');
+      debugPrint('📥 Received video:comment event: $data');
       _videoCommentController.add(Map<String, dynamic>.from(data));
     });
 
     // Video view event
     _socket!.on('video:view', (data) {
-      print('📥 Received video:view event: $data');
+      debugPrint('📥 Received video:view event: $data');
       _videoViewController.add(Map<String, dynamic>.from(data));
     });
 
     // Video share event
     _socket!.on('video:share', (data) {
-      print('📥 Received video:share event: $data');
+      debugPrint('📥 Received video:share event: $data');
       _videoShareController.add(Map<String, dynamic>.from(data));
     });
 
     // Video joined confirmation
     _socket!.on('video:joined', (data) {
-      print('✅ Joined video room: ${data['contentId']}');
+      debugPrint('✅ Joined video room: ${data['contentId']}');
     });
 
     // Video left confirmation
     _socket!.on('video:left', (data) {
-      print('👋 Left video room: ${data['contentId']}');
+      debugPrint('👋 Left video room: ${data['contentId']}');
     });
   }
 
@@ -103,7 +104,7 @@ class SocketService {
 
       _socket!.emit('video:join', {'contentId': videoId});
       _currentVideoRoom = videoId;
-      print('🚪 Joining video room: $videoId');
+  debugPrint('🚪 Joining video room: $videoId');
     }
   }
 
@@ -114,7 +115,7 @@ class SocketService {
       if (_currentVideoRoom == videoId) {
         _currentVideoRoom = null;
       }
-      print('👋 Leaving video room: $videoId');
+  debugPrint('👋 Leaving video room: $videoId');
     }
   }
 
@@ -135,7 +136,7 @@ class SocketService {
     }
     _socket?.disconnect();
     _socket?.dispose();
-    print('❌ Socket.IO disconnected manually');
+  debugPrint('❌ Socket.IO disconnected manually');
   }
 
   // Dispose streams

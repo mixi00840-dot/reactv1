@@ -21,7 +21,7 @@ class _StickerSelectorState extends ConsumerState<StickerSelector> {
       height: 300,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.9),
+        color: Colors.black.withValues(alpha: 0.9),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -54,9 +54,9 @@ class _StickerSelectorState extends ConsumerState<StickerSelector> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary
-                          : Colors.white.withOpacity(0.1),
+            color: isSelected
+              ? AppColors.primary
+              : Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -112,10 +112,10 @@ class _StickerSelectorState extends ConsumerState<StickerSelector> {
       onTap: () => _addSticker(sticker),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -204,14 +204,14 @@ class _DraggableStickerOverlayState
       top: _position.dy - 40,
       child: GestureDetector(
         onTap: widget.onTap,
-        onPanUpdate: (details) {
-          setState(() {
-            _position += details.delta;
-            _updateOverlay();
-          });
+        onScaleStart: (details) {
+          // Initialize scale gesture
         },
         onScaleUpdate: (details) {
           setState(() {
+            // Handle position changes (replaces onPanUpdate)
+            _position += details.focalPointDelta;
+            // Handle scale and rotation
             _scale *= details.scale;
             _rotation += details.rotation;
             _updateOverlay();
@@ -226,7 +226,7 @@ class _DraggableStickerOverlayState
               height: 80,
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: AppColors.primary.withOpacity(0.5),
+                  color: AppColors.primary.withValues(alpha: 0.5),
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(8),

@@ -24,7 +24,7 @@ class TimerSelector extends ConsumerWidget {
       onTap: () {
         showModalBottomSheet(
           context: context,
-          backgroundColor: Colors.black.withOpacity(0.9),
+          backgroundColor: Colors.black.withValues(alpha: 0.9),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
@@ -76,8 +76,8 @@ class TimerSelector extends ConsumerWidget {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: currentTimer != null
-              ? AppColors.primary.withOpacity(0.3)
-              : Colors.black.withOpacity(0.5),
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : Colors.black.withValues(alpha: 0.5),
           shape: BoxShape.circle,
         ),
         child: Icon(

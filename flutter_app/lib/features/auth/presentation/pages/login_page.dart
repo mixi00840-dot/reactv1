@@ -6,7 +6,7 @@ import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/glass_widgets.dart';
-import '../../../../main_complete.dart';
+import '../../../../main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

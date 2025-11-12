@@ -28,7 +28,7 @@ class StoryListWidget extends StatelessWidget {
           if (index == 0) {
             return _buildAddStoryButton(context);
           }
-          
+
           final story = stories[index - 1];
           return _buildStoryAvatar(context, story, index - 1);
         },

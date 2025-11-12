@@ -25,10 +25,12 @@ class CustomBottomNav extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
+          colors: const [
             Colors.transparent,
-            AppColors.background.withOpacity(0.95),
-          ],
+          ]
+              .followedBy([
+            AppColors.background.withValues(alpha: 0.95),
+          ]).toList(),
         ),
       ),
       child: ClipRRect(
@@ -45,7 +47,7 @@ class CustomBottomNav extends StatelessWidget {
               ),
               border: Border(
                 top: BorderSide(
-                  color: AppColors.borderLight.withOpacity(0.3),
+                  color: AppColors.borderLight.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),

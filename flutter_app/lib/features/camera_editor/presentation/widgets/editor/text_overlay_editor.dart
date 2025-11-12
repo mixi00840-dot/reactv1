@@ -40,7 +40,7 @@ class _TextOverlayEditorState extends ConsumerState<TextOverlayEditor> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.9),
+        color: Colors.black.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -84,7 +84,7 @@ class _TextOverlayEditorState extends ConsumerState<TextOverlayEditor> {
               hintText: 'Enter text...',
               hintStyle: const TextStyle(color: Colors.white54),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.1),
+              fillColor: Colors.white.withValues(alpha: 0.1),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -244,7 +244,7 @@ class _TextOverlayEditorState extends ConsumerState<TextOverlayEditor> {
             activeTrackColor: AppColors.primary,
             inactiveTrackColor: Colors.white24,
             thumbColor: AppColors.primary,
-            overlayColor: AppColors.primary.withOpacity(0.2),
+            overlayColor: AppColors.primary.withValues(alpha: 0.2),
           ),
           child: Slider(
             value: value,
@@ -266,7 +266,7 @@ class _TextOverlayEditorState extends ConsumerState<TextOverlayEditor> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary
-              : Colors.white.withOpacity(0.1),
+              : Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(

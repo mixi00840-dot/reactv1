@@ -132,7 +132,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
           ),
           // Dark Overlay
           Container(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
           ),
           // Content
           SafeArea(
@@ -244,7 +244,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                       ),
                       decoration: BoxDecoration(
                         gradient: _isFollowing ? null : AppTheme.primaryGradient,
-                        color: _isFollowing ? Colors.white.withOpacity(0.2) : null,
+                        color: _isFollowing ? Colors.white.withValues(alpha: 0.2) : null,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

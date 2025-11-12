@@ -61,7 +61,7 @@ class _ActivityPageState extends State<ActivityPage>
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         width: 1,
                       ),
                     ),
@@ -422,8 +422,8 @@ class _ActivityPageState extends State<ActivityPage>
                   borderRadius: BorderRadius.circular(12),
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.lightBlue.withOpacity(0.3),
-                      AppColors.electricBlue.withOpacity(0.1),
+                      AppColors.lightBlue.withValues(alpha: 0.3),
+                      AppColors.electricBlue.withValues(alpha: 0.1),
                     ],
                   ),
                   border: Border.all(
@@ -519,7 +519,7 @@ class _ActivityPageState extends State<ActivityPage>
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: unread ? Colors.white.withOpacity(0.02) : null,
+  color: unread ? Colors.white.withValues(alpha: 0.02) : null,
       child: Row(
         children: [
           Stack(

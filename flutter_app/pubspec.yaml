@@ -31,7 +31,7 @@ dependencies:
   camera: ^0.10.5+7
   video_player: ^2.8.2
   chewie: ^1.7.5
-  ffmpeg_kit_flutter_min_gpl: ^6.0.3  # Video processing, speed, audio
+  ffmpeg_kit_flutter_new: ^4.1.0       # Maintained fork of ffmpeg_kit (video processing)
   video_thumbnail: ^0.5.3              # Thumbnail generation
   image_picker: ^1.0.7
   
@@ -43,7 +43,7 @@ dependencies:
   # Audio Processing
   just_audio: ^0.9.36                  # Audio playback & mixing
   audio_session: ^0.1.18               # Audio session management
-  record: ^5.0.4                       # Audio recording (voiceover)
+  record: ^6.0.0                       # Audio recording (voiceover) - upgraded for Linux compatibility
   
   # Image & Filter Processing
   image: ^4.1.3                        # Image manipulation

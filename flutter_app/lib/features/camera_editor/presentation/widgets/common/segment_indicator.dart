@@ -16,7 +16,7 @@ class SegmentIndicator extends ConsumerWidget {
     return Container(
       width: screenWidth,
       height: 4,
-      color: Colors.white.withOpacity(0.3),
+      color: Colors.white.withValues(alpha: 0.3),
       child: Stack(
         children: [
           // Recorded segments
@@ -60,7 +60,7 @@ class SegmentIndicator extends ConsumerWidget {
                 value: recordingState.progress,
                 backgroundColor: Colors.transparent,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.liveRed.withOpacity(0.8),
+                  AppColors.liveRed.withValues(alpha: 0.8),
                 ),
                 minHeight: 4,
               ),

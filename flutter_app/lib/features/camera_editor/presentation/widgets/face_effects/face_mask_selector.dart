@@ -19,8 +19,8 @@ class FaceMaskSelector extends ConsumerWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: faceEffectsState.hasFaceMask
-              ? AppColors.primary.withOpacity(0.3)
-              : Colors.black.withOpacity(0.5),
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : Colors.black.withValues(alpha: 0.5),
           shape: BoxShape.circle,
         ),
         child: const Icon(
@@ -35,7 +35,7 @@ class FaceMaskSelector extends ConsumerWidget {
   void _showMaskModal(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.black.withOpacity(0.9),
+  backgroundColor: Colors.black.withValues(alpha: 0.9),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -116,7 +116,7 @@ class _FaceMaskModalContent extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Row(
@@ -169,9 +169,9 @@ class _MaskButton extends StatelessWidget {
             width: 70,
             height: 70,
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppColors.primary
-                  : Colors.white.withOpacity(0.1),
+        color: isSelected
+          ? AppColors.primary
+          : Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected ? AppColors.primary : Colors.white24,

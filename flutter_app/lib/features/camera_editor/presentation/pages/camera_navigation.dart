@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'tiktok_camera_page.dart';
+import 'tiktok_camera_page_new.dart';
 
 /// Navigation helper for camera feature
 class CameraNavigation {
@@ -8,7 +8,7 @@ class CameraNavigation {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const TikTokCameraPage(),
+        builder: (context) => const TikTokCameraPageNew(),
         fullscreenDialog: true,
       ),
     );
@@ -21,7 +21,7 @@ class CameraNavigation {
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
-        builder: (context) => const TikTokCameraPage(),
+        builder: (context) => const TikTokCameraPageNew(),
         fullscreenDialog: true,
       ),
     );

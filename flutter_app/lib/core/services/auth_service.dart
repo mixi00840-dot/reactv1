@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
 class AuthService {
@@ -75,7 +76,7 @@ class AuthService {
       }
       return false;
     } catch (e) {
-      print('Error refreshing token: $e');
+      debugPrint('Error refreshing token: $e');
       return false;
     }
   }
@@ -104,7 +105,7 @@ class AuthService {
       }
       return {'success': false, 'message': response.data['message']};
     } catch (e) {
-      print('Login error: $e');
+      debugPrint('Login error: $e');
       return {'success': false, 'message': 'Login failed. Please try again.'};
     }
   }

@@ -143,4 +143,14 @@ class CameraRecordingNotifier extends StateNotifier<CameraRecordingState> {
   void reset() {
     state = const CameraRecordingState();
   }
+
+  /// Toggle between photo and video mode
+  void togglePhotoMode() {
+    state = state.copyWith(isPhotoMode: !state.isPhotoMode);
+  }
+
+  /// Set last captured photo path
+  void setLastPhoto(String path) {
+    state = state.copyWith(lastPhotoPath: path);
+  }
 }

@@ -10,18 +10,21 @@ class FaceOverlayPainter extends CustomPainter {
   final Map<int, FaceLandmarks>? landmarksCache;
   final String? selectedMask;
   final Size imageSize;
+  final bool isFrontCamera;
+  final int sensorOrientation; // degrees: 0,90,180,270
 
   FaceOverlayPainter({
     required this.faces,
     required this.landmarksCache,
     required this.selectedMask,
     required this.imageSize,
+    required this.isFrontCamera,
+    required this.sensorOrientation,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (faces.isEmpty || selectedMask == null) return;
-
     final scaleX = size.width / imageSize.width;
     final scaleY = size.height / imageSize.height;
 
@@ -42,6 +45,44 @@ class FaceOverlayPainter extends CustomPainter {
     }
   }
 
+  Offset _transformPoint(int x, int y, double scaleX, double scaleY) {
+    // Start with unscaled
+    double nx = x.toDouble();
+    double ny = y.toDouble();
+
+    // Apply rotation from sensorOrientation (clockwise degrees)
+    switch (sensorOrientation) {
+      case 90:
+        // (x,y) -> (y, imageWidth - x)
+        final tx = ny;
+        final ty = imageSize.width - nx;
+        nx = tx;
+        ny = ty;
+        break;
+      case 180:
+        // (x,y) -> (imageWidth - x, imageHeight - y)
+        nx = imageSize.width - nx;
+        ny = imageSize.height - ny;
+        break;
+      case 270:
+        // (x,y) -> (imageHeight - y, x)
+        final tx = imageSize.height - ny;
+        final ty = nx;
+        nx = tx;
+        ny = ty;
+        break;
+      default:
+        break; // 0deg no change
+    }
+
+    // Mirror horizontally for front camera after rotation normalization
+    if (isFrontCamera) {
+      nx = imageSize.width - nx;
+    }
+
+    return Offset(nx * scaleX, ny * scaleY);
+  }
+
   void _drawFaceMask(
     Canvas canvas,
     Face face,
@@ -54,7 +95,7 @@ class FaceOverlayPainter extends CustomPainter {
 
     switch (maskTypeEnum) {
       case FaceMaskType.dogEars:
-        _drawDogEars(canvas, face, landmarks, scaleX, scaleY);
+  _drawDogEars(canvas, face, landmarks, scaleX, scaleY);
         break;
       case FaceMaskType.catEars:
         _drawCatEars(canvas, face, landmarks, scaleX, scaleY);
@@ -98,10 +139,13 @@ class FaceOverlayPainter extends CustomPainter {
     final earSize = face.boundingBox.width * 0.25 * scaleX;
 
     // Left ear
-    final leftEarPos = Offset(
-      landmarks.leftEar!.x * scaleX - earSize / 2,
-      landmarks.leftEar!.y * scaleY - earSize,
+    final leftEarCenter = _transformPoint(
+      landmarks.leftEar!.x,
+      landmarks.leftEar!.y,
+      scaleX,
+      scaleY,
     );
+    final leftEarPos = leftEarCenter.translate(-earSize / 2, -earSize);
     canvas.drawOval(
       Rect.fromCenter(
         center: leftEarPos,
@@ -112,10 +156,13 @@ class FaceOverlayPainter extends CustomPainter {
     );
 
     // Right ear
-    final rightEarPos = Offset(
-      landmarks.rightEar!.x * scaleX - earSize / 2,
-      landmarks.rightEar!.y * scaleY - earSize,
+    final rightEarCenter = _transformPoint(
+      landmarks.rightEar!.x,
+      landmarks.rightEar!.y,
+      scaleX,
+      scaleY,
     );
+    final rightEarPos = rightEarCenter.translate(-earSize / 2, -earSize);
     canvas.drawOval(
       Rect.fromCenter(
         center: rightEarPos,
@@ -142,10 +189,12 @@ class FaceOverlayPainter extends CustomPainter {
     final earSize = face.boundingBox.width * 0.2 * scaleX;
 
     // Left ear (triangle)
-    final leftEarPos = Offset(
-      landmarks.leftEar!.x * scaleX,
-      landmarks.leftEar!.y * scaleY - earSize,
-    );
+    final leftEarPos = _transformPoint(
+      landmarks.leftEar!.x,
+      landmarks.leftEar!.y,
+      scaleX,
+      scaleY,
+    ).translate(0, -earSize);
     final leftEarPath = Path()
       ..moveTo(leftEarPos.dx, leftEarPos.dy)
       ..lineTo(leftEarPos.dx - earSize / 2, leftEarPos.dy - earSize)
@@ -154,10 +203,12 @@ class FaceOverlayPainter extends CustomPainter {
     canvas.drawPath(leftEarPath, paint);
 
     // Right ear (triangle)
-    final rightEarPos = Offset(
-      landmarks.rightEar!.x * scaleX,
-      landmarks.rightEar!.y * scaleY - earSize,
-    );
+    final rightEarPos = _transformPoint(
+      landmarks.rightEar!.x,
+      landmarks.rightEar!.y,
+      scaleX,
+      scaleY,
+    ).translate(0, -earSize);
     final rightEarPath = Path()
       ..moveTo(rightEarPos.dx, rightEarPos.dy)
       ..lineTo(rightEarPos.dx - earSize / 2, rightEarPos.dy - earSize)
@@ -183,10 +234,13 @@ class FaceOverlayPainter extends CustomPainter {
     final earHeight = face.boundingBox.width * 0.5 * scaleY;
 
     // Left ear
-    final leftEarPos = Offset(
-      landmarks.leftEar!.x * scaleX - earWidth / 2,
-      landmarks.leftEar!.y * scaleY - earHeight,
+    final leftEarCenter = _transformPoint(
+      landmarks.leftEar!.x,
+      landmarks.leftEar!.y,
+      scaleX,
+      scaleY,
     );
+    final leftEarPos = leftEarCenter.translate(-earWidth / 2, -earHeight);
     canvas.drawOval(
       Rect.fromCenter(
         center: leftEarPos,
@@ -197,10 +251,13 @@ class FaceOverlayPainter extends CustomPainter {
     );
 
     // Right ear
-    final rightEarPos = Offset(
-      landmarks.rightEar!.x * scaleX - earWidth / 2,
-      landmarks.rightEar!.y * scaleY - earHeight,
+    final rightEarCenter = _transformPoint(
+      landmarks.rightEar!.x,
+      landmarks.rightEar!.y,
+      scaleX,
+      scaleY,
     );
+    final rightEarPos = rightEarCenter.translate(-earWidth / 2, -earHeight);
     canvas.drawOval(
       Rect.fromCenter(
         center: rightEarPos,
@@ -222,10 +279,23 @@ class FaceOverlayPainter extends CustomPainter {
       ..color = const Color(0xFFFFD700) // Gold
       ..style = PaintingStyle.fill;
 
-    final crownWidth = face.boundingBox.width * scaleX;
-    final crownHeight = face.boundingBox.height * 0.2 * scaleY;
-    final topY = face.boundingBox.top * scaleY - crownHeight;
-    final centerX = face.boundingBox.center.dx * scaleX;
+    // Transform face bounding box corners
+    final topLeft = _transformPoint(
+      face.boundingBox.left.toInt(),
+      face.boundingBox.top.toInt(),
+      scaleX,
+      scaleY,
+    );
+    final bottomRight = _transformPoint(
+      face.boundingBox.right.toInt(),
+      face.boundingBox.bottom.toInt(),
+      scaleX,
+      scaleY,
+    );
+    final crownWidth = (bottomRight.dx - topLeft.dx);
+    final crownHeight = (bottomRight.dy - topLeft.dy) * 0.2;
+    final topY = topLeft.dy - crownHeight;
+    final centerX = (topLeft.dx + bottomRight.dx) / 2;
 
     final crownPath = Path()
       ..moveTo(centerX - crownWidth / 2, topY + crownHeight)
@@ -253,17 +323,20 @@ class FaceOverlayPainter extends CustomPainter {
       ..color = Colors.black
       ..style = PaintingStyle.fill;
 
-    final glassWidth = face.boundingBox.width * 0.25 * scaleX;
-    final glassHeight = face.boundingBox.height * 0.15 * scaleY;
+  final glassWidth = face.boundingBox.width * 0.25 * scaleX;
+  final glassHeight = face.boundingBox.height * 0.15 * scaleY;
 
     // Left lens
+    final leftEyePos = _transformPoint(
+      landmarks.leftEye!.x,
+      landmarks.leftEye!.y,
+      scaleX,
+      scaleY,
+    );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromCenter(
-          center: Offset(
-            landmarks.leftEye!.x * scaleX,
-            landmarks.leftEye!.y * scaleY,
-          ),
+          center: leftEyePos,
           width: glassWidth,
           height: glassHeight,
         ),
@@ -273,13 +346,16 @@ class FaceOverlayPainter extends CustomPainter {
     );
 
     // Right lens
+    final rightEyePos = _transformPoint(
+      landmarks.rightEye!.x,
+      landmarks.rightEye!.y,
+      scaleX,
+      scaleY,
+    );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromCenter(
-          center: Offset(
-            landmarks.rightEye!.x * scaleX,
-            landmarks.rightEye!.y * scaleY,
-          ),
+          center: rightEyePos,
           width: glassWidth,
           height: glassHeight,
         ),
@@ -290,14 +366,8 @@ class FaceOverlayPainter extends CustomPainter {
 
     // Bridge
     canvas.drawLine(
-      Offset(
-        landmarks.leftEye!.x * scaleX + glassWidth / 2,
-        landmarks.leftEye!.y * scaleY,
-      ),
-      Offset(
-        landmarks.rightEye!.x * scaleX - glassWidth / 2,
-        landmarks.rightEye!.y * scaleY,
-      ),
+      Offset(leftEyePos.dx + glassWidth / 2, leftEyePos.dy),
+      Offset(rightEyePos.dx - glassWidth / 2, rightEyePos.dy),
       Paint()
         ..color = Colors.black
         ..strokeWidth = 3,
@@ -319,25 +389,21 @@ class FaceOverlayPainter extends CustomPainter {
 
     final heartSize = face.boundingBox.width * 0.12 * scaleX;
 
-    _drawHeart(
-      canvas,
-      Offset(
-        landmarks.leftEye!.x * scaleX,
-        landmarks.leftEye!.y * scaleY,
-      ),
-      heartSize,
-      paint,
+    final leftEyePos = _transformPoint(
+      landmarks.leftEye!.x,
+      landmarks.leftEye!.y,
+      scaleX,
+      scaleY,
     );
+    _drawHeart(canvas, leftEyePos, heartSize, paint);
 
-    _drawHeart(
-      canvas,
-      Offset(
-        landmarks.rightEye!.x * scaleX,
-        landmarks.rightEye!.y * scaleY,
-      ),
-      heartSize,
-      paint,
+    final rightEyePos = _transformPoint(
+      landmarks.rightEye!.x,
+      landmarks.rightEye!.y,
+      scaleX,
+      scaleY,
     );
+    _drawHeart(canvas, rightEyePos, heartSize, paint);
   }
 
   void _drawHeart(Canvas canvas, Offset center, double size, Paint paint) {
@@ -417,9 +483,11 @@ class FaceOverlayPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final wingSize = face.boundingBox.width * 0.2 * scaleX;
-    final nosePos = Offset(
-      landmarks.noseBase!.x * scaleX,
-      landmarks.noseBase!.y * scaleY,
+    final nosePos = _transformPoint(
+      landmarks.noseBase!.x,
+      landmarks.noseBase!.y,
+      scaleX,
+      scaleY,
     );
 
     // Left wing

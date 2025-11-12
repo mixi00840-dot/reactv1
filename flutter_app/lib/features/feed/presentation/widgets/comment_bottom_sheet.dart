@@ -213,7 +213,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -247,13 +247,13 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                             Icon(
                               Iconsax.message,
                               size: 48,
-                              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 12),
                             Text(
                               'No comments yet',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                                 fontSize: 16,
                               ),
                             ),
@@ -261,7 +261,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                             Text(
                               'Be the first to comment!',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.3),
+                                color: Colors.white.withValues(alpha: 0.3),
                                 fontSize: 14,
                               ),
                             ),
@@ -297,7 +297,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
               color: AppColors.backgroundDark,
               border: Border(
                 top: BorderSide(
-                  color: AppColors.border.withOpacity(0.3),
+                  color: AppColors.border.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -317,7 +317,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                         decoration: InputDecoration(
                           hintText: 'Add a comment...',
                           hintStyle: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
+                            color: Colors.white.withValues(alpha: 0.4),
                           ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
@@ -386,7 +386,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.primary.withOpacity(0.3),
+                color: AppColors.primary.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -399,7 +399,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                         color: AppColors.surface,
                         child: Icon(
                           Iconsax.user,
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: 0.5),
                           size: 20,
                         ),
                       ),
@@ -408,7 +408,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                       color: AppColors.surface,
                       child: Icon(
                         Iconsax.user,
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         size: 20,
                       ),
                     ),
@@ -435,7 +435,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                     Text(
                       _formatTime(comment.createdAt),
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                         fontSize: 12,
                       ),
                     ),
@@ -445,7 +445,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                 Text(
                   comment.text,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14,
                     height: 1.4,
                   ),
@@ -461,14 +461,14 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
               Icon(
                 Iconsax.heart,
                 size: 16,
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
               ),
               if (comment.likes > 0) ...[
                 const SizedBox(height: 2),
                 Text(
                   comment.likes.toString(),
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 11,
                   ),
                 ),

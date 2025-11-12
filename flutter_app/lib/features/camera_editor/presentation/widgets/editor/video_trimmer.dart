@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -7,11 +8,13 @@ import '../../../providers/video_editor_provider.dart';
 class VideoTrimmer extends ConsumerStatefulWidget {
   final Duration totalDuration;
   final Function(Duration start, Duration end)? onTrimChanged;
+  final List<Uint8List>? thumbnails; // Optional timeline thumbnails
 
   const VideoTrimmer({
     super.key,
     required this.totalDuration,
     this.onTrimChanged,
+    this.thumbnails,
   });
 
   @override
@@ -161,16 +164,33 @@ class _VideoTrimmerState extends ConsumerState<VideoTrimmer> {
   }
 
   Widget _buildTimelineThumbnails() {
-    // Placeholder: In production, show actual video thumbnails
-    return Container(
-      color: Colors.grey.shade700,
-      child: const Center(
-        child: Icon(
-          Icons.video_library,
-          color: Colors.white54,
-          size: 32,
+    final thumbs = widget.thumbnails;
+    if (thumbs == null || thumbs.isEmpty) {
+      return Container(
+        color: Colors.grey.shade700,
+        child: const Center(
+          child: Icon(
+            Icons.video_library,
+            color: Colors.white54,
+            size: 32,
+          ),
         ),
-      ),
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final bytes in thumbs)
+          Expanded(
+            child: bytes.isNotEmpty
+                ? Image.memory(
+                    bytes,
+                    fit: BoxFit.cover,
+                  )
+                : Container(color: Colors.grey.shade700),
+          ),
+      ],
     );
   }
 
@@ -225,7 +245,7 @@ class _TrimOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black.withOpacity(0.6)
+      ..color = Colors.black.withValues(alpha: 0.6)
       ..style = PaintingStyle.fill;
 
     // Darken left side (before start)

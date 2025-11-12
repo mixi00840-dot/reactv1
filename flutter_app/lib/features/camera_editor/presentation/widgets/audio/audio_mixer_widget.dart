@@ -25,7 +25,7 @@ class AudioMixerWidget extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.9),
+        color: Colors.black.withValues(alpha: 0.9),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SingleChildScrollView(
@@ -283,7 +283,7 @@ class _AudioTrackControl extends StatelessWidget {
                       : (isMuted ? Colors.red : AppColors.primary),
                   overlayColor: isDisabled
                       ? Colors.transparent
-                      : AppColors.primary.withOpacity(0.2),
+                      : AppColors.primary.withValues(alpha: 0.2),
                 ),
                 child: Slider(
                   value: effectiveVolume,
@@ -385,7 +385,16 @@ class _ToggleOption extends StatelessWidget {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: AppColors.primary,
+          thumbColor: WidgetStateProperty.resolveWith((states) {
+            return states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : Colors.white;
+          }),
+          trackColor: WidgetStateProperty.resolveWith((states) {
+            return states.contains(WidgetState.selected)
+                ? AppColors.primary.withValues(alpha: 0.5)
+                : Colors.white24;
+          }),
         ),
       ],
     );
@@ -413,7 +422,7 @@ class VoiceoverRecorderButton extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.2),
+              color: Colors.red.withValues(alpha: 0.2),
               shape: BoxShape.circle,
               border: Border.all(color: Colors.red, width: 2),
             ),
@@ -455,7 +464,7 @@ class _VoiceoverRecorderSheetState
       height: MediaQuery.of(context).size.height * 0.4,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.95),
+        color: Colors.black.withValues(alpha: 0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(

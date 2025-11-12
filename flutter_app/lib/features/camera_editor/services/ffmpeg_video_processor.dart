@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_min_gpl/return_code.dart';
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show Color;
 import 'package:path_provider/path_provider.dart';
 import '../models/video_editing_models.dart';
 
@@ -396,7 +395,9 @@ class FFmpegVideoProcessor {
   }
 
   static String _colorToHex(Color color) {
-    return '0x${color.value.toRadixString(16).padLeft(8, '0')}';
+    // Use toARGB32 to avoid deprecated Color.value
+    final argb = color.toARGB32();
+    return '0x${argb.toRadixString(16).padLeft(8, '0')}';
   }
 
   static String? _getFilterCommand(String filterName) {

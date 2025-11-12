@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:video_thumbnail/video_thumbnail.dart' as vt;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
@@ -13,6 +15,7 @@ import '../widgets/editor/video_trimmer.dart';
 import '../widgets/editor/text_overlay_editor.dart';
 import '../widgets/editor/sticker_selector.dart';
 import '../widgets/audio/audio_mixer_widget.dart';
+import '../../services/ffmpeg_video_processor.dart';
 
 class VideoEditorPage extends ConsumerStatefulWidget {
   final List<String> segmentPaths;
@@ -21,12 +24,12 @@ class VideoEditorPage extends ConsumerStatefulWidget {
   final double speed;
 
   const VideoEditorPage({
-    Key? key,
+    super.key,
     required this.segmentPaths,
     required this.totalDuration,
     this.selectedFilter,
     this.speed = 1.0,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<VideoEditorPage> createState() => _VideoEditorPageState();
@@ -38,11 +41,18 @@ class _VideoEditorPageState extends ConsumerState<VideoEditorPage> {
   bool _isInitializing = true;
   TextOverlay? _editingTextOverlay;
   String? _selectedStickerId;
+  String? _stitchedPreviewPath; // temp stitched file for multi-segment preview
+  List<Uint8List> _thumbnails = const [];
 
   @override
   void initState() {
     super.initState();
-    _initializeEditor();
+    // Defer initialization until after the first frame to avoid StateNotifier errors
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initializeEditor();
+      }
+    });
   }
 
   Future<void> _initializeEditor() async {
@@ -63,14 +73,31 @@ class _VideoEditorPageState extends ConsumerState<VideoEditorPage> {
       // For multi-segment videos, we'll need to stitch them first for preview
       String videoPath;
       if (widget.segmentPaths.length > 1) {
-        // TODO: Stitch segments for preview (or show first segment only)
-        videoPath = widget.segmentPaths.first;
+        final tempDir = await getTemporaryDirectory();
+        final previewPath = path.join(
+          tempDir.path,
+          'preview_stitched_${DateTime.now().millisecondsSinceEpoch}.mp4',
+        );
+        final stitched = await FFmpegVideoProcessor.stitchSegments(
+          segmentPaths: widget.segmentPaths,
+          outputPath: previewPath,
+        );
+        if (stitched != null) {
+          _stitchedPreviewPath = stitched;
+          videoPath = stitched;
+        } else {
+          // Fallback to first segment if stitching fails
+          videoPath = widget.segmentPaths.first;
+        }
       } else {
         videoPath = widget.segmentPaths.first;
       }
 
       _videoController = VideoPlayerController.file(File(videoPath));
       await _videoController!.initialize();
+
+  // Generate timeline thumbnails after we know duration
+  await _generateThumbnails(videoPath, _videoController!.value.duration);
 
       _chewieController = ChewieController(
         videoPlayerController: _videoController!,
@@ -87,10 +114,48 @@ class _VideoEditorPageState extends ConsumerState<VideoEditorPage> {
         _isInitializing = false;
       });
     } catch (e) {
-      print('Error initializing video player: $e');
+      debugPrint('Error initializing video player: $e');
       setState(() {
         _isInitializing = false;
       });
+    }
+  }
+
+  Future<void> _generateThumbnails(String videoPath, Duration duration) async {
+    try {
+      // Number of thumbs based on typical phone width; keep it lightweight
+      const int targetCount = 12;
+      final int totalMs = duration.inMilliseconds;
+      if (totalMs <= 0) return;
+
+      final List<Uint8List> results = [];
+      // Lazy import to avoid issues: use video_thumbnail package
+      // ignore: avoid_dynamic_calls
+      for (int i = 0; i < targetCount; i++) {
+        final timeMs = ((i + 0.5) / targetCount * totalMs).toInt().clamp(0, totalMs - 1);
+        final bytes = await _createThumbnail(videoPath, timeMs);
+        if (bytes != null) {
+          results.add(bytes);
+        }
+      }
+      if (mounted) setState(() => _thumbnails = results);
+    } catch (e) {
+      debugPrint('⚠️ Thumbnail generation failed: $e');
+    }
+  }
+
+  Future<Uint8List?> _createThumbnail(String videoPath, int timeMs) async {
+    try {
+      final data = await vt.VideoThumbnail.thumbnailData(
+        video: videoPath,
+        timeMs: timeMs,
+        imageFormat: vt.ImageFormat.PNG,
+        quality: 75,
+      );
+      return data;
+    } catch (e) {
+      debugPrint('⚠️ Single thumbnail failed: $e');
+      return null;
     }
   }
 
@@ -103,6 +168,12 @@ class _VideoEditorPageState extends ConsumerState<VideoEditorPage> {
 
   @override
   void dispose() {
+    // Clean up temporary stitched preview file
+    if (_stitchedPreviewPath != null) {
+      try {
+        File(_stitchedPreviewPath!).deleteSync();
+      } catch (_) {}
+    }
     _videoController?.removeListener(_onPlaybackPositionChanged);
     _videoController?.dispose();
     _chewieController?.dispose();
@@ -374,7 +445,7 @@ class _VideoEditorPageState extends ConsumerState<VideoEditorPage> {
                             ? Icons.pause_circle_filled
                             : Icons.play_circle_filled,
                         size: 64,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                       onPressed: _togglePlayback,
                     ),
@@ -389,6 +460,7 @@ class _VideoEditorPageState extends ConsumerState<VideoEditorPage> {
                     right: 16,
                     child: VideoTrimmer(
                       totalDuration: project.totalDuration,
+                      thumbnails: _thumbnails,
                       onTrimChanged: (start, end) {
                         ref
                             .read(videoEditorProvider.notifier)
@@ -782,12 +854,12 @@ class _QualityOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RadioListTile<String>(
+    return ListTile(
+      leading: const Icon(Icons.circle_outlined),
       title: Text(label),
-      value: value,
-      groupValue: '1080p', // Default selection
-      onChanged: (value) {
-        // TODO: Store selected quality
+      trailing: const Icon(Icons.check, color: Colors.white70),
+      onTap: () {
+        // TODO: integrate selection state with provider
       },
     );
   }

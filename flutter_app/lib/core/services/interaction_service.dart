@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
 class InteractionService {
@@ -17,7 +18,7 @@ class InteractionService {
       }
       return {'success': false};
     } catch (e) {
-      print('Error toggling like: $e');
+      debugPrint('Error toggling like: $e');
       return {'success': false};
     }
   }
@@ -35,7 +36,7 @@ class InteractionService {
       }
       return {'success': false};
     } catch (e) {
-      print('Error sharing video: $e');
+      debugPrint('Error sharing video: $e');
       return {'success': false};
     }
   }
@@ -63,7 +64,7 @@ class InteractionService {
       }
       return [];
     } catch (e) {
-      print('Error fetching comments: $e');
+      debugPrint('Error fetching comments: $e');
       return [];
     }
   }
@@ -85,7 +86,7 @@ class InteractionService {
       }
       return {'success': false};
     } catch (e) {
-      print('Error posting comment: $e');
+      debugPrint('Error posting comment: $e');
       return {'success': false};
     }
   }
@@ -103,7 +104,7 @@ class InteractionService {
 
       return response.statusCode == 200 && response.data['success'] == true;
     } catch (e) {
-      print('Error reporting video: $e');
+      debugPrint('Error reporting video: $e');
       return false;
     }
   }

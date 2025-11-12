@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/video_model.dart';
 import 'api_service.dart';
 
@@ -25,7 +26,9 @@ class VideoService {
       }
       return [];
     } catch (e) {
-      print('Error fetching feed: $e');
+      // Use debugPrint to avoid spamming logs in release builds
+      // and satisfy avoid_print lint
+      debugPrint('Error fetching feed: $e');
       return [];
     }
   }
@@ -50,7 +53,7 @@ class VideoService {
       }
       return [];
     } catch (e) {
-      print('Error fetching following feed: $e');
+      debugPrint('Error fetching following feed: $e');
       return [];
     }
   }
@@ -60,7 +63,7 @@ class VideoService {
     try {
       await _apiService.post('/content/$videoId/view');
     } catch (e) {
-      print('Error recording view: $e');
+      debugPrint('Error recording view: $e');
     }
   }
 
@@ -74,7 +77,7 @@ class VideoService {
       }
       return null;
     } catch (e) {
-      print('Error fetching video details: $e');
+      debugPrint('Error fetching video details: $e');
       return null;
     }
   }

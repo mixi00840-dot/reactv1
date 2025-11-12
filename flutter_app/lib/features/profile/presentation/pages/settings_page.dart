@@ -236,8 +236,16 @@ class _SettingsPageState extends State<SettingsPage> {
               Switch(
                 value: value,
                 onChanged: onChanged,
-                activeColor: AppColors.primary,
-                activeTrackColor: AppColors.primary.withOpacity(0.5),
+                thumbColor: WidgetStateProperty.resolveWith((states) {
+                  return states.contains(WidgetState.selected)
+                      ? AppColors.primary
+                      : Colors.white;
+                }),
+                trackColor: WidgetStateProperty.resolveWith((states) {
+                  return states.contains(WidgetState.selected)
+                      ? AppColors.primary.withValues(alpha: 0.5)
+                      : Colors.white24;
+                }),
               ),
             ],
           ),

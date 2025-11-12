@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
-import 'dart:ui';
+// Removed unnecessary dart:ui import (all used members available via material)
 
 /// TikTok-style Activity/Inbox screen with circular LIVE avatars and notifications
 class ActivityScreen extends StatefulWidget {
@@ -170,7 +170,7 @@ class _ActivityScreenState extends State<ActivityScreen> with SingleTickerProvid
                           borderRadius: BorderRadius.circular(4),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.liveRed.withOpacity(_pulseController.value * 0.5 + 0.3),
+                              color: AppColors.liveRed.withValues(alpha: _pulseController.value * 0.5 + 0.3),
                               blurRadius: 8,
                               spreadRadius: 2,
                             ),
@@ -223,10 +223,10 @@ class _ActivityScreenState extends State<ActivityScreen> with SingleTickerProvid
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.darkGrey.withOpacity(0.3),
+  color: AppColors.darkGrey.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -286,7 +286,7 @@ class _ActivityScreenState extends State<ActivityScreen> with SingleTickerProvid
                   notification['time'],
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                   ),
                 ),
               ],
@@ -351,7 +351,7 @@ class _ActivityScreenState extends State<ActivityScreen> with SingleTickerProvid
       case 'system':
         return AppColors.successGreen;
       default:
-        return Colors.white.withOpacity(0.3);
+  return Colors.white.withValues(alpha: 0.3);
     }
   }
 }

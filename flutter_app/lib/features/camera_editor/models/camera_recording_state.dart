@@ -24,6 +24,8 @@ class CameraRecordingState {
   final bool isFlashOn;
   final bool isFrontCamera;
   final double zoomLevel;
+  final bool isPhotoMode;
+  final String? lastPhotoPath;
 
   const CameraRecordingState({
     this.state = RecordingState.idle,
@@ -40,6 +42,8 @@ class CameraRecordingState {
     this.isFlashOn = false,
     this.isFrontCamera = true,
     this.zoomLevel = 1.0,
+    this.isPhotoMode = false,
+    this.lastPhotoPath,
   });
 
   bool get canRecord => totalDuration < maxDuration && state != RecordingState.processing;
@@ -63,6 +67,8 @@ class CameraRecordingState {
     bool? isFlashOn,
     bool? isFrontCamera,
     double? zoomLevel,
+    bool? isPhotoMode,
+    String? lastPhotoPath,
   }) {
     return CameraRecordingState(
       state: state ?? this.state,
@@ -79,6 +85,8 @@ class CameraRecordingState {
       isFlashOn: isFlashOn ?? this.isFlashOn,
       isFrontCamera: isFrontCamera ?? this.isFrontCamera,
       zoomLevel: zoomLevel ?? this.zoomLevel,
+      isPhotoMode: isPhotoMode ?? this.isPhotoMode,
+      lastPhotoPath: lastPhotoPath ?? this.lastPhotoPath,
     );
   }
 }

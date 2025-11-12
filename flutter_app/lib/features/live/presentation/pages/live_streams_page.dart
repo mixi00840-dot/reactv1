@@ -73,15 +73,15 @@ class _LiveStreamsPageState extends State<LiveStreamsPage> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? AppTheme.primaryGradient
-                              : null,
-                          color: isSelected ? null : Colors.white.withOpacity(0.05),
+              gradient: isSelected
+                ? AppTheme.primaryGradient
+                : null,
+              color: isSelected ? null : Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(25),
                           border: Border.all(
-                            color: isSelected
-                                ? Colors.transparent
-                                : Colors.white.withOpacity(0.1),
+              color: isSelected
+                ? Colors.transparent
+                : Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Text(
@@ -136,7 +136,7 @@ class _LiveStreamsPageState extends State<LiveStreamsPage> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primary.withOpacity(0.2),
+              color: AppTheme.primary.withValues(alpha: 0.2),
               blurRadius: 10,
               spreadRadius: 2,
             ),
@@ -159,9 +159,9 @@ class _LiveStreamsPageState extends State<LiveStreamsPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
+                      colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.8),
+                      Colors.black.withValues(alpha: 0.8),
                     ],
                   ),
                 ),

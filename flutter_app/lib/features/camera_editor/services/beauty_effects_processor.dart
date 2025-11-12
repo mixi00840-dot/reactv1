@@ -102,7 +102,7 @@ class BeautyEffectsProcessor {
       expandedRect.width / 2,
       [
         brightPaint.color,
-        brightPaint.color.withOpacity(0),
+        brightPaint.color.withValues(alpha: 0),
       ],
       [0.0, 1.0],
     );

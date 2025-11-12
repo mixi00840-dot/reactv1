@@ -335,7 +335,7 @@ class _CameraPageState extends State<CameraPage> with WidgetsBindingObserver {
                 activeTrackColor: AppColors.primary,
                 inactiveTrackColor: AppColors.borderLight,
                 thumbColor: AppColors.primary,
-                overlayColor: AppColors.primary.withOpacity(0.2),
+                overlayColor: AppColors.primary.withValues(alpha: 0.2),
                 thumbShape: const RoundSliderThumbShape(
                   enabledThumbRadius: 8,
                 ),

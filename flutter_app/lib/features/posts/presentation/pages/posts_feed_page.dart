@@ -45,7 +45,7 @@ class _PostsFeedPageState extends State<PostsFeedPage> {
 
   void _handleLike(Post post) {
     // TODO: Implement like logic with API
-    print('Liked post: ${post.id}');
+  debugPrint('Liked post: ${post.id}');
   }
 
   void _handleComment(Post post) {
@@ -55,12 +55,12 @@ class _PostsFeedPageState extends State<PostsFeedPage> {
 
   void _handleShare(Post post) {
     // TODO: Implement share functionality
-    print('Share post: ${post.id}');
+  debugPrint('Share post: ${post.id}');
   }
 
   void _handleBookmark(Post post) {
     // TODO: Implement bookmark logic with API
-    print('Bookmarked post: ${post.id}');
+  debugPrint('Bookmarked post: ${post.id}');
   }
 
   void _showCommentsModal(Post post) {

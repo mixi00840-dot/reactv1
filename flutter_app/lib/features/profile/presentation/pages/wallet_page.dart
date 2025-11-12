@@ -137,7 +137,7 @@ class _WalletPageState extends State<WalletPage> {
                         Text(
                           'Coins',
                           style: AppTypography.labelLarge.copyWith(
-                            color: AppColors.textPrimary.withOpacity(0.9),
+                            color: AppColors.textPrimary.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -156,7 +156,7 @@ class _WalletPageState extends State<WalletPage> {
               Container(
                 width: 1,
                 height: 50,
-                color: AppColors.textPrimary.withOpacity(0.3),
+                color: AppColors.textPrimary.withValues(alpha: 0.3),
               ),
               
               const SizedBox(width: AppSpacing.lg),
@@ -172,7 +172,7 @@ class _WalletPageState extends State<WalletPage> {
                         Text(
                           'Diamonds',
                           style: AppTypography.labelLarge.copyWith(
-                            color: AppColors.textPrimary.withOpacity(0.9),
+                            color: AppColors.textPrimary.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -409,7 +409,7 @@ class _WalletPageState extends State<WalletPage> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.2),
+                  color: iconColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Icon(icon, color: iconColor, size: 24),

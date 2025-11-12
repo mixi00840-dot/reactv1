@@ -23,7 +23,7 @@ class FilterSelector extends ConsumerWidget {
           builder: (context) => Container(
             height: MediaQuery.of(context).size.height * 0.4,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.95),
+              color: Colors.black.withValues(alpha: 0.95),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
             ),
@@ -35,7 +35,7 @@ class FilterSelector extends ConsumerWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -85,7 +85,7 @@ class FilterSelector extends ConsumerWidget {
                                   border: Border.all(
                                     color: isSelected
                                         ? AppColors.primary
-                                        : Colors.white.withOpacity(0.3),
+                                        : Colors.white.withValues(alpha: 0.3),
                                     width: isSelected ? 3 : 1,
                                   ),
                                 ),
@@ -152,8 +152,8 @@ class FilterSelector extends ConsumerWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: currentFilter != null
-              ? AppColors.primary.withOpacity(0.3)
-              : Colors.black.withOpacity(0.5),
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : Colors.black.withValues(alpha: 0.5),
           shape: BoxShape.circle,
         ),
         child: const Icon(

@@ -67,7 +67,7 @@ class _ActivityTabWidgetState extends State<ActivityTabWidget>
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -176,8 +176,8 @@ class _ActivityTabWidgetState extends State<ActivityTabWidget>
                           borderRadius: BorderRadius.circular(3),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.liveRed.withOpacity(
-                                _pulseController.value * 0.5 + 0.3,
+                              color: AppColors.liveRed.withValues(
+                                alpha: _pulseController.value * 0.5 + 0.3,
                               ),
                               blurRadius: 6,
                               spreadRadius: 1,
@@ -233,10 +233,10 @@ class _ActivityTabWidgetState extends State<ActivityTabWidget>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.darkGrey.withOpacity(0.3),
+        color: AppColors.darkGrey.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -312,7 +312,7 @@ class _ActivityTabWidgetState extends State<ActivityTabWidget>
                   notification['time'],
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                   ),
                 ),
               ],
@@ -392,7 +392,7 @@ class _ActivityTabWidgetState extends State<ActivityTabWidget>
       case 'message':
         return AppColors.electricBlue;
       default:
-        return Colors.white.withOpacity(0.3);
+        return Colors.white.withValues(alpha: 0.3);
     }
   }
 }

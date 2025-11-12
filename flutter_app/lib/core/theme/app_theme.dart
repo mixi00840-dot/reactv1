@@ -8,17 +8,19 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: AppColors.background,
+    // Replace deprecated background usage with surface where appropriate
+    scaffoldBackgroundColor: AppColors.surface,
     colorScheme: const ColorScheme.dark(
       primary: AppColors.primary,
       secondary: AppColors.accent,
       surface: AppColors.surface,
-      background: AppColors.background,
+      // background/onBackground deprecated -> use surface/onSurface
+      // background: AppColors.background, // removed per deprecation
       error: AppColors.error,
       onPrimary: AppColors.textPrimary,
       onSecondary: AppColors.textPrimary,
       onSurface: AppColors.textPrimary,
-      onBackground: AppColors.textPrimary,
+      // onBackground: AppColors.textPrimary, // removed per deprecation
       onError: AppColors.textPrimary,
     ),
     textTheme: const TextTheme(
@@ -55,7 +57,8 @@ class AppTheme {
   );
   
   // Static getters for convenience
-  static Color get background => AppColors.background;
+  // background alias now maps to surface to maintain compatibility without deprecated field usage
+  static Color get background => AppColors.surface;
   static Color get primary => AppColors.primary;
   static Color get accent => AppColors.accent;
   static Gradient get primaryGradient => AppGradients.primary;

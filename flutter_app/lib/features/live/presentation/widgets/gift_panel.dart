@@ -37,7 +37,7 @@ class _GiftPanelState extends State<GiftPanel> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppTheme.background.withOpacity(0.95),
+            AppTheme.background.withValues(alpha: 0.95),
             AppTheme.background,
           ],
         ),
@@ -124,7 +124,7 @@ class _GiftPanelState extends State<GiftPanel> {
                   Container(
                     width: 1,
                     height: 20,
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                   ),
                   Row(
                     children: [
@@ -167,12 +167,12 @@ class _GiftPanelState extends State<GiftPanel> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             gradient: isSelected ? AppTheme.primaryGradient : null,
-            color: isSelected ? null : Colors.white.withOpacity(0.05),
+            color: isSelected ? null : Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
                   ? Colors.transparent
-                  : Colors.white.withOpacity(0.1),
+                  : Colors.white.withValues(alpha: 0.1),
             ),
           ),
           child: Text(
@@ -200,7 +200,7 @@ class _GiftPanelState extends State<GiftPanel> {
         rarityColor = const Color(0xFFFFD700);
         break;
       default:
-        rarityColor = Colors.white.withOpacity(0.5);
+  rarityColor = Colors.white.withValues(alpha: 0.5);
     }
 
     return GestureDetector(
@@ -211,13 +211,13 @@ class _GiftPanelState extends State<GiftPanel> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              rarityColor.withOpacity(0.2),
-              rarityColor.withOpacity(0.05),
+              rarityColor.withValues(alpha: 0.2),
+              rarityColor.withValues(alpha: 0.05),
             ],
           ),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: rarityColor.withOpacity(0.3),
+            color: rarityColor.withValues(alpha: 0.3),
             width: 1,
           ),
         ),

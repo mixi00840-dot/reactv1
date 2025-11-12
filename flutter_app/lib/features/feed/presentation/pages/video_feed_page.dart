@@ -80,7 +80,7 @@ class _VideoFeedPageState extends ConsumerState<VideoFeedPage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.video_library_outlined, size: 64, color: Colors.white54),
+              const Icon(Icons.video_library_outlined, size: 64, color: Colors.white54),
               const SizedBox(height: 16),
               Text(
                 'No videos available',
@@ -136,7 +136,7 @@ class _TopHeader extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.35),
+                Colors.black.withValues(alpha: 0.35),
                 Colors.transparent,
               ],
             ),
@@ -160,13 +160,13 @@ class _TopHeader extends StatelessWidget {
                     width: 210,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.30),
+                        color: Colors.black.withValues(alpha: 0.30),
                         borderRadius: BorderRadius.circular(22),
                       ),
                       child: TabBar(
                         controller: tabController,
                         indicator: BoxDecoration(
-                          color: Colors.white.withOpacity(0.22),
+                          color: Colors.white.withValues(alpha: 0.22),
                           borderRadius: BorderRadius.circular(22),
                         ),
                         indicatorSize: TabBarIndicatorSize.tab,
@@ -236,7 +236,7 @@ class _LiveIcon extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: Colors.white,
@@ -254,7 +254,7 @@ class _LiveIcon extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     blurRadius: 6,
                     spreadRadius: 1,
                   ),
@@ -322,7 +322,7 @@ class _VideoFeedItemState extends ConsumerState<VideoFeedItem>
     if (_isInitialized) return;
     
     try {
-      _videoController = VideoPlayerController.network(widget.video.videoUrl);
+  _videoController = VideoPlayerController.networkUrl(Uri.parse(widget.video.videoUrl));
       await _videoController!.initialize();
       
       _chewieController = ChewieController(
@@ -368,7 +368,7 @@ class _VideoFeedItemState extends ConsumerState<VideoFeedItem>
         setState(() => _isInitialized = true);
       }
     } catch (e) {
-      print('Error initializing video: $e');
+      debugPrint('Error initializing video: $e');
     }
   }
 
@@ -444,7 +444,7 @@ class _VideoFeedItemState extends ConsumerState<VideoFeedItem>
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -568,7 +568,7 @@ class _VideoFeedItemState extends ConsumerState<VideoFeedItem>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
+                    color: Colors.black.withValues(alpha: 0.4),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -587,7 +587,7 @@ class _VideoFeedItemState extends ConsumerState<VideoFeedItem>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 4,
                         offset: const Offset(0, 1),
                       ),

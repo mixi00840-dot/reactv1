@@ -120,7 +120,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  AppColors.background.withOpacity(0.8),
+                  AppColors.background.withValues(alpha: 0.8),
                 ],
               ),
             ),
