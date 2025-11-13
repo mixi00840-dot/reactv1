@@ -53,6 +53,7 @@ import {
 const CurrenciesManagement = () => {
   const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [currencyDialog, setCurrencyDialog] = useState({ 
     open: false, 
     currency: null, 

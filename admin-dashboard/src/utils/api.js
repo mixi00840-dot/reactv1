@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL:
     process.env.REACT_APP_API_URL ||
     (typeof window !== 'undefined' && window.__API_BASE_URL__) ||
-    'https://reactv1-v8sa.onrender.com',
+    'https://mixillo-backend-52242135857.europe-west1.run.app',
   withCredentials: false
 });
 

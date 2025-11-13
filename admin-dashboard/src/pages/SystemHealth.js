@@ -351,7 +351,7 @@ function SystemHealth() {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Memory Icon color="error" sx={{ mr: 1 }} />
+                <MemoryIcon color="error" sx={{ mr: 1 }} />
                 <Typography variant="h6">Redis Cache</Typography>
               </Box>
               <Chip 
