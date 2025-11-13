@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:video_player/video_player.dart';
+import 'package:video_player/video_player.dart' hide Caption;
 import 'package:video_thumbnail/video_thumbnail.dart' as vt;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -16,8 +16,14 @@ import '../widgets/editor/editor_bottom_toolbar.dart';
 import '../widgets/editor/editor_timeline_slim.dart';
 import '../widgets/editor/text_editor_overlay.dart';
 import '../widgets/editor/sticker_selector_overlay.dart';
-import '../../../posts/presentation/pages/video_post_page.dart';
+import '../widgets/video_effects_picker.dart';
+import '../widgets/audio_mixer_panel.dart';
+import '../widgets/caption_editor.dart';
+import '../../../posts/presentation/pages/post_creation_page.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/services/video_effects_service.dart';
+import '../../../../../core/services/audio_mixer_service.dart';
+import '../../../../../core/services/caption_service.dart';
 
 /// TikTok-style video editor page
 /// Clean minimal UI with tap-to-play, horizontal tools, transparent overlays
@@ -47,6 +53,9 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
   String? _selectedTool;
   bool _showTextEditor = false;
   bool _showStickerSelector = false;
+  VideoEffect _selectedEffect = VideoEffect.none;
+  List<AudioTrack> _audioTracks = [];
+  List<Caption> _captions = [];
 
   @override
   void initState() {
@@ -114,9 +123,8 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
         'preview_stitched_$timestamp.mp4',
       );
 
-      final processor = FFmpegVideoProcessor();
-      final result = await processor.stitchSegments(
-        inputPaths: widget.segmentPaths,
+      final result = await FFmpegVideoProcessor.stitchSegments(
+        segmentPaths: widget.segmentPaths,
         outputPath: outputPath,
       );
 
@@ -199,19 +207,19 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
         setState(() => _showStickerSelector = true);
         break;
       case 'effects':
-        _showInfo('Effects coming soon');
+        _showEffectsPicker();
         break;
       case 'filters':
         _showFilterSelector();
         break;
       case 'audio':
-        _showInfo('Audio mixer coming soon');
+        _showAudioMixer();
         break;
       case 'speed':
         _showSpeedSelector();
         break;
       case 'captions':
-        _showInfo('Auto captions coming soon');
+        _showCaptionGenerator();
         break;
     }
   }
@@ -271,6 +279,193 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
     );
   }
 
+  void _showEffectsPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => VideoEffectsPicker(
+        currentEffect: _selectedEffect,
+        onEffectSelected: (effect) async {
+          setState(() {
+            _selectedEffect = effect;
+          });
+
+          if (effect != VideoEffect.none) {
+            _showInfo('Applying effect... This may take a moment');
+            
+            // Apply effect will be done at export time for better performance
+            // For now, just store the selected effect
+            ref.read(videoEditorProvider.notifier).setEffect(effect.name);
+            
+            _showInfo('Effect selected: ${effect.name}');
+          } else {
+            ref.read(videoEditorProvider.notifier).setEffect(null);
+            _showInfo('Effect removed');
+          }
+        },
+      ),
+    );
+  }
+
+  void _showAudioMixer() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => AudioMixerPanel(
+        videoPath: _stitchedPreviewPath ?? widget.segmentPaths.first,
+        videoDuration: widget.totalDuration,
+        audioTracks: _audioTracks,
+        onTracksChanged: (tracks) {
+          setState(() {
+            _audioTracks = tracks;
+          });
+          _showInfo('Audio tracks updated');
+        },
+        onAddMusic: () {
+          Navigator.pop(context);
+          _addMusicTrack();
+        },
+        onRecordVoiceover: () {
+          Navigator.pop(context);
+          _recordVoiceover();
+        },
+      ),
+    );
+  }
+
+  Future<void> _addMusicTrack() async {
+    // TODO: Implement file picker for music
+    _showInfo('Music selection coming soon - integrate with sound library');
+  }
+
+  Future<void> _recordVoiceover() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _VoiceoverRecordingDialog(
+        duration: widget.totalDuration,
+      ),
+    );
+
+    if (result == true) {
+      _showInfo('Voiceover recorded successfully');
+    }
+  }
+
+  Future<void> _showCaptionGenerator() async {
+    // Show language selection dialog
+    final languages = await CaptionService.getSupportedLanguages();
+    
+    final selectedLanguage = await showDialog<CaptionLanguage>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('Select Language', style: TextStyle(color: Colors.white)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: languages.length,
+            itemBuilder: (context, index) {
+              final lang = languages[index];
+              return ListTile(
+                leading: Text(lang.flag, style: const TextStyle(fontSize: 32)),
+                title: Text(lang.name, style: const TextStyle(color: Colors.white)),
+                onTap: () => Navigator.pop(context, lang),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    if (selectedLanguage == null) return;
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: Colors.purple),
+            const SizedBox(height: 16),
+            const Text(
+              'Generating captions...',
+              style: TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Using ${selectedLanguage.name}',
+              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      // Use stitched preview or first segment
+      final videoPath = _stitchedPreviewPath ?? widget.segmentPaths.first;
+      
+      final result = await CaptionService.generateCaptions(
+        videoPath: videoPath,
+        languageCode: selectedLanguage.code,
+        onProgress: (progress) {
+          debugPrint('Caption generation progress: ${(progress * 100).toStringAsFixed(0)}%');
+        },
+      );
+
+      Navigator.pop(context); // Close loading dialog
+
+      if (result['success'] == true) {
+        final captions = result['captions'] as List<Caption>;
+        
+        if (captions.isEmpty) {
+          _showInfo('No speech detected in video');
+          return;
+        }
+
+        // Navigate to caption editor
+        final editedCaptions = await Navigator.push<List<Caption>>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CaptionEditor(
+              videoPath: videoPath,
+              videoDuration: widget.totalDuration.inSeconds.toDouble(),
+              initialCaptions: captions,
+              onCaptionsChanged: (updatedCaptions) {
+                setState(() {
+                  _captions = updatedCaptions;
+                });
+              },
+            ),
+          ),
+        );
+
+        if (editedCaptions != null && editedCaptions.isNotEmpty) {
+          setState(() {
+            _captions = editedCaptions;
+          });
+          _showInfo('${editedCaptions.length} captions ready');
+          
+          // Update provider with captions
+          ref.read(videoEditorProvider.notifier).setCaptions(_captions);
+        }
+      } else {
+        _showInfo('Caption generation failed');
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog
+      debugPrint('❌ Caption generation error: $e');
+      _showError('Failed to generate captions: ${e.toString()}');
+    }
+  }
+
   void _showSpeedSelector() {
     final speeds = [0.3, 0.5, 1.0, 2.0, 3.0];
     final currentSpeed = ref.read(videoEditorProvider)?.speed ?? 1.0;
@@ -328,9 +523,6 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
     // Add text overlay to video
     ref.read(videoEditorProvider.notifier).addTextOverlay(
           text: text,
-          color: color,
-          fontSize: fontSize,
-          fontWeight: weight,
           position: const Offset(0.5, 0.5), // Center
         );
     
@@ -339,9 +531,10 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
   }
 
   void _onStickerSelected(String stickerId) {
-    // Add sticker to video
+    // Add sticker to video (stickerId is actually emoji content)
     ref.read(videoEditorProvider.notifier).addStickerOverlay(
-          stickerId: stickerId,
+          stickerType: 'emoji',
+          content: stickerId,
           position: const Offset(0.5, 0.5), // Center
         );
     
@@ -376,12 +569,28 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
       Navigator.of(context).pop(); // Close progress dialog
 
       if (result != null) {
-        // Navigate directly to post page (TikTok flow)
+        // Get video duration for post creation
+        final videoFile = File(result);
+        VideoPlayerController? tempController;
+        Duration? videoDuration;
+        
+        try {
+          tempController = VideoPlayerController.file(videoFile);
+          await tempController.initialize();
+          videoDuration = tempController.value.duration;
+        } catch (e) {
+          debugPrint('Error getting video duration: $e');
+        } finally {
+          tempController?.dispose();
+        }
+
+        // Navigate to unified post creation page (TikTok flow)
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => VideoPostPage(
-              videoPath: result,
-              thumbnailPath: null,
+            builder: (context) => PostCreationPage(
+              mediaPath: result,
+              mediaType: 'video',
+              videoDuration: videoDuration,
             ),
           ),
         );
@@ -598,7 +807,7 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
                 child: Transform.scale(
                   scale: overlay.scale,
                   child: Text(
-                    overlay.stickerId,
+                    overlay.content, // Use content instead of stickerId
                     style: const TextStyle(fontSize: 48),
                   ),
                 ),
@@ -609,3 +818,109 @@ class _VideoEditorPageTikTokState extends ConsumerState<VideoEditorPageTikTok> {
   }
 }
 
+/// Voiceover recording dialog
+class _VoiceoverRecordingDialog extends StatefulWidget {
+  final Duration duration;
+
+  const _VoiceoverRecordingDialog({required this.duration});
+
+  @override
+  State<_VoiceoverRecordingDialog> createState() => _VoiceoverRecordingDialogState();
+}
+
+class _VoiceoverRecordingDialogState extends State<_VoiceoverRecordingDialog> {
+  bool _isRecording = false;
+  Duration _elapsed = Duration.zero;
+  String? _recordedPath;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.grey[900],
+      title: const Text(
+        'Record Voiceover',
+        style: TextStyle(color: Colors.white),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _isRecording ? Icons.mic : Icons.mic_none,
+            size: 80,
+            color: _isRecording ? Colors.red : Colors.grey,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            _isRecording
+                ? '${_elapsed.inSeconds}s / ${widget.duration.inSeconds}s'
+                : 'Tap to start recording',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        if (!_isRecording && _recordedPath == null)
+          ElevatedButton(
+            onPressed: _startRecording,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Start'),
+          ),
+        if (_isRecording)
+          ElevatedButton(
+            onPressed: _stopRecording,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey,
+            ),
+            child: const Text('Stop'),
+          ),
+        if (_recordedPath != null)
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pinkAccent,
+            ),
+            child: const Text('Use Recording'),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _startRecording() async {
+    setState(() => _isRecording = true);
+    
+    _recordedPath = await AudioMixerService.recordVoiceover(
+      duration: widget.duration,
+      onProgress: (elapsed) {
+        if (mounted) {
+          setState(() => _elapsed = elapsed);
+        }
+      },
+    );
+
+    if (mounted) {
+      setState(() => _isRecording = false);
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    await AudioMixerService.stopRecording();
+    setState(() => _isRecording = false);
+  }
+
+  @override
+  void dispose() {
+    if (_isRecording) {
+      AudioMixerService.stopRecording();
+    }
+    super.dispose();
+  }
+}

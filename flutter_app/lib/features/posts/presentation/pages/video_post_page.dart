@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../models/privacy_setting.dart';
 import '../../providers/post_provider.dart';
 import '../../../sounds/providers/selected_sound_provider.dart';
 import '../widgets/caption_input_widget.dart';

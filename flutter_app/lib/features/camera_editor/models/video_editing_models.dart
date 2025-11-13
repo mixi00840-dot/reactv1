@@ -10,6 +10,7 @@ class VideoEditingProject {
   final List<TextOverlay> textOverlays;
   final List<StickerOverlay> stickerOverlays;
   final String? selectedFilter;
+  final String? selectedEffect;
   final double speed;
   final bool applyBeautyEffects;
 
@@ -22,6 +23,7 @@ class VideoEditingProject {
     this.textOverlays = const [],
     this.stickerOverlays = const [],
     this.selectedFilter,
+    this.selectedEffect,
     this.speed = 1.0,
     this.applyBeautyEffects = false,
   }) : trimEnd = trimEnd ?? totalDuration;
@@ -35,6 +37,7 @@ class VideoEditingProject {
     List<TextOverlay>? textOverlays,
     List<StickerOverlay>? stickerOverlays,
     String? selectedFilter,
+    String? selectedEffect,
     double? speed,
     bool? applyBeautyEffects,
   }) {
@@ -47,6 +50,7 @@ class VideoEditingProject {
       textOverlays: textOverlays ?? this.textOverlays,
       stickerOverlays: stickerOverlays ?? this.stickerOverlays,
       selectedFilter: selectedFilter ?? this.selectedFilter,
+      selectedEffect: selectedEffect ?? this.selectedEffect,
       speed: speed ?? this.speed,
       applyBeautyEffects: applyBeautyEffects ?? this.applyBeautyEffects,
     );

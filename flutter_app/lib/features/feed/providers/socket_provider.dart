@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:state_notifier/state_notifier.dart';
 import '../../../core/services/socket_service.dart';
 
-// Socket connection state
+/// Socket connection states
 enum SocketConnectionState {
   disconnected,
   connecting,

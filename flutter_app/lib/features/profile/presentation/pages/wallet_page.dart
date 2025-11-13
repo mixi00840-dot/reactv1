@@ -28,7 +28,12 @@ class _WalletPageState extends State<WalletPage> {
   void _loadWallet() {
     final profile = MockProfileData.getCurrentUserProfile();
     setState(() {
-      _walletInfo = profile.wallet;
+      _walletInfo = profile.wallet ?? WalletInfo(
+        id: profile.id,
+        coinBalance: 0,
+        diamondBalance: 0,
+        recentTransactions: [],
+      );
     });
   }
 

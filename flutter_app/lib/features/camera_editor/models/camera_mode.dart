@@ -16,6 +16,38 @@ enum CameraMode {
   photo,
 }
 
+/// Content destination type
+enum ContentType {
+  /// Regular post (goes to feed)
+  post,
+  
+  /// Story (24h temporary content)
+  story,
+}
+
+/// Extension methods for ContentType
+extension ContentTypeExtension on ContentType {
+  /// Display name for UI
+  String get displayName {
+    switch (this) {
+      case ContentType.post:
+        return 'Post';
+      case ContentType.story:
+        return 'Story';
+    }
+  }
+  
+  /// Description text
+  String get description {
+    switch (this) {
+      case ContentType.post:
+        return 'Share to your feed';
+      case ContentType.story:
+        return 'Share for 24 hours';
+    }
+  }
+}
+
 /// Extension methods for CameraMode
 extension CameraModeExtension on CameraMode {
   /// Display name for UI

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -7,28 +8,32 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/widgets/glass_widgets.dart';
 import '../../data/models/user_profile_model.dart';
-import '../../data/mock_profile_data.dart';
 import '../pages/wallet_page.dart';
 import '../pages/settings_page.dart';
+import '../../../profile/providers/profile_provider_riverpod.dart';
+import '../../../profile/screens/wallet_screen.dart';
+import '../../../profile/screens/settings_screen.dart';
+import '../../../profile/screens/edit_profile_screen.dart';
 
 /// User profile page with tabs
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
+class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late UserProfile _userProfile;
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _loadProfile();
+    // Load profile from API
+    Future.microtask(() {
+      ref.read(profileProvider.notifier).loadCurrentProfile();
+    });
   }
 
   @override
@@ -37,25 +42,49 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     super.dispose();
   }
 
-  Future<void> _loadProfile() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    setState(() {
-      _userProfile = MockProfileData.getCurrentUserProfile();
-      _isLoading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final profileState = ref.watch(profileProvider);
+    
+    // Show loading or error states
+    if (profileState.isLoading && profileState.currentProfile == null) {
       return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    
+    if (profileState.error != null && profileState.currentProfile == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
         body: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text('Failed to load profile', style: AppTypography.bodyLarge),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.read(profileProvider.notifier).loadCurrentProfile(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
+      );
+    }
+    
+    final profile = profileState.currentProfile;
+    if (profile == null) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: Text('No profile data')),
       );
     }
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
@@ -65,7 +94,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               pinned: true,
               backgroundColor: AppColors.background,
               flexibleSpace: FlexibleSpaceBar(
-                background: _buildProfileHeader(),
+                background: isFirstLoad 
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
+                    )
+                  : _buildProfileHeader(profile),
               ),
               actions: [
                 IconButton(
@@ -73,7 +106,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const SettingsPage()),
+                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
                     );
                   },
                 ),
@@ -81,27 +114,29 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             ),
           ];
         },
-        body: Column(
-          children: [
-            _buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildPostsGrid(),
-                  _buildReelsGrid(),
-                  _buildTaggedGrid(),
-                  _buildLikesGrid(),
-                ],
-              ),
+        body: isFirstLoad
+          ? const SizedBox.shrink()
+          : Column(
+              children: [
+                _buildTabBar(),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildPostsGrid(profile),
+                      _buildReelsGrid(profile),
+                      _buildTaggedGrid(profile),
+                      _buildLikesGrid(profile),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(UserProfile profile) {
     return Stack(
       children: [
         // Cover image
@@ -109,7 +144,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           height: 200,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: CachedNetworkImageProvider(_userProfile.coverImageUrl),
+              image: CachedNetworkImageProvider(profile.coverImageUrl),
               fit: BoxFit.cover,
             ),
           ),
@@ -150,7 +185,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   padding: const EdgeInsets.all(4),
                   child: ClipOval(
                     child: CachedNetworkImage(
-                      imageUrl: _userProfile.avatarUrl,
+                      imageUrl: profile.avatarUrl,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -164,12 +199,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _userProfile.displayName,
+                    profile.displayName,
                     style: AppTypography.titleLarge.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (_userProfile.isVerified) ...[
+                  if (profile.isVerified) ...[
                     const SizedBox(width: AppSpacing.xs),
                     const Icon(
                       Iconsax.verify5,
@@ -181,7 +216,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               ),
               
               Text(
-                _userProfile.username,
+                profile.username,
                 style: AppTypography.bodyMedium.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -193,7 +228,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Text(
-                  _userProfile.bio,
+                  profile.bio,
                   textAlign: TextAlign.center,
                   style: AppTypography.bodyMedium,
                   maxLines: 3,
@@ -204,12 +239,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               const SizedBox(height: AppSpacing.md),
               
               // Stats
-              _buildStats(),
+              _buildStats(profile),
               
               const SizedBox(height: AppSpacing.md),
               
               // Action buttons
-              _buildActionButtons(),
+              _buildActionButtons(profile),
               
               const SizedBox(height: AppSpacing.md),
             ],
@@ -219,17 +254,17 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildStats() {
+  Widget _buildStats(UserProfile profile) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildStatItem('Posts', _userProfile.postsCount),
+        _buildStatItem('Posts', profile.postsCount),
         Container(width: 1, height: 30, color: AppColors.glassLight),
-        _buildStatItem('Followers', _userProfile.followersCount),
+        _buildStatItem('Followers', profile.followersCount),
         Container(width: 1, height: 30, color: AppColors.glassLight),
-        _buildStatItem('Following', _userProfile.followingCount),
+        _buildStatItem('Following', profile.followingCount),
         Container(width: 1, height: 30, color: AppColors.glassLight),
-        _buildStatItem('Likes', _userProfile.likesCount),
+        _buildStatItem('Likes', profile.likesCount),
       ],
     );
   }
@@ -253,7 +288,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(UserProfile profile) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Row(
@@ -263,7 +298,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const WalletPage()),
+                  MaterialPageRoute(builder: (context) => const WalletScreen()),
                 );
               },
               child: Container(
@@ -292,14 +327,22 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           const SizedBox(width: AppSpacing.sm),
           
           Expanded(
-            child: GlassContainer(
-              child: Container(
-                height: 40,
-                alignment: Alignment.center,
-                child: Text(
-                  'Edit Profile',
-                  style: AppTypography.labelLarge.copyWith(
-                    fontWeight: FontWeight.w600,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                );
+              },
+              child: GlassContainer(
+                child: Container(
+                  height: 40,
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Edit Profile',
+                    style: AppTypography.labelLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -333,7 +376,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildPostsGrid() {
+  Widget _buildPostsGrid(UserProfile profile) {
     final posts = MockProfileData.getUserPostImages();
     return GridView.builder(
       padding: const EdgeInsets.all(2),
@@ -355,7 +398,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildReelsGrid() {
+  Widget _buildReelsGrid(UserProfile profile) {
     final reels = MockProfileData.getUserReelsThumbnails();
     return GridView.builder(
       padding: const EdgeInsets.all(2),
@@ -399,7 +442,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildTaggedGrid() {
+  Widget _buildTaggedGrid(UserProfile profile) {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -415,7 +458,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildLikesGrid() {
+  Widget _buildLikesGrid(UserProfile profile) {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

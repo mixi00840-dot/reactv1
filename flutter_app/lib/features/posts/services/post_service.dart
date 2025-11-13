@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../core/services/api_service.dart';
+import '../../../core/services/video_compression_service.dart';
+import '../../../core/services/upload_queue_service.dart';
 import '../models/post_model.dart';
 import '../models/privacy_setting.dart';
 
@@ -16,11 +18,37 @@ class PostService {
   Future<CloudinaryUploadResult> uploadVideoToCloudinary({
     required String videoPath,
     required Function(double) onProgress,
+    bool enableCompression = true,
   }) async {
     try {
-      final file = File(videoPath);
+      String finalVideoPath = videoPath;
+
+      // Compress video if enabled and file is large
+      if (enableCompression) {
+        final shouldCompress = await VideoCompressionService.shouldCompress(videoPath);
+        
+        if (shouldCompress) {
+          print('🗜️ Compressing video before upload...');
+          onProgress(0.0); // 0-30% for compression
+          
+          final compressionResult = await VideoCompressionService.compressVideo(
+            inputPath: videoPath,
+            quality: CompressionQuality.medium,
+            onProgress: (progress) => onProgress(progress * 0.3), // 0-30%
+          );
+
+          if (compressionResult != null) {
+            finalVideoPath = compressionResult.outputPath;
+            print('✅ Compression complete: ${compressionResult.originalSizeMB}MB → ${compressionResult.compressedSizeMB}MB (${compressionResult.compressionPercentage}% reduction)');
+          } else {
+            print('⚠️ Compression failed, uploading original');
+          }
+        }
+      }
+
+      final file = File(finalVideoPath);
       final fileBytes = await file.readAsBytes();
-      final fileName = videoPath.split('/').last;
+      final fileName = finalVideoPath.split('/').last;
 
       // Get Cloudinary configuration from backend
       final cloudinaryConfig = await _getCloudinaryConfig();
@@ -73,16 +101,27 @@ class PostService {
   /// Get Cloudinary configuration from backend
   Future<Map<String, dynamic>> _getCloudinaryConfig() async {
     try {
-      // For now, use default Cloudinary config
-      // TODO: Fetch from backend /api/config endpoint
+      final response = await _apiService.get('/config/cloudinary');
+      
+      if (response['success'] == true) {
+        return response['data'];
+      } else {
+        // Fallback to hardcoded config if backend fails
+        print('⚠️ Using fallback Cloudinary config');
+        return {
+          'uploadUrl': 'https://api.cloudinary.com/v1_1/mixillo/upload',
+          'uploadPreset': 'mixillo_unsigned',
+          'cloudName': 'mixillo',
+        };
+      }
+    } catch (e) {
+      print('❌ Get Cloudinary config error: $e');
+      // Fallback config
       return {
         'uploadUrl': 'https://api.cloudinary.com/v1_1/mixillo/upload',
         'uploadPreset': 'mixillo_unsigned',
         'cloudName': 'mixillo',
       };
-    } catch (e) {
-      print('❌ Get Cloudinary config error: $e');
-      rethrow;
     }
   }
 
@@ -166,6 +205,26 @@ class PostService {
       return result;
     } catch (e) {
       print('❌ Upload and post error: $e');
+      rethrow;
+    }
+  }
+
+  /// Queue upload for background processing with retry logic
+  /// Returns immediately after adding to queue
+  Future<String> queueUpload({
+    required PostData postData,
+  }) async {
+    try {
+      final uploadQueue = UploadQueueService();
+      await uploadQueue.addToQueue(
+        videoPath: postData.videoPath,
+        postData: postData,
+      );
+      
+      print('✅ Upload queued for background processing');
+      return 'Upload queued successfully';
+    } catch (e) {
+      print('❌ Queue upload error: $e');
       rethrow;
     }
   }

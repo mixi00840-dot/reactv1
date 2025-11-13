@@ -8,10 +8,10 @@ import 'core/theme/app_theme.dart';
 import 'core/services/api_service.dart';
 import 'core/widgets/custom_bottom_nav_new.dart';
 import 'features/feed/presentation/pages/video_feed_page.dart';
-import 'features/posts/presentation/pages/posts_feed_page.dart';
+import 'features/posts/presentation/pages/posts_feed_page_new.dart';
 import 'features/camera_editor/presentation/pages/tiktok_camera_page_new.dart';
-import 'features/shop/presentation/pages/shop_page.dart';
-import 'features/shop/providers/cart_provider.dart';
+import 'features/shop/pages/shop_home_page.dart';
+import 'features/shop/widgets/network_status_indicator.dart';
 import 'features/profile/presentation/pages/profile_page.dart';
 
 void main() {
@@ -104,16 +104,18 @@ void main() {
   });
 }
 
-class MixilloApp extends StatelessWidget {
+class MixilloApp extends ConsumerWidget {
   const MixilloApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       title: 'Mixillo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const MainNavigator(), // Use main navigation with bottom nav
+      home: const NetworkStatusIndicator(
+        child: MainNavigator(), // Use main navigation with bottom nav
+      ),
     );
   }
 }
@@ -128,7 +130,6 @@ class MainNavigator extends StatefulWidget {
 
 class _MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
-  final CartProvider _cartProvider = CartProvider();
 
   @override
   Widget build(BuildContext context) {
@@ -138,9 +139,9 @@ class _MainNavigatorState extends State<MainNavigator> {
         index: _currentIndex,
         children: [
           const VideoFeedPage(),                  // Home (index 0) - Video feed
-          const PostsFeedPage(),                  // Post (index 1) - Instagram-style posts
+          const PostsFeedPageNew(),               // Post (index 1) - Instagram-style posts
           const TikTokCameraPageNew(),            // Camera (index 2)
-          ShopPage(cartProvider: _cartProvider),  // Shop (index 3)
+          const ShopHomePage(),                   // Shop (index 3) - TikTok-style shop
           const ProfilePage(),                    // Profile (index 4)
         ],
       ),

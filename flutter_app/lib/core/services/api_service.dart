@@ -9,8 +9,11 @@ class ApiService {
 
   late final Dio _dio;
   final AuthService _authService = AuthService();
+  bool _isInitialized = false;
 
   void initialize() {
+    if (_isInitialized) return; // Prevent re-initialization
+    
     final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://localhost:5000/api';
     
     _dio = Dio(BaseOptions(
@@ -54,6 +57,8 @@ class ApiService {
       responseBody: true,
       error: true,
     ));
+    
+    _isInitialized = true; // Mark as initialized
   }
 
   Dio get dio => _dio;

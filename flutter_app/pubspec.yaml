@@ -11,52 +11,56 @@ dependencies:
     sdk: flutter
 
   # State Management
-  flutter_riverpod: ^2.4.9
-  riverpod_annotation: ^2.3.3
+  flutter_riverpod: ^2.5.1
+  state_notifier: ^1.0.0
 
   # UI & Animations
   lottie: ^3.0.0
-  rive: ^0.12.4
-  animate_do: ^3.1.2
+  rive: ^0.13.20
+  animate_do: ^4.2.0
   flutter_animate: ^4.3.0
   shimmer: ^3.0.0
   iconsax: ^0.0.8
   glassmorphism_ui: ^0.3.0
-  blur: ^3.1.0
+  blur: ^4.0.2
   # carousel_slider: ^4.2.1  # Conflicts with Flutter beta - using PageView instead
   flutter_staggered_grid_view: ^0.7.0
   smooth_page_indicator: ^1.1.0
 
   # Camera & Video
-  camera: ^0.10.5+7
+  camera: ^0.11.3
   video_player: ^2.8.2
   chewie: ^1.7.5
+  visibility_detector: ^0.4.0+2        # Detect widget visibility for video autoplay
   ffmpeg_kit_flutter_new: ^4.1.0       # Maintained fork of ffmpeg_kit (video processing)
   video_thumbnail: ^0.5.3              # Thumbnail generation
   image_picker: ^1.0.7
   
   # ML & Face Detection
-  google_mlkit_face_detection: ^0.10.0 # Face detection & landmarks
-  google_mlkit_image_labeling: ^0.11.0 # Image analysis (optional)
+  google_mlkit_face_detection: ^0.13.1 # Face detection & landmarks
+  google_mlkit_image_labeling: ^0.14.1 # Image analysis (optional)
   flutter_image_compress: ^2.1.0        # Image compression for processing
   
   # Audio Processing
-  just_audio: ^0.9.36                  # Audio playback & mixing
-  audio_session: ^0.1.18               # Audio session management
+  just_audio: ^0.10.5                  # Audio playback & mixing
+  audio_session: ^0.2.2               # Audio session management
   record: ^6.0.0                       # Audio recording (voiceover) - upgraded for Linux compatibility
   
   # Image & Filter Processing
   image: ^4.1.3                        # Image manipulation
   
-  # Live Streaming (Optional - Enable when needed)
-  # zego_uikit_prebuilt_live_streaming: ^2.13.0
-  # agora_rtc_engine: ^6.3.0
-  # livekit_client: ^2.0.0
+  # Live Streaming
+  agora_rtc_engine: ^6.3.0            # Agora SDK for live streaming
+  zego_express_engine: ^3.14.5        # ZegoCloud SDK for live streaming
   
   # Networking
   dio: ^5.4.0
   http: ^1.2.0
-  socket_io_client: ^2.0.3+1
+  socket_io_client: ^3.1.2
+  connectivity_plus: ^7.0.0
+  
+  # Background Tasks
+  workmanager: ^0.9.0+3
   
   # Storage
   shared_preferences: ^2.2.2
@@ -65,26 +69,27 @@ dependencies:
   
   # Images
   cached_network_image: ^3.3.1
+  flutter_cache_manager: ^3.3.1        # Enhanced caching for images/video thumbnails
   flutter_svg: ^2.0.9
   
   # Utils
-  intl: ^0.19.0
+  intl: ^0.20.2
   uuid: ^4.3.3
   timeago: ^3.6.1
-  flutter_dotenv: ^5.1.0
+  flutter_dotenv: ^6.0.0
   flutter_colorpicker: ^1.0.3         # Color picker for text overlays
   draggable_widget: ^2.0.0            # Draggable text/stickers
   path: ^1.8.3                         # Path utilities
   permission_handler: ^12.0.0  # Upgraded for Android compatibility
   path_provider: ^2.1.2
   url_launcher: ^6.2.3
-  share_plus: ^7.2.1
+  share_plus: ^12.0.1
   
   # Navigation
-  go_router: ^13.0.0
+  go_router: ^17.0.0
   
   # Functional
-  freezed_annotation: ^2.4.1
+  freezed_annotation: ^3.1.0
   json_annotation: ^4.8.1
   
   cupertino_icons: ^1.0.6
@@ -92,11 +97,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
+  flutter_lints: ^6.0.0
   build_runner: ^2.4.7
-  freezed: ^2.4.6
+  freezed: ^3.2.3
   json_serializable: ^6.7.1
-  riverpod_generator: ^2.3.9
+  mockito: ^5.4.4
 
 flutter:
   uses-material-design: true

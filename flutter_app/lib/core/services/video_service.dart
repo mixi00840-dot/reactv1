@@ -2,6 +2,11 @@ import 'package:flutter/foundation.dart';
 import '../models/video_model.dart';
 import 'api_service.dart';
 
+// Top-level function for isolate parsing (required for compute())
+List<VideoModel> _parseVideoList(List<dynamic> jsonList) {
+  return jsonList.map((json) => VideoModel.fromJson(json)).toList();
+}
+
 class VideoService {
   final ApiService _apiService = ApiService();
 
@@ -71,7 +76,12 @@ class VideoService {
 
       if (response['success'] == true) {
         final List<dynamic> videosData = response['data']['videos'] ?? [];
-        return videosData.map((json) => VideoModel.fromJson(json)).toList();
+        // Parse videos in background isolate to avoid blocking UI
+        if (videosData.isEmpty) {
+          debugPrint('Feed API returned empty, using mock data');
+          return _mockVideos;
+        }
+        return await compute(_parseVideoList, videosData);
       }
       
       // Fallback to mock data if API returns empty
@@ -100,7 +110,12 @@ class VideoService {
 
       if (response['success'] == true) {
         final List<dynamic> videosData = response['data']['videos'] ?? [];
-        return videosData.map((json) => VideoModel.fromJson(json)).toList();
+        // Parse videos in background isolate to avoid blocking UI
+        if (videosData.isEmpty) {
+          debugPrint('Following feed API returned empty, using mock data');
+          return _mockVideos;
+        }
+        return await compute(_parseVideoList, videosData);
       }
       
       // Fallback to mock data

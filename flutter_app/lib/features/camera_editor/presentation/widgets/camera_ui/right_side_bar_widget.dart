@@ -43,140 +43,159 @@ class RightSideBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 60,
-      padding: const EdgeInsets.only(right: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Flip Camera Button
-          CircularIconButton(
-            icon: Iconsax.camera,
-            onTap: isRecording ? () {} : onFlipCamera,
-            size: 48,
-            iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
-          ),
-          const SizedBox(height: 12),
+    // ✅ FIXED: Use LayoutBuilder for responsive sizing
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // ✅ FIXED: Calculate safe button spacing based on available height
+        final availableHeight = constraints.maxHeight;
+        final buttonCount = 7; // Total number of buttons
+        final buttonSize = 48.0;
+        final minSpacing = 8.0; // Minimum spacing
+        final totalButtonHeight = buttonSize * buttonCount;
+        
+        // Calculate optimal spacing (max 12, min 8)
+        final optimalSpacing = ((availableHeight - totalButtonHeight) / (buttonCount + 1))
+            .clamp(minSpacing, 12.0);
 
-          // Flash Toggle Button (Off/Auto/On with cycling)
-          CircularIconButton(
-            icon: _getFlashIcon(),
-            onTap: onFlashToggle,
-            size: 48,
-            isActive: flashMode != AppFlashMode.off,
-            badge: _getFlashBadge(),
-          ),
-          const SizedBox(height: 12),
+        return Container(
+          width: 60,
+          padding: const EdgeInsets.only(right: 8),
+          // ✅ FIXED: Make scrollable if content exceeds height
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: optimalSpacing),
+                
+                // Flip Camera Button
+                CircularIconButton(
+                  icon: Iconsax.camera,
+                  onTap: isRecording ? () {} : onFlipCamera,
+                  size: 48,
+                  iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
+                ),
+                SizedBox(height: optimalSpacing),
 
-          // Speed Selector Button
-          CircularIconButton(
-            icon: Iconsax.speedometer,
-            onTap: isRecording ? () {} : onSpeedSelector,
-            size: 48,
-            iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
-            isActive: currentSpeed != 1.0,
-            badge: currentSpeed != 1.0
-                ? Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00D9FF),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Text(
-                      '${currentSpeed}x',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 12),
+                // Flash Toggle Button (Off/Auto/On with cycling)
+                CircularIconButton(
+                  icon: _getFlashIcon(),
+                  onTap: onFlashToggle,
+                  size: 48,
+                  isActive: flashMode != AppFlashMode.off,
+                  badge: _getFlashBadge(),
+                ),
+                SizedBox(height: optimalSpacing),
 
-          // Beauty Effects Button
-          CircularIconButton(
-            icon: Iconsax.magic_star,
-            onTap: onBeautyEffects,
-            size: 48,
-            isActive: hasBeautyEffects,
-            badge: hasBeautyEffects
-                ? Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.pink,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 1.5,
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 12),
+                // Speed Selector Button
+                CircularIconButton(
+                  icon: Iconsax.speedometer,
+                  onTap: isRecording ? () {} : onSpeedSelector,
+                  size: 48,
+                  iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
+                  isActive: currentSpeed != 1.0,
+                  badge: currentSpeed != 1.0
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00D9FF),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            '${currentSpeed}x',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                SizedBox(height: optimalSpacing),
 
-          // Filters Button
-          CircularIconButton(
-            icon: Iconsax.colorfilter,
-            onTap: onFilters,
-            size: 48,
-            isActive: hasFilters,
-            badge: hasFilters
-                ? Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.purple,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 1.5,
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 12),
+                // Beauty Effects Button
+                CircularIconButton(
+                  icon: Iconsax.magic_star,
+                  onTap: onBeautyEffects,
+                  size: 48,
+                  isActive: hasBeautyEffects,
+                  badge: hasBeautyEffects
+                      ? Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.pink,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                SizedBox(height: optimalSpacing),
 
-          // Sound Picker Button
-          CircularIconButton(
-            icon: selectedSound != null ? Iconsax.music5 : Iconsax.musicnote,
-            onTap: isRecording ? () {} : onSoundPicker,
-            size: 48,
-            isActive: selectedSound != null,
-            iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
-            badge: selectedSound != null
-                ? Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color(0xFF2ECC71),
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 1.5,
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 12),
+                // Filters Button
+                CircularIconButton(
+                  icon: Iconsax.colorfilter,
+                  onTap: onFilters,
+                  size: 48,
+                  isActive: hasFilters,
+                  badge: hasFilters
+                      ? Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.purple,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                SizedBox(height: optimalSpacing),
 
-          // Timer Settings Button
-          CircularIconButton(
-            icon: Iconsax.timer_1,
-            onTap: isRecording ? () {} : onTimerSettings,
-            size: 48,
-            iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
-          ),
-          const SizedBox(height: 12),
+                // Sound Picker Button
+                CircularIconButton(
+                  icon: selectedSound != null ? Iconsax.music5 : Iconsax.musicnote,
+                  onTap: isRecording ? () {} : onSoundPicker,
+                  size: 48,
+                  isActive: selectedSound != null,
+                  iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
+                  badge: selectedSound != null
+                      ? Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF2ECC71),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                SizedBox(height: optimalSpacing),
+
+                // Timer Settings Button
+                CircularIconButton(
+                  icon: Iconsax.timer_1,
+                  onTap: isRecording ? () {} : onTimerSettings,
+                  size: 48,
+                  iconColor: isRecording ? Colors.white.withValues(alpha: 0.5) : Colors.white,
+                ),
+                SizedBox(height: optimalSpacing),
 
           // Mode Toggle Button (Video <-> Photo)
           CircularIconButton(
@@ -213,8 +232,11 @@ class RightSideBarWidget extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+            ), // Column
+          ), // SingleChildScrollView
+        ); // Container
+      }, // builder
+    ); // LayoutBuilder
   }
 
   /// Get flash icon based on mode

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:state_notifier/state_notifier.dart';
 import 'package:uuid/uuid.dart';
 import '../models/camera_recording_state.dart';
 import '../models/video_segment.dart';
@@ -137,6 +138,11 @@ class CameraRecordingNotifier extends StateNotifier<CameraRecordingState> {
   /// Set zoom level
   void setZoom(double zoom) {
     state = state.copyWith(zoomLevel: zoom.clamp(1.0, 10.0));
+  }
+  
+  /// Set content type (Post or Story)
+  void setContentType(ContentType contentType) {
+    state = state.copyWith(contentType: contentType);
   }
 
   /// Calculate total duration from segments

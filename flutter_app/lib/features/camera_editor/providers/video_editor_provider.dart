@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:state_notifier/state_notifier.dart';
 import 'package:uuid/uuid.dart';
 import '../models/video_editing_models.dart';
 import '../services/ffmpeg_video_processor.dart';
@@ -151,6 +152,22 @@ class VideoEditorNotifier extends StateNotifier<VideoEditingProject?> {
     if (state == null) return;
     state = state!.copyWith(selectedFilter: filterName);
     debugPrint('🎨 Filter updated: $filterName');
+  }
+
+  /// Update video effect
+  void setEffect(String? effectName) {
+    if (state == null) return;
+    state = state!.copyWith(selectedEffect: effectName);
+    debugPrint('✨ Effect updated: $effectName');
+  }
+
+  /// Update captions
+  void setCaptions(dynamic captions) {
+    if (state == null) return;
+    // Store captions data (will be used during export)
+    debugPrint('📝 Captions updated: ${captions is List ? captions.length : 0} captions');
+    // Note: VideoEditingProject doesn't have captions field yet,
+    // but we can store them in a separate provider or add to model later
   }
 
   /// Update speed

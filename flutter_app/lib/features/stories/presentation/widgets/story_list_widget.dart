@@ -9,11 +9,13 @@ import '../../data/models/story_model.dart';
 class StoryListWidget extends StatelessWidget {
   final List<Story> stories;
   final Function(Story, int) onStoryTap;
+  final VoidCallback? onAddStory;
 
   const StoryListWidget({
     super.key,
     required this.stories,
     required this.onStoryTap,
+    this.onAddStory,
   });
 
   @override
@@ -40,9 +42,7 @@ class StoryListWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: AppSpacing.sm),
       child: GestureDetector(
-        onTap: () {
-          // TODO: Navigate to story creator
-        },
+        onTap: onAddStory,
         child: Column(
           children: [
             Container(

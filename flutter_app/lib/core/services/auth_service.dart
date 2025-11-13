@@ -10,6 +10,10 @@ class AuthService {
   static const String _tokenKey = 'auth_token';
   static const String _refreshTokenKey = 'refresh_token';
   static const String _userIdKey = 'user_id';
+  static const String _tokenExpiryKey = 'token_expiry';
+
+  // ✅ NEW: Track refresh attempts to prevent infinite loops
+  bool _isRefreshing = false;
 
   // Get stored token
   Future<String?> getToken() async {
@@ -17,10 +21,53 @@ class AuthService {
     return prefs.getString(_tokenKey);
   }
 
+  // ✅ NEW: Get token with automatic refresh if expired
+  Future<String?> getValidToken() async {
+    final token = await getToken();
+    if (token == null) return null;
+
+    // Check if token is expired
+    final isExpired = await isTokenExpired();
+    if (isExpired && !_isRefreshing) {
+      debugPrint('Token expired, attempting refresh...');
+      final refreshed = await refreshToken();
+      if (refreshed) {
+        return await getToken();
+      } else {
+        debugPrint('Token refresh failed, user needs to re-login');
+        return null;
+      }
+    }
+
+    return token;
+  }
+
+  // ✅ NEW: Check if token is expired
+  Future<bool> isTokenExpired() async {
+    final prefs = await SharedPreferences.getInstance();
+    final expiryTimestamp = prefs.getInt(_tokenExpiryKey);
+    
+    if (expiryTimestamp == null) {
+      // If no expiry stored, assume token might be expired
+      return true;
+    }
+
+    final expiryDate = DateTime.fromMillisecondsSinceEpoch(expiryTimestamp);
+    final now = DateTime.now();
+    
+    // Consider token expired 5 minutes before actual expiry
+    final bufferTime = const Duration(minutes: 5);
+    return now.isAfter(expiryDate.subtract(bufferTime));
+  }
+
   // Save token
-  Future<void> saveToken(String token) async {
+  Future<void> saveToken(String token, {DateTime? expiresAt}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
+    
+    // ✅ NEW: Store token expiry (default 24 hours if not provided)
+    final expiry = expiresAt ?? DateTime.now().add(const Duration(hours: 24));
+    await prefs.setInt(_tokenExpiryKey, expiry.millisecondsSinceEpoch);
   }
 
   // Get refresh token
@@ -50,14 +97,29 @@ class AuthService {
   // Check if user is authenticated
   Future<bool> isAuthenticated() async {
     final token = await getToken();
-    return token != null && token.isNotEmpty;
+    if (token == null || token.isEmpty) return false;
+    
+    // ✅ NEW: Also check if token is still valid
+    final isExpired = await isTokenExpired();
+    return !isExpired;
   }
 
   // Refresh token
   Future<bool> refreshToken() async {
+    // ✅ NEW: Prevent multiple simultaneous refresh attempts
+    if (_isRefreshing) {
+      debugPrint('Token refresh already in progress, waiting...');
+      await Future.delayed(const Duration(seconds: 2));
+      return await isAuthenticated();
+    }
+
+    _isRefreshing = true;
     try {
       final refreshToken = await getRefreshToken();
-      if (refreshToken == null) return false;
+      if (refreshToken == null) {
+        debugPrint('No refresh token available');
+        return false;
+      }
 
       final apiService = ApiService();
       final response = await apiService.post('/auth/mongodb/refresh', data: {
@@ -68,16 +130,28 @@ class AuthService {
         final newToken = response['data']['token'];
         final newRefreshToken = response['data']['refreshToken'];
         
-        await saveToken(newToken);
+        // ✅ IMPROVED: Parse token expiry if provided by backend
+        DateTime? expiresAt;
+        if (response['data']['expiresAt'] != null) {
+          expiresAt = DateTime.parse(response['data']['expiresAt']);
+        }
+        
+        await saveToken(newToken, expiresAt: expiresAt);
         if (newRefreshToken != null) {
           await saveRefreshToken(newRefreshToken);
         }
+        
+        debugPrint('✅ Token refreshed successfully');
         return true;
       }
+      
+      debugPrint('❌ Token refresh failed: ${response['message']}');
       return false;
     } catch (e) {
-      debugPrint('Error refreshing token: $e');
+      debugPrint('❌ Error refreshing token: $e');
       return false;
+    } finally {
+      _isRefreshing = false;
     }
   }
 

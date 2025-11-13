@@ -14,6 +14,7 @@ enum RecordingState {
 class CameraRecordingState {
   final RecordingState state;
   final CameraMode mode;
+  final ContentType contentType;
   final List<VideoSegment> segments;
   final Duration totalDuration;
   final Duration maxDuration;
@@ -32,6 +33,7 @@ class CameraRecordingState {
   const CameraRecordingState({
     this.state = RecordingState.idle,
     this.mode = CameraMode.video60s,
+    this.contentType = ContentType.post,
     this.segments = const [],
     this.totalDuration = Duration.zero,
     this.maxDuration = const Duration(seconds: 60),
@@ -65,6 +67,7 @@ class CameraRecordingState {
   CameraRecordingState copyWith({
     RecordingState? state,
     CameraMode? mode,
+    ContentType? contentType,
     List<VideoSegment>? segments,
     Duration? totalDuration,
     Duration? maxDuration,
@@ -83,6 +86,7 @@ class CameraRecordingState {
     return CameraRecordingState(
       state: state ?? this.state,
       mode: mode ?? this.mode,
+      contentType: contentType ?? this.contentType,
       segments: segments ?? this.segments,
       totalDuration: totalDuration ?? this.totalDuration,
       maxDuration: maxDuration ?? this.maxDuration,

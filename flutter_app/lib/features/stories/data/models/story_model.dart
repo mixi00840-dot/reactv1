@@ -8,6 +8,7 @@ class Story {
   final DateTime createdAt;
   final bool isViewed;
   final bool isMe;
+  final int viewsCount;
 
   Story({
     required this.id,
@@ -18,7 +19,32 @@ class Story {
     required this.createdAt,
     this.isViewed = false,
     this.isMe = false,
+    this.viewsCount = 0,
   });
+  
+  Story copyWith({
+    String? id,
+    String? userId,
+    String? username,
+    String? userAvatar,
+    List<StoryItem>? items,
+    DateTime? createdAt,
+    bool? isViewed,
+    bool? isMe,
+    int? viewsCount,
+  }) {
+    return Story(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      username: username ?? this.username,
+      userAvatar: userAvatar ?? this.userAvatar,
+      items: items ?? this.items,
+      createdAt: createdAt ?? this.createdAt,
+      isViewed: isViewed ?? this.isViewed,
+      isMe: isMe ?? this.isMe,
+      viewsCount: viewsCount ?? this.viewsCount,
+    );
+  }
 }
 
 /// Individual story item (image or video)

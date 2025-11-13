@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:state_notifier/state_notifier.dart';
 import 'package:uuid/uuid.dart';
 import '../models/audio_editing_models.dart';
 import '../services/audio_recorder_service.dart';

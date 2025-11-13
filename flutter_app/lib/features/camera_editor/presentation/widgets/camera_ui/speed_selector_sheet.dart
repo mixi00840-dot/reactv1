@@ -22,7 +22,12 @@ class SpeedSelectorSheet extends StatefulWidget {
     return showModalBottomSheet<double>(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled: false,
+      // ✅ FIXED: Enable scrollable control for dynamic sizing
+      isScrollControlled: true,
+      // ✅ FIXED: Add constraints to prevent overflow
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.6,
+      ),
       builder: (context) => SpeedSelectorSheet(
         currentSpeed: currentSpeed,
         onSpeedSelected: (speed) {
@@ -73,6 +78,10 @@ class _SpeedSelectorSheetState extends State<SpeedSelectorSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ FIXED: Calculate safe bottom padding for keyboard and notch
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom +
+        MediaQuery.of(context).padding.bottom + 16;
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E),
@@ -87,17 +96,21 @@ class _SpeedSelectorSheetState extends State<SpeedSelectorSheet> {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
+      // ✅ FIXED: Add safe area padding
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      // ✅ FIXED: Make content scrollable
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
             ),
           ),
 
@@ -150,9 +163,10 @@ class _SpeedSelectorSheetState extends State<SpeedSelectorSheet> {
               );
             },
           ),
-
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
-        ],
+          
+          // ✅ FIXED: Removed duplicate padding (already handled in container)
+          ],
+        ),
       ),
     );
   }

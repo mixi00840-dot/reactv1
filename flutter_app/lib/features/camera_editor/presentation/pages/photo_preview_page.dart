@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../posts/presentation/pages/post_creation_page.dart';
 
 /// Lightweight photo preview/editor page
 /// - Shows the captured image with pinch-to-zoom
-/// - Provides basic actions: Retake (pop false) and Use Photo (pop true)
+/// - Provides basic actions: Retake (pop false) and Next (navigate to post creation)
 class PhotoPreviewPage extends StatefulWidget {
   final String imagePath;
 
@@ -111,17 +112,29 @@ class _PhotoPreviewPageState extends State<PhotoPreviewPage> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: const BorderSide(color: Colors.white70),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
-                      onPressed: () => Navigator.of(context).pop(false),
+                      onPressed: () => Navigator.of(context).pop(),
                       child: const Text('Retake'),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pinkAccent,
+                        backgroundColor: const Color(0xFFFF006B),
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       ),
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Use Photo'),
+                      onPressed: () {
+                        // Navigate to post creation
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => PostCreationPage(
+                              mediaPath: widget.imagePath,
+                              mediaType: 'photo',
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('Next'),
                     ),
                   ],
                 ),

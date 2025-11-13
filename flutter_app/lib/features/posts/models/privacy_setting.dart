@@ -3,7 +3,21 @@ enum PrivacySetting {
   public,
   friends,
   private,
-  followers,
+  followers;
+
+  /// From API value
+  static PrivacySetting fromApiValue(String value) {
+    switch (value.toLowerCase()) {
+      case 'friends':
+        return PrivacySetting.friends;
+      case 'private':
+        return PrivacySetting.private;
+      case 'followers':
+        return PrivacySetting.followers;
+      default:
+        return PrivacySetting.public;
+    }
+  }
 }
 
 extension PrivacySettingExtension on PrivacySetting {
@@ -63,4 +77,3 @@ extension PrivacySettingExtension on PrivacySetting {
     }
   }
 }
-

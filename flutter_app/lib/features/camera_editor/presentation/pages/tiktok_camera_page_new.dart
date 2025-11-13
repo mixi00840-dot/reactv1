@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../models/camera_recording_state.dart';
 import '../../models/camera_mode.dart';
@@ -26,6 +28,7 @@ import '../widgets/face_effects/beauty_selector.dart';
 // Replaced legacy immediate-apply filter selector with staged FiltersSheet
 import '../widgets/camera_ui/filters_sheet.dart';
 import 'video_editor_page_tiktok.dart';
+import '../../../live/presentation/pages/unified_live_broadcast_page.dart';
 import 'photo_preview_page.dart';
 import '../../../sounds/presentation/pages/sound_library_page.dart';
 import '../../../sounds/providers/selected_sound_provider.dart';
@@ -234,9 +237,63 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
     
     _showInfo('Switched to ${modeNames[mode]}');
     
-    // Handle live mode (future implementation)
+    // Handle live mode
     if (mode.isLiveMode) {
-      _showInfo('Live streaming coming soon');
+      _startLiveStreaming();
+    }
+  }
+
+  /// Start live streaming
+  Future<void> _startLiveStreaming() async {
+    // Show live stream setup dialog
+    final title = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          title: const Text('Start Live Stream'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  labelText: 'Stream Title',
+                  hintText: 'Enter your stream title...',
+                ),
+                maxLength: 100,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.isNotEmpty) {
+                  Navigator.pop(context, controller.text);
+                }
+              },
+              child: const Text('Go Live'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (title != null && title.isNotEmpty && mounted) {
+      // Navigate to unified live broadcast page (supports Agora + ZegoCloud)
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => UnifiedLiveBroadcastPage(title: title),
+        ),
+      );
+    } else {
+      // User cancelled, switch back to video mode
+      ref.read(cameraRecordingProvider.notifier).setMode(CameraMode.video60s);
     }
   }
 
@@ -409,6 +466,268 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
     }
   }
 
+  /// Pick video from gallery and import to editor
+  Future<void> _pickVideoFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? video = await picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(minutes: 10),
+      );
+
+      if (video == null) {
+        // User cancelled
+        return;
+      }
+
+      if (!mounted) return;
+
+      // Show loading while checking video
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+      );
+
+      // Verify video file exists and is valid
+      final videoFile = File(video.path);
+      if (!await videoFile.exists()) {
+        if (mounted) Navigator.of(context).pop();
+        _showError('Video file not found');
+        return;
+      }
+
+      final fileSize = await videoFile.length();
+      const maxSize = 100 * 1024 * 1024; // 100MB
+
+      if (fileSize > maxSize) {
+        if (mounted) Navigator.of(context).pop();
+        _showError('Video is too large (max 100MB)');
+        return;
+      }
+
+      if (mounted) Navigator.of(context).pop(); // Close loading
+
+      // Navigate directly to editor with imported video
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => VideoEditorPageTikTok(
+            segmentPaths: [video.path],
+            totalDuration: const Duration(seconds: 60), // TODO: Get actual duration
+            selectedFilter: ref.read(cameraRecordingProvider).selectedFilter,
+            speed: ref.read(cameraRecordingProvider).currentSpeed,
+          ),
+        ),
+      );
+
+      _showInfo('Video imported from gallery');
+    } catch (e) {
+      debugPrint('❌ Pick video error: $e');
+      if (mounted) {
+        // Close loading if still open
+        try {
+          Navigator.of(context).pop();
+        } catch (_) {}
+        _showError('Failed to import video: $e');
+      }
+    }
+  }
+
+  /// Pick photo from device storage
+  Future<void> _pickPhotoFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 90,
+      );
+
+      if (photo == null) {
+        // User cancelled
+        return;
+      }
+
+      if (!mounted) return;
+
+      // Show loading while checking photo
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+      );
+
+      // Verify photo file exists and is valid
+      final photoFile = File(photo.path);
+      if (!await photoFile.exists()) {
+        if (mounted) Navigator.of(context).pop();
+        _showError('Photo file not found');
+        return;
+      }
+
+      final fileSize = await photoFile.length();
+      const maxSize = 20 * 1024 * 1024; // 20MB
+
+      if (fileSize > maxSize) {
+        if (mounted) Navigator.of(context).pop();
+        _showError('Photo is too large (max 20MB)');
+        return;
+      }
+
+      if (mounted) Navigator.of(context).pop(); // Close loading
+
+      // Navigate to photo preview
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PhotoPreviewPage(
+            imagePath: photo.path,
+          ),
+        ),
+      );
+
+      _showInfo('Photo imported from gallery');
+    } catch (e) {
+      debugPrint('❌ Pick photo error: $e');
+      if (mounted) {
+        // Close loading if still open
+        try {
+          Navigator.of(context).pop();
+        } catch (_) {}
+        _showError('Failed to import photo: $e');
+      }
+    }
+  }
+
+  /// Show upload options (Photo or Video)
+  Future<void> _showUploadOptions() async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom + 16,
+          top: 16,
+          left: 16,
+          right: 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // Title
+            const Text(
+              'Upload from Gallery',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // Photo option
+            ListTile(
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.photo_library, color: Colors.blue),
+              ),
+              title: const Text(
+                'Photo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              subtitle: Text(
+                'Upload a photo from your gallery',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 13,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _pickPhotoFromGallery();
+              },
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Video option
+            ListTile(
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.purple.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.video_library, color: Colors.purple),
+              ),
+              title: const Text(
+                'Video',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              subtitle: Text(
+                'Upload a video from your gallery',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 13,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _pickVideoFromGallery();
+              },
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Cancel button
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _proceedToEdit() {
     final recordingState = ref.read(cameraRecordingProvider);
 
@@ -461,6 +780,64 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
     );
   }
 
+  /// Show timer settings bottom sheet
+  void _showTimerSettings() {
+    final currentTimer = ref.read(cameraRecordingProvider).timerSeconds ?? 0;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Timer',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...[0, 3, 10, 15].map((seconds) => ListTile(
+                  title: Text(
+                    seconds == 0 ? 'Off' : '${seconds}s',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  trailing: currentTimer == seconds
+                      ? Icon(Icons.check, color: AppColors.primary)
+                      : null,
+                  onTap: () {
+                    ref.read(cameraRecordingProvider.notifier).setTimer(seconds == 0 ? null : seconds);
+                    Navigator.of(context).pop();
+                    if (seconds > 0) {
+                      _showInfo('Timer set to ${seconds}s');
+                    } else {
+                      _showInfo('Timer disabled');
+                    }
+                  },
+                )),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final recordingState = ref.watch(cameraRecordingProvider);
@@ -493,9 +870,7 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                     child: TopBarWidget(
                       onClose: () => Navigator.pop(context),
                       timerSeconds: recordingState.timerSeconds,
-                      onMoreMenu: () {
-                        _showInfo('More options coming soon');
-                      },
+                      // Removed 3-dot menu for cleaner UI like TikTok
                     ),
                   ),
 
@@ -628,7 +1003,7 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                         if (_isRecording || recordingState.isCountingDown) {
                           _showError('Cannot change timer while recording');
                         } else {
-                          _showInfo('Timer settings coming soon');
+                          _showTimerSettings();
                         }
                       },
                       onToggleMode: () {
@@ -679,9 +1054,7 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                     right: 0,
                     child: BottomBarWidget(
                       mode: recordingState.mode,
-                      onGalleryTap: () {
-                        _showInfo('Gallery coming soon');
-                      },
+                      onGalleryTap: _pickVideoFromGallery,
                       onRecordTap: _onRecordTap,
                         onRecordLongPressStart: () {
                           final rs = ref.read(cameraRecordingProvider);
@@ -691,9 +1064,7 @@ class _TikTokCameraPageNewState extends ConsumerState<TikTokCameraPageNew>
                           final rs = ref.read(cameraRecordingProvider);
                           if (!rs.isPhotoMode) _stopRecording();
                         },
-                      onUploadTap: () {
-                        _showInfo('Upload coming soon');
-                      },
+                      onUploadTap: _showUploadOptions,  // Show photo/video options
                       onDeleteSegment: () {
                         HapticFeedback.mediumImpact();
                         ref.read(cameraRecordingProvider.notifier).deleteLastSegment();

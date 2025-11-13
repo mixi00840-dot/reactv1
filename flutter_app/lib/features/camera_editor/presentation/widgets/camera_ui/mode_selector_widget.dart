@@ -62,17 +62,17 @@ class _ModeSelectorWidgetState extends State<ModeSelectorWidget>
 
   @override
   Widget build(BuildContext context) {
+    // TikTok-style: Photo | Video | Live (no timer options here)
     final modes = [
-      CameraMode.live,
-      CameraMode.video15s,
-      CameraMode.video60s,
-      CameraMode.video10m,
       CameraMode.photo,
+      // Use video60s as the default "Video" mode
+      CameraMode.video60s,
+      CameraMode.live,
     ];
 
     return Container(
       height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 24),  // Reduced from 16 for centering
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
@@ -85,7 +85,7 @@ class _ModeSelectorWidgetState extends State<ModeSelectorWidget>
       ),
       child: Center(
         child: Row(
-          mainAxisSize: MainAxisSize.min,  // Center the modes
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: modes.asMap().entries.map((entry) {
             final index = entry.key;
@@ -95,7 +95,7 @@ class _ModeSelectorWidgetState extends State<ModeSelectorWidget>
               children: [
                 _buildModeTab(mode),
                 if (index < modes.length - 1)
-                  const SizedBox(width: 32),  // Reduced from implicit 60px for tighter spacing
+                  const SizedBox(width: 40),  // TikTok-style spacing
               ],
             );
           }).toList(),
@@ -108,10 +108,24 @@ class _ModeSelectorWidgetState extends State<ModeSelectorWidget>
     final isSelected = mode == widget.selectedMode;
     final isDisabled = widget.isRecording && !isSelected;
 
+    // Get simplified label for TikTok-style UI
+    String getLabel(CameraMode mode) {
+      switch (mode) {
+        case CameraMode.photo:
+          return 'Photo';
+        case CameraMode.video15s:
+        case CameraMode.video60s:
+        case CameraMode.video10m:
+          return 'Video';
+        case CameraMode.live:
+          return 'Live';
+      }
+    }
+
     return GestureDetector(
       onTap: () => _handleModeChange(mode),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),  // Added padding for tap area
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         color: Colors.transparent,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -139,7 +153,7 @@ class _ModeSelectorWidgetState extends State<ModeSelectorWidget>
                     : [],
               ),
               child: Text(
-                mode.displayName,
+                getLabel(mode),
               ),
             ),
 

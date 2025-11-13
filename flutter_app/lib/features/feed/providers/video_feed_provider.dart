@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:state_notifier/state_notifier.dart';
 import '../../../core/models/video_model.dart';
 import '../../../core/services/video_service.dart';
 import '../../../core/services/socket_service.dart';

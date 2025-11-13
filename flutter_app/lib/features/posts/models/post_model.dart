@@ -78,8 +78,11 @@ class PostData {
 
   Map<String, dynamic> toJson() {
     return {
+      'videoPath': videoPath,
+      'thumbnailPath': thumbnailPath,
       'caption': caption,
       'hashtags': hashtags,
+      'mentions': mentions,
       'privacy': privacy.apiValue,
       'allowComments': allowComments,
       'allowDuet': allowDuet,
@@ -90,6 +93,27 @@ class PostData {
       if (taggedUserIds.isNotEmpty) 'taggedUsers': taggedUserIds,
       if (metadata != null) ...metadata!,
     };
+  }
+
+  factory PostData.fromJson(Map<String, dynamic> json) {
+    return PostData(
+      videoPath: json['videoPath'] ?? '',
+      thumbnailPath: json['thumbnailPath'],
+      caption: json['caption'] ?? '',
+      hashtags: List<String>.from(json['hashtags'] ?? []),
+      mentions: List<String>.from(json['mentions'] ?? []),
+      privacy: PrivacySetting.fromApiValue(json['privacy'] ?? 'public'),
+      allowComments: json['allowComments'] ?? true,
+      allowDuet: json['allowDuet'] ?? true,
+      allowStitch: json['allowStitch'] ?? true,
+      soundId: json['soundId'],
+      location: json['location'],
+      scheduledAt: json['scheduledAt'] != null 
+          ? DateTime.parse(json['scheduledAt']) 
+          : null,
+      taggedUserIds: List<String>.from(json['taggedUsers'] ?? []),
+      metadata: json['metadata'],
+    );
   }
 }
 

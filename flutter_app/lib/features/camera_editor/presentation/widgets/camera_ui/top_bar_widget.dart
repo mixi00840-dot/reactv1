@@ -33,74 +33,83 @@ class TopBarWidget extends ConsumerWidget {
           ],
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Close button
-          _TopBarButton(
-            icon: Icons.close,
-            onTap: onClose,
-          ),
-          const Spacer(),
-          // Right side: Timer (if set) + More menu
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Timer display chip (TikTok-style)
-              if (timerSeconds != null && timerSeconds! > 0) ...[
-                GestureDetector(
-                  onTap: onTimerTap,
-                  child: Container(
-                    height: 32,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Iconsax.timer_1,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${timerSeconds}s',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black45,
-                                blurRadius: 4,
+      // ✅ FIXED: Use SafeArea to prevent overflow on narrow screens
+      child: SafeArea(
+        child: Row(
+          children: [
+            // Close button
+            _TopBarButton(
+              icon: Icons.close,
+              onTap: onClose,
+            ),
+            
+            // ✅ FIXED: Use Expanded instead of Spacer for flexible space
+            const Expanded(child: SizedBox.shrink()),
+            
+            // Right side: Timer (if set) + More menu
+            // ✅ FIXED: Wrap in Flexible to prevent overflow
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Timer display chip (TikTok-style)
+                  if (timerSeconds != null && timerSeconds! > 0) ...[
+                    Flexible(
+                      child: GestureDetector(
+                        onTap: onTimerTap,
+                        child: Container(
+                          height: 32,
+                          padding: const EdgeInsets.symmetric(horizontal: 10), // Reduced from 12
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Iconsax.timer_1,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4), // Reduced from 6
+                              Text(
+                                '${timerSeconds}s',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black45,
+                                      blurRadius: 4,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-              
-              // More menu button (⋮)
-              if (onMoreMenu != null)
-                _TopBarButton(
-                  icon: Icons.more_vert,
-                  onTap: onMoreMenu!,
-                ),
-            ],
-          ),
-        ],
+                    const SizedBox(width: 8), // Reduced from 12
+                  ],
+                  
+                  // More menu button (⋮)
+                  if (onMoreMenu != null)
+                    _TopBarButton(
+                      icon: Icons.more_vert,
+                      onTap: onMoreMenu!,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
