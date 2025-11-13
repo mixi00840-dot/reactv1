@@ -12,17 +12,45 @@ const Redis = require('ioredis');
 
 class RedisCacheService {
   constructor() {
+    // Check if Redis is configured
+    const redisEnabled = process.env.REDIS_ENABLED !== 'false' && process.env.REDIS_HOST;
+    
+    if (!redisEnabled) {
+      console.log('ℹ️  Redis disabled - Running without cache (set REDIS_HOST to enable)');
+      this.client = null;
+      this.isConnected = false;
+      this.disabled = true;
+      
+      // Initialize TTL configurations even when disabled
+      this.TTL = {
+        FEED: 300,           // 5 minutes
+        USER_PROFILE: 1800,  // 30 minutes
+        TRENDING: 300,       // 5 minutes
+        VIDEO_META: 3600,    // 1 hour
+        USER_PREFS: 3600,    // 1 hour
+        SEARCH: 600          // 10 minutes
+      };
+      return;
+    }
+
+    this.disabled = false;
     const redisConfig = {
-      host: process.env.REDIS_HOST || '10.167.115.67',
+      host: process.env.REDIS_HOST,
       port: process.env.REDIS_PORT || 6379,
       password: process.env.REDIS_PASSWORD || undefined,
       retryStrategy: (times) => {
+        // Stop retrying after 5 attempts
+        if (times > 5) {
+          console.log('⚠️  Redis max retry attempts reached, running without cache');
+          return null;
+        }
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
       maxRetriesPerRequest: 3,
       enableReadyCheck: true,
-      lazyConnect: true
+      lazyConnect: true,
+      connectTimeout: 10000 // 10 second connection timeout
     };
 
     // TLS for Redis Cloud
@@ -40,7 +68,10 @@ class RedisCacheService {
     });
 
     this.client.on('error', (err) => {
-      console.error('❌ Redis error:', err.message);
+      // Only log the error, don't spam logs
+      if (!err.message.includes('ETIMEDOUT') && !err.message.includes('ECONNREFUSED')) {
+        console.error('❌ Redis error:', err.message);
+      }
       this.isConnected = false;
     });
 
@@ -51,7 +82,8 @@ class RedisCacheService {
 
     // Connect
     this.client.connect().catch(err => {
-      console.error('❌ Redis connection failed:', err.message);
+      console.log('⚠️  Redis connection failed, running without cache:', err.message);
+      this.disabled = true;
     });
 
     // TTL configurations (in seconds)
@@ -69,7 +101,7 @@ class RedisCacheService {
    * Check if Redis is available
    */
   isAvailable() {
-    return this.isConnected;
+    return !this.disabled && this.isConnected;
   }
 
   /**
@@ -84,7 +116,7 @@ class RedisCacheService {
    */
   async get(key) {
     try {
-      if (!this.isConnected) return null;
+      if (this.disabled || !this.isConnected) return null;
       
       const value = await this.client.get(key);
       if (!value) return null;
@@ -101,7 +133,7 @@ class RedisCacheService {
    */
   async set(key, value, ttl = 3600) {
     try {
-      if (!this.isConnected) return false;
+      if (this.disabled || !this.isConnected) return false;
       
       const serialized = JSON.stringify(value);
       await this.client.setex(key, ttl, serialized);
@@ -117,7 +149,7 @@ class RedisCacheService {
    */
   async del(key) {
     try {
-      if (!this.isConnected) return false;
+      if (this.disabled || !this.isConnected) return false;
       
       await this.client.del(key);
       return true;
@@ -132,7 +164,7 @@ class RedisCacheService {
    */
   async delPattern(pattern) {
     try {
-      if (!this.isConnected) return false;
+      if (this.disabled || !this.isConnected) return false;
       
       const keys = await this.client.keys(pattern);
       if (keys.length > 0) {

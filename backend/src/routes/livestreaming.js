@@ -121,9 +121,101 @@ router.post('/start', verifyJWT, async (req, res) => {
     const { title, description, provider = 'agora', isPrivate = false, type = 'solo' } = req.body;
     const hostId = req.userId;
 
-    // Generate unique stream ID
+    // Generate unique stream ID and channel ID
     const streamId = `stream_${Date.now()}_${hostId}`;
+    const channelId = `channel_${Date.now()}`;
     const chatRoomId = `chat_${streamId}`;
+
+    // Generate Agora/ZegoCloud token if provider is Agora or ZegoCloud
+    let token = '';
+    let config = {};
+    
+    // Try to get credentials from database first, fallback to env vars
+    const dbProvider = await StreamProvider.findOne({ name: provider, enabled: true });
+    
+    if (provider === 'agora') {
+      const crypto = require('crypto');
+      // Priority: Database config > Environment variables
+      const appId = dbProvider?.config?.appId || process.env.AGORA_APP_ID;
+      const appCertificate = dbProvider?.config?.appCertificate || process.env.AGORA_APP_CERTIFICATE;
+      
+      if (appId) {
+        // Generate token using agora-access-token package
+        try {
+          const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
+          
+          if (appCertificate) {
+            const currentTimestamp = Math.floor(Date.now() / 1000);
+            const privilegeExpiredTs = currentTimestamp + 3600; // 1 hour
+            
+            token = RtcTokenBuilder.buildTokenWithUid(
+              appId,
+              appCertificate,
+              channelId,
+              0, // UID (0 = auto-assign)
+              RtcRole.PUBLISHER,
+              privilegeExpiredTs
+            );
+          }
+        } catch (err) {
+          console.error('Error generating Agora token:', err);
+        }
+        
+        config = {
+          appId,
+          channelId,
+          token,
+          role: 'broadcaster',
+        };
+      }
+    } else if (provider === 'zegocloud') {
+      // Priority: Database config > Environment variables
+      const appID = dbProvider?.config?.appId || parseInt(process.env.ZEGO_APP_ID || '0');
+      const serverSecret = dbProvider?.config?.serverSecret || process.env.ZEGO_SERVER_SECRET;
+      
+      if (appID) {
+        // Generate ZegoCloud token
+        try {
+          if (serverSecret) {
+            const crypto = require('crypto');
+            const nonce = crypto.randomBytes(16).toString('base64');
+            const timestamp = Math.floor(Date.now() / 1000);
+            const expiration = timestamp + 7200; // 2 hours
+            
+            const payload = {
+              app_id: appID,
+              user_id: streamId,
+              nonce: nonce,
+              ctime: timestamp,
+              expire: expiration,
+            };
+            
+            const payloadString = JSON.stringify(payload);
+            const signature = crypto
+              .createHmac('sha256', serverSecret)
+              .update(payloadString)
+              .digest('hex');
+            
+            const tokenData = {
+              ...payload,
+              signature: signature,
+            };
+            
+            token = Buffer.from(JSON.stringify(tokenData)).toString('base64');
+          }
+        } catch (err) {
+          console.error('Error generating ZegoCloud token:', err);
+        }
+        
+        config = {
+          appID,
+          appSign: serverSecret ? token : '',
+          channelId,
+          token,
+          role: 'host',
+        };
+      }
+    }
 
     // Create livestream
     const livestream = new Livestream({
@@ -132,10 +224,12 @@ router.post('/start', verifyJWT, async (req, res) => {
       description,
       provider,
       streamId,
+      channelId,
       chatRoomId,
       type,
       isPrivate,
-      status: 'starting'
+      status: 'starting',
+      config
     });
 
     await livestream.save();
@@ -151,6 +245,9 @@ router.post('/start', verifyJWT, async (req, res) => {
       data: {
         livestream,
         streamId,
+        channelId,
+        token,
+        config,
         chatRoomId
       },
       message: 'Livestream started successfully'

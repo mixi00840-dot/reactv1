@@ -123,6 +123,67 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/products/featured
+ * @desc    Get featured products
+ * @access  Public
+ */
+router.get('/featured', async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    // Get featured products or fallback to recent active products
+    const products = await Product.find({ 
+      isActive: true,
+      $or: [
+        { isFeatured: true },
+        { isActive: true } // Fallback if no featured flag
+      ]
+    })
+    .populate('store', 'name logo')
+    .populate('category', 'name')
+    .limit(parseInt(limit))
+    .sort({ isFeatured: -1, createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: { products }
+    });
+
+  } catch (error) {
+    console.error('Featured products error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching product'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/products/featured/best-sellers
+ * @desc    Get best-selling products
+ * @access  Public
+ */
+router.get('/featured/best-sellers', async (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+
+    const products = await Product.getBestSellers(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { products }
+    });
+
+  } catch (error) {
+    console.error('Get best sellers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching best sellers'
+    });
+  }
+});
+
+/**
  * @route   GET /api/products/:id
  * @desc    Get product by ID
  * @access  Public
@@ -291,31 +352,6 @@ router.delete('/:id', verifyJWT, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting product'
-    });
-  }
-});
-
-/**
- * @route   GET /api/products/best-sellers
- * @desc    Get best-selling products
- * @access  Public
- */
-router.get('/featured/best-sellers', async (req, res) => {
-  try {
-    const { limit = 20 } = req.query;
-
-    const products = await Product.getBestSellers(parseInt(limit));
-
-    res.json({
-      success: true,
-      data: { products }
-    });
-
-  } catch (error) {
-    console.error('Get best sellers error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching best sellers'
     });
   }
 });
