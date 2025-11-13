@@ -185,5 +185,128 @@ router.put('/:key', verifyJWT, requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * MongoDB-style API Keys Routes (for backward compatibility with dashboard)
+ * These routes map to the main settings routes but provide a structure
+ * that matches the admin dashboard expectations
+ */
+
+/**
+ * @route   GET /api/settings/mongodb/api-keys
+ * @desc    Get all API keys settings (all integrations)
+ * @access  Admin
+ */
+router.get('/mongodb/api-keys', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    // Get all settings in api-keys category
+    const settings = await Setting.find({ 
+      $or: [
+        { category: 'api-keys' },
+        { key: { $regex: /^(stripe|paypal|zegoCloud|agora|webrtc|cloudinary|aws|firebase|socketIO|redis|vertexAI|openai|fcm|twilio|sendgrid|mailgun|googleAnalytics|mixpanel|segment|google|facebook|apple|twitter|github|i18n|contentful|sanity|strapi)\./} }
+      ]
+    });
+
+    // Transform to dashboard structure
+    const settingsObject = {
+      stripe: {},
+      paypal: {},
+      zegoCloud: {},
+      agora: {},
+      webrtc: {},
+      cloudinary: {},
+      aws: {},
+      firebase: {},
+      socketIO: {},
+      redis: {},
+      vertexAI: {},
+      openai: {},
+      fcm: {},
+      twilio: {},
+      sendgrid: {},
+      mailgun: {},
+      googleAnalytics: {},
+      mixpanel: {},
+      segment: {},
+      google: {},
+      facebook: {},
+      apple: {},
+      twitter: {},
+      github: {},
+      i18n: {},
+      contentful: {},
+      sanity: {},
+      strapi: {}
+    };
+    
+    settings.forEach(setting => {
+      const parts = setting.key.split('.');
+      if (parts.length >= 2) {
+        const [service, ...keyParts] = parts;
+        const key = keyParts.join('.');
+        if (settingsObject[service]) {
+          settingsObject[service][key] = setting.value;
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      settings: settingsObject
+    });
+
+  } catch (error) {
+    console.error('Get API keys settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching API keys settings'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/settings/mongodb/api-keys/:section
+ * @desc    Update API keys for a specific section (streaming, payment, etc.)
+ * @access  Admin
+ */
+router.put('/mongodb/api-keys/:section', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { section } = req.params;
+    const { settings: sectionSettings } = req.body;
+
+    if (!sectionSettings || typeof sectionSettings !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'Settings object is required'
+      });
+    }
+
+    const updates = [];
+    
+    for (const [key, value] of Object.entries(sectionSettings)) {
+      const fullKey = `${section}.${key}`;
+      const result = await Setting.setSetting(fullKey, value, {
+        type: typeof value,
+        category: 'api-keys',
+        updatedBy: req.userId
+      });
+      updates.push(result);
+    }
+    
+    res.json({
+      success: true,
+      data: { settings: updates },
+      message: `${section} API keys updated successfully`
+    });
+
+  } catch (error) {
+    console.error('Update API keys error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating API keys',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
 
