@@ -61,7 +61,7 @@ const Transactions = () => {
         ...(searchTerm && { search: searchTerm })
       };
 
-      const response = await api.get('/api/admin/mongodb/wallets/transactions', { params });
+      const response = await api.get('/admin/wallets/transactions', { params });
       const txns = response?.data?.data?.transactions || response?.data?.transactions || [];
       setTransactions(Array.isArray(txns) ? txns : []);
       const pagination = response?.data?.data?.pagination || response?.data?.pagination || {};
@@ -77,7 +77,7 @@ const Transactions = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/api/admin/mongodb/wallets/transactions/stats');
+      const response = await api.get('/admin/wallets/transactions/stats');
       setStats(response?.data?.data || {
         totalTransactions: 0,
         totalVolume: 0,

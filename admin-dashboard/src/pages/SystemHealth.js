@@ -117,7 +117,7 @@ function SystemHealth() {
 
   const fetchSystemHealth = async () => {
     try {
-      const response = await api.get('/api/admin/system/health');
+      const response = await api.get('/admin/system/health');
       if (response.data?.success) {
         setSystemHealth(response.data.data);
       }
@@ -139,7 +139,7 @@ function SystemHealth() {
 
   const fetchMetrics = async () => {
     try {
-      const response = await api.get(`/api/admin/system/metrics?timeRange=${timeRange}`);
+      const response = await api.get(`/admin/system/metrics?timeRange=${timeRange}`);
       if (response.data?.success) {
         setMetrics(response.data.data);
       }
@@ -157,7 +157,7 @@ function SystemHealth() {
 
   const fetchLogs = async () => {
     try {
-      const response = await api.get(`/api/admin/system/logs?severity=${logFilter}&limit=50`);
+      const response = await api.get(`/admin/system/logs?severity=${logFilter}&limit=50`);
       if (response.data?.success) {
         setLogs(response.data.data || []);
       }

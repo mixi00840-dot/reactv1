@@ -56,7 +56,7 @@ apiClient.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        const response = await axios.post(`${API_BASE_URL}/auth/mongodb/refresh`, {
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refreshToken,
         });
 
@@ -82,137 +82,31 @@ apiClient.interceptors.response.use(
 const httpMethods = {
   get: async (url, config = {}) => {
     // Remove leading /api if present
-    let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
-    
-    // Don't modify URLs that already have /database/, /health, /mongodb in them
-    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
-      const response = await apiClient.get(cleanUrl, config);
-      return response.data;
-    }
-    
-    // Add /mongodb suffix to route group (except health and auth)
-    const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
-      'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
-      'search', 'settings', 'analytics', 'moderation', 'recommendations', 'trending', 'sounds', 
-      'stores', 'feed', 'reports', 'metrics'];
-    
-    for (const group of routeGroups) {
-      if (cleanUrl.startsWith(`/${group}/`) || cleanUrl === `/${group}`) {
-        if (!cleanUrl.includes('/mongodb')) {
-          cleanUrl = cleanUrl.replace(`/${group}`, `/${group}/mongodb`);
-        }
-        break;
-      }
-    }
-    
+    const cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
     const response = await apiClient.get(cleanUrl, config);
     return response.data;
   },
   
   post: async (url, data = {}, config = {}) => {
-    let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
-    
-    // Don't modify URLs that already have /database/, /health, /mongodb in them
-    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
-      const response = await apiClient.post(cleanUrl, data, config);
-      return response.data;
-    }
-    
-    const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
-      'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
-      'search', 'settings', 'analytics', 'moderation', 'recommendations', 'trending', 'sounds', 
-      'stores', 'feed', 'reports', 'metrics'];
-    
-    for (const group of routeGroups) {
-      if (cleanUrl.startsWith(`/${group}/`) || cleanUrl === `/${group}`) {
-        if (!cleanUrl.includes('/mongodb')) {
-          cleanUrl = cleanUrl.replace(`/${group}`, `/${group}/mongodb`);
-        }
-        break;
-      }
-    }
-    
+    const cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
     const response = await apiClient.post(cleanUrl, data, config);
     return response.data;
   },
   
   put: async (url, data = {}, config = {}) => {
-    let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
-    
-    // Don't modify URLs that already have /database/, /health, /mongodb in them
-    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
-      const response = await apiClient.put(cleanUrl, data, config);
-      return response.data;
-    }
-    
-    const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
-      'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
-      'search', 'settings', 'analytics', 'moderation', 'recommendations', 'trending', 'sounds', 
-      'stores', 'feed', 'reports', 'metrics'];
-    
-    for (const group of routeGroups) {
-      if (cleanUrl.startsWith(`/${group}/`) || cleanUrl === `/${group}`) {
-        if (!cleanUrl.includes('/mongodb')) {
-          cleanUrl = cleanUrl.replace(`/${group}`, `/${group}/mongodb`);
-        }
-        break;
-      }
-    }
-    
+    const cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
     const response = await apiClient.put(cleanUrl, data, config);
     return response.data;
   },
   
   patch: async (url, data = {}, config = {}) => {
-    let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
-    
-    // Don't modify URLs that already have /database/, /health, /mongodb in them
-    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
-      const response = await apiClient.patch(cleanUrl, data, config);
-      return response.data;
-    }
-    
-    const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
-      'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
-      'search', 'settings', 'analytics', 'moderation', 'recommendations', 'trending', 'sounds', 
-      'stores', 'feed', 'reports', 'metrics'];
-    
-    for (const group of routeGroups) {
-      if (cleanUrl.startsWith(`/${group}/`) || cleanUrl === `/${group}`) {
-        if (!cleanUrl.includes('/mongodb')) {
-          cleanUrl = cleanUrl.replace(`/${group}`, `/${group}/mongodb`);
-        }
-        break;
-      }
-    }
-    
+    const cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
     const response = await apiClient.patch(cleanUrl, data, config);
     return response.data;
   },
   
   delete: async (url, config = {}) => {
-    let cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
-    
-    // Don't modify URLs that already have /database/, /health, /mongodb in them
-    if (cleanUrl.includes('/database/') || cleanUrl.includes('/health') || cleanUrl.includes('/mongodb')) {
-      const response = await apiClient.delete(cleanUrl, config);
-      return response.data;
-    }
-    
-    const routeGroups = ['admin', 'users', 'content', 'stories', 'notifications', 'messaging', 
-      'products', 'orders', 'wallets', 'gifts', 'streaming', 'comments', 'cart', 'categories', 
-      'search', 'settings', 'analytics', 'moderation', 'recommendations', 'trending', 'sounds', 
-      'stores', 'feed', 'reports', 'metrics'];
-    
-    for (const group of routeGroups) {
-      if (cleanUrl.startsWith(`/${group}/`) || cleanUrl === `/${group}`) {
-        if (!cleanUrl.includes('/mongodb')) {
-          cleanUrl = cleanUrl.replace(`/${group}`, `/${group}/mongodb`);
-        }
-        break;
-      }
-    }
-    
+    const cleanUrl = url.startsWith('/api/') ? url.substring(4) : url;
     const response = await apiClient.delete(cleanUrl, config);
     return response.data;
   }
@@ -267,17 +161,17 @@ const mongoAPI = {
   
   users: {
     getAll: async (params = {}) => {
-      const response = await apiClient.get('/admin/mongodb/users', { params });
+      const response = await apiClient.get('/admin/users', { params });
       return response.data;
     },
 
     getById: async (userId) => {
-      const response = await apiClient.get(`/users/mongodb/${userId}`);
+      const response = await apiClient.get(`/users/${userId}`);
       return response.data;
     },
 
     updateStatus: async (userId, status, reason) => {
-      const response = await apiClient.put(`/admin/mongodb/users/${userId}/status`, {
+      const response = await apiClient.put(`/admin/users/${userId}/status`, {
         status,
         reason,
       });
@@ -285,7 +179,7 @@ const mongoAPI = {
     },
 
     search: async (query) => {
-      const response = await apiClient.get('/users/mongodb/search', {
+      const response = await apiClient.get('/users/search', {
         params: { q: query },
       });
       return response.data;
@@ -298,29 +192,29 @@ const mongoAPI = {
   
   content: {
     getAll: async (params = {}) => {
-      const response = await apiClient.get('/content/mongodb', { params });
+      const response = await apiClient.get('/content', { params });
       return response.data;
     },
 
     getById: async (contentId) => {
-      const response = await apiClient.get(`/content/mongodb/${contentId}`);
+      const response = await apiClient.get(`/content/${contentId}`);
       return response.data;
     },
 
     approve: async (contentId) => {
-      const response = await apiClient.post(`/moderation/mongodb/content/${contentId}/approve`);
+      const response = await apiClient.post(`/moderation/content/${contentId}/approve`);
       return response.data;
     },
 
     reject: async (contentId, reason) => {
-      const response = await apiClient.post(`/moderation/mongodb/content/${contentId}/reject`, {
+      const response = await apiClient.post(`/moderation/content/${contentId}/reject`, {
         reason,
       });
       return response.data;
     },
 
     delete: async (contentId) => {
-      const response = await apiClient.delete(`/content/mongodb/${contentId}`);
+      const response = await apiClient.delete(`/content/${contentId}`);
       return response.data;
     },
   },
@@ -331,17 +225,17 @@ const mongoAPI = {
   
   products: {
     getAll: async (params = {}) => {
-      const response = await apiClient.get('/products/mongodb', { params });
+      const response = await apiClient.get('/products', { params });
       return response.data;
     },
 
     getById: async (productId) => {
-      const response = await apiClient.get(`/products/mongodb/${productId}`);
+      const response = await apiClient.get(`/products/${productId}`);
       return response.data;
     },
 
     approve: async (productId) => {
-      const response = await apiClient.put(`/products/mongodb/${productId}`, {
+      const response = await apiClient.put(`/products/${productId}`, {
         status: 'active',
         isPublished: true,
       });
@@ -349,7 +243,7 @@ const mongoAPI = {
     },
 
     reject: async (productId, reason) => {
-      const response = await apiClient.put(`/products/mongodb/${productId}`, {
+      const response = await apiClient.put(`/products/${productId}`, {
         status: 'rejected',
         rejectionReason: reason,
       });
@@ -392,12 +286,12 @@ const mongoAPI = {
   
   stores: {
     getAll: async (params = {}) => {
-      const response = await apiClient.get('/stores/mongodb', { params });
+      const response = await apiClient.get('/stores', { params });
       return response.data;
     },
 
     getById: async (storeId) => {
-      const response = await apiClient.get(`/stores/mongodb/${storeId}`);
+      const response = await apiClient.get(`/stores/${storeId}`);
       return response.data;
     },
   },
@@ -408,7 +302,7 @@ const mongoAPI = {
   
   sellerApplications: {
     getPending: async (params = {}) => {
-      const response = await apiClient.get('/admin/mongodb/seller-applications', {
+      const response = await apiClient.get('/admin/seller-applications', {
         params: { status: 'pending', ...params },
       });
       return response.data;
@@ -416,14 +310,14 @@ const mongoAPI = {
 
     approve: async (applicationId) => {
       const response = await apiClient.post(
-        `/admin/mongodb/seller-applications/${applicationId}/approve`
+        `/admin/seller-applications/${applicationId}/approve`
       );
       return response.data;
     },
 
     reject: async (applicationId, reason) => {
       const response = await apiClient.post(
-        `/admin/mongodb/seller-applications/${applicationId}/reject`,
+        `/admin/seller-applications/${applicationId}/reject`,
         { reason }
       );
       return response.data;
@@ -436,22 +330,22 @@ const mongoAPI = {
   
   wallets: {
     getWallet: async (userId) => {
-      const response = await apiClient.get(`/wallets/mongodb/${userId}`);
+      const response = await apiClient.get(`/wallets/${userId}`);
       return response.data;
     },
 
     getBalance: async (userId) => {
-      const response = await apiClient.get(`/wallets/mongodb/${userId}/balance`);
+      const response = await apiClient.get(`/wallets/${userId}/balance`);
       return response.data;
     },
 
     getTransactions: async (userId, params = {}) => {
-      const response = await apiClient.get(`/wallets/mongodb/${userId}/transactions`, { params });
+      const response = await apiClient.get(`/wallets/${userId}/transactions`, { params });
       return response.data;
     },
 
     addFunds: async (userId, amount, description) => {
-      const response = await apiClient.post(`/wallets/mongodb/${userId}/add-funds`, {
+      const response = await apiClient.post(`/wallets/${userId}/add-funds`, {
         amount,
         description,
       });
@@ -465,22 +359,22 @@ const mongoAPI = {
   
   analytics: {
     getDashboard: async (params = {}) => {
-      const response = await apiClient.get('/admin/mongodb/dashboard', { params });
+      const response = await apiClient.get('/admin/dashboard', { params });
       return response.data;
     },
 
     getOverview: async (params = {}) => {
-      const response = await apiClient.get('/analytics/mongodb/overview', { params });
+      const response = await apiClient.get('/analytics/overview', { params });
       return response.data;
     },
 
     getContentAnalytics: async (contentId) => {
       if (contentId) {
-        const response = await apiClient.get(`/analytics/mongodb/content/${contentId}`);
+        const response = await apiClient.get(`/analytics/content/${contentId}`);
         return response.data;
       } else {
         // Get all content analytics
-        const response = await apiClient.get('/analytics/mongodb/content');
+        const response = await apiClient.get('/analytics/content');
         return response.data;
       }
     },
@@ -492,17 +386,17 @@ const mongoAPI = {
   
   moderation: {
     getQueue: async (params = {}) => {
-      const response = await apiClient.get('/moderation/mongodb/queue', { params });
+      const response = await apiClient.get('/moderation/queue', { params });
       return response.data;
     },
 
     getReports: async (params = {}) => {
-      const response = await apiClient.get('/moderation/mongodb/reports', { params });
+      const response = await apiClient.get('/moderation/reports', { params });
       return response.data;
     },
 
     resolveReport: async (reportId, actionTaken, reviewNotes) => {
-      const response = await apiClient.put(`/moderation/mongodb/reports/${reportId}/resolve`, {
+      const response = await apiClient.put(`/moderation/reports/${reportId}/resolve`, {
         actionTaken,
         reviewNotes,
       });
@@ -516,12 +410,12 @@ const mongoAPI = {
   
   stories: {
     getAll: async (params = {}) => {
-      const response = await apiClient.get('/stories/mongodb', { params });
+      const response = await apiClient.get('/stories', { params });
       return response.data;
     },
 
     delete: async (storyId) => {
-      const response = await apiClient.delete(`/stories/mongodb/${storyId}`);
+      const response = await apiClient.delete(`/stories/${storyId}`);
       return response.data;
     },
   },
@@ -532,7 +426,7 @@ const mongoAPI = {
   
   notifications: {
     getAll: async (params = {}) => {
-      const response = await apiClient.get('/notifications/mongodb', { params });
+      const response = await apiClient.get('/notifications', { params });
       return response.data;
     },
   },
@@ -543,7 +437,7 @@ const mongoAPI = {
   
   settings: {
     getAll: async (params = {}) => {
-      const response = await apiClient.get('/settings/mongodb', { params });
+      const response = await apiClient.get('/settings', { params });
       return response.data;
     },
 

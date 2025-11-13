@@ -74,7 +74,7 @@ function SellerApplications() {
         ...(filters.search && { search: filters.search })
       };
 
-      const response = await api.get('/api/admin/mongodb/seller-applications', { params });
+      const response = await api.get('/admin/seller-applications', { params });
       const list = response?.data?.data?.applications || response?.data?.applications || [];
       setApplications(Array.isArray(list) ? list : []);
       
@@ -102,7 +102,7 @@ function SellerApplications() {
 
   const handleApprove = async (appId) => {
     try {
-      await api.post(`/api/admin/mongodb/seller-applications/${appId}/approve`);
+      await api.post(`/admin/seller-applications/${appId}/approve`);
       toast.success('Application approved successfully');
       fetchApplications();
       setActionDialog({ open: false, type: '', app: null });
@@ -119,7 +119,7 @@ function SellerApplications() {
     }
 
     try {
-      await api.post(`/api/admin/mongodb/seller-applications/${appId}/reject`, {
+      await api.post(`/admin/seller-applications/${appId}/reject`, {
         reason: rejectionReason
       });
       toast.success('Application rejected successfully');

@@ -50,7 +50,7 @@ function UserActivitiesTab({ userId }) {
   const fetchActivities = async () => {
     setLoading(true);
     try {
-      const response = await mongoAPI.get(`/api/admin/mongodb/users/${userId}/activities`, {
+      const response = await mongoAPI.get(`/admin/users/${userId}/activities`, {
         params: {
           type: filterType !== 'all' ? filterType : undefined,
           days: dateRange,

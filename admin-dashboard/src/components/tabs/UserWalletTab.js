@@ -71,7 +71,7 @@ function UserWalletTab({ userId }) {
       }
 
       // Fetch transactions - use admin route for better access
-      const transResponse = await mongoAPI.get(`/api/admin/mongodb/wallets/${userId}/transactions`);
+      const transResponse = await mongoAPI.get(`/admin/users/${userId}/wallet/transactions`);
       if (transResponse.success) {
         setTransactions(transResponse.data.transactions || []);
       }
