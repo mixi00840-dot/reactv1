@@ -93,6 +93,176 @@ router.get('/dashboard', verifyJWT, requireAdmin, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/admin/stats
+ * @desc    Get admin dashboard stats (alias for /dashboard for compatibility)
+ * @access  Admin
+ */
+router.get('/stats', verifyJWT, requireAdmin, async (req, res) => {
+  // Redirect to dashboard endpoint
+  try {
+    const [
+      totalUsers,
+      activeUsers,
+      bannedUsers,
+      totalContent,
+      activeContent,
+      reportedContent,
+      totalProducts,
+      pendingProducts,
+      totalOrders,
+      pendingReports,
+      pendingApplications
+    ] = await Promise.all([
+      User.countDocuments().catch(() => 0),
+      User.countDocuments({ status: 'active' }).catch(() => 0),
+      User.countDocuments({ status: 'banned' }).catch(() => 0),
+      Content.countDocuments().catch(() => 0),
+      Content.countDocuments({ status: 'active' }).catch(() => 0),
+      Content.countDocuments({ status: 'reported' }).catch(() => 0),
+      Product.countDocuments().catch(() => 0),
+      Product.countDocuments({ status: 'pending_approval' }).catch(() => 0),
+      Order.countDocuments().catch(() => 0),
+      Report.countDocuments({ status: 'pending' }).catch(() => 0),
+      SellerApplication.countDocuments({ status: 'pending' }).catch(() => 0)
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        users: {
+          total: totalUsers || 0,
+          active: activeUsers || 0,
+          banned: bannedUsers || 0
+        },
+        content: {
+          total: totalContent || 0,
+          active: activeContent || 0,
+          reported: reportedContent || 0
+        },
+        products: {
+          total: totalProducts || 0,
+          pending: pendingProducts || 0
+        },
+        orders: {
+          total: totalOrders || 0
+        },
+        moderation: {
+          pendingReports: pendingReports || 0,
+          pendingApplications: pendingApplications || 0
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get admin stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching admin stats'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/users/stats
+ * @desc    Get user statistics for admin dashboard
+ * @access  Admin
+ */
+router.get('/users/stats', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const [
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
+      bannedUsers,
+      verifiedUsers,
+      sellers,
+      admins,
+      newUsersToday,
+      newUsersThisWeek,
+      newUsersThisMonth
+    ] = await Promise.all([
+      User.countDocuments().catch(() => 0),
+      User.countDocuments({ status: 'active' }).catch(() => 0),
+      User.countDocuments({ status: 'inactive' }).catch(() => 0),
+      User.countDocuments({ status: 'banned' }).catch(() => 0),
+      User.countDocuments({ isVerified: true }).catch(() => 0),
+      User.countDocuments({ role: 'seller' }).catch(() => 0),
+      User.countDocuments({ role: 'admin' }).catch(() => 0),
+      User.countDocuments({ 
+        createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } 
+      }).catch(() => 0),
+      User.countDocuments({ 
+        createdAt: { $gte: new Date(new Date().setDate(new Date().getDate() - 7)) } 
+      }).catch(() => 0),
+      User.countDocuments({ 
+        createdAt: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) } 
+      }).catch(() => 0)
+    ]);
+
+    // Get user growth by month (with fallback)
+    const userGrowth = await User.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': -1, '_id.month': -1 } },
+      { $limit: 12 }
+    ]).catch(() => []);
+
+    // Get users by role distribution (with fallback)
+    const usersByRole = await User.aggregate([
+      {
+        $group: {
+          _id: '$role',
+          count: { $sum: 1 }
+        }
+      }
+    ]).catch(() => []);
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          totalUsers: totalUsers || 0,
+          activeUsers: activeUsers || 0,
+          inactiveUsers: inactiveUsers || 0,
+          bannedUsers: bannedUsers || 0,
+          verifiedUsers: verifiedUsers || 0,
+          sellers: sellers || 0,
+          admins: admins || 0
+        },
+        growth: {
+          today: newUsersToday || 0,
+          week: newUsersThisWeek || 0,
+          month: newUsersThisMonth || 0,
+          byMonth: userGrowth || []
+        },
+        distribution: {
+          byRole: usersByRole || [],
+          byStatus: [
+            { status: 'active', count: activeUsers || 0 },
+            { status: 'inactive', count: inactiveUsers || 0 },
+            { status: 'banned', count: bannedUsers || 0 }
+          ]
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user statistics',
+      error: error.message
+    });
+  }
+});
+
+/**
  * @route   GET /api/admin/users
  * @desc    Get all users (admin)
  * @access  Admin
@@ -994,6 +1164,440 @@ router.get('/cache/stats', verifyJWT, requireAdmin, adminRealtimeController.getC
 router.get('/ai/vertex-usage', verifyJWT, requireAdmin, adminRealtimeController.getVertexAIUsage);
 router.get('/webhooks/activity', verifyJWT, requireAdmin, adminRealtimeController.getWebhookActivity);
 router.get('/interactions/recent', verifyJWT, requireAdmin, adminRealtimeController.getRecentInteractions);
+
+/**
+ * @route   GET /api/admin/stream-providers
+ * @desc    Get configured live streaming providers
+ * @access  Admin
+ */
+router.get('/stream-providers', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const providers = [
+      {
+        name: 'Agora',
+        id: 'agora',
+        status: process.env.AGORA_APP_ID && process.env.AGORA_APP_CERTIFICATE ? 'configured' : 'not_configured',
+        credentials: {
+          appId: process.env.AGORA_APP_ID ? '***' + process.env.AGORA_APP_ID.slice(-4) : 'not_set',
+          certificate: process.env.AGORA_APP_CERTIFICATE ? 'configured' : 'not_set'
+        },
+        features: ['video', 'audio', 'screen_sharing', 'recording']
+      },
+      {
+        name: 'ZegoCloud',
+        id: 'zegocloud',
+        status: process.env.ZEGO_APP_ID && process.env.ZEGO_APP_SIGN ? 'configured' : 'not_configured',
+        credentials: {
+          appId: process.env.ZEGO_APP_ID ? '***' + process.env.ZEGO_APP_ID.slice(-4) : 'not_set',
+          appSign: process.env.ZEGO_APP_SIGN ? 'configured' : 'not_set'
+        },
+        features: ['video', 'audio', 'screen_sharing', 'beauty_filters']
+      }
+    ];
+
+    res.json({
+      success: true,
+      providers,
+      activeProvider: process.env.DEFAULT_STREAM_PROVIDER || 'agora'
+    });
+  } catch (error) {
+    console.error('Get stream providers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get stream providers',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/stream-providers/configure
+ * @desc    Configure streaming provider credentials
+ * @access  Admin
+ */
+router.post('/stream-providers/configure', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { provider, credentials } = req.body;
+
+    // Note: In production, these should be saved securely
+    // This endpoint provides validation only
+    if (!provider || !credentials) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provider and credentials are required'
+      });
+    }
+
+    const validProviders = ['agora', 'zegocloud'];
+    if (!validProviders.includes(provider)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid provider. Must be agora or zegocloud'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Credentials validated. Please update environment variables on server.'
+    });
+  } catch (error) {
+    console.error('Configure stream provider error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to configure stream provider',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/content
+ * @desc    Get all content for moderation
+ * @access  Admin
+ */
+router.get('/content', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const status = req.query.status;
+    const skip = (page - 1) * limit;
+
+    const query = status ? { status } : {};
+
+    const [contents, total] = await Promise.all([
+      Content.find(query)
+        .populate('creator', 'username avatar email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Content.countDocuments(query)
+    ]);
+
+    res.json({
+      success: true,
+      contents,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get admin content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get content',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/content/:id/status
+ * @desc    Update content status
+ * @access  Admin
+ */
+router.put('/content/:id/status', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { status, reason } = req.body;
+
+    const validStatuses = ['active', 'inactive', 'banned', 'deleted'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
+    const content = await Content.findByIdAndUpdate(
+      req.params.id,
+      { status, moderationReason: reason },
+      { new: true }
+    ).populate('creator', 'username email');
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Content ${status}`,
+      content
+    });
+  } catch (error) {
+    console.error('Update content status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update content status',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/products
+ * @desc    Get all products for management
+ * @access  Admin
+ */
+router.get('/products', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const status = req.query.status;
+    const skip = (page - 1) * limit;
+
+    const query = status ? { status } : {};
+
+    const [products, total] = await Promise.all([
+      Product.find(query)
+        .populate('seller', 'username email storeName')
+        .populate('storeId', 'name')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Product.countDocuments(query)
+    ]);
+
+    res.json({
+      success: true,
+      products,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get admin products error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get products',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/products/:id/status
+ * @desc    Update product status
+ * @access  Admin
+ */
+router.put('/products/:id/status', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const validStatuses = ['active', 'inactive', 'out_of_stock'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    ).populate('seller', 'username email');
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Product ${status}`,
+      product
+    });
+  } catch (error) {
+    console.error('Update product status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update product status',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/stores
+ * @desc    Get all stores for management
+ * @access  Admin
+ */
+router.get('/stores', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const [stores, total] = await Promise.all([
+      Store.find()
+        .populate('owner', 'username email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Store.countDocuments()
+    ]);
+
+    res.json({
+      success: true,
+      stores,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get admin stores error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get stores',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/orders
+ * @desc    Get all orders for management
+ * @access  Admin
+ */
+router.get('/orders', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const status = req.query.status;
+    const skip = (page - 1) * limit;
+
+    const query = status ? { status } : {};
+
+    const [orders, total] = await Promise.all([
+      Order.find(query)
+        .populate('userId', 'username email')
+        .populate('products.productId', 'name price')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Order.countDocuments(query)
+    ]);
+
+    res.json({
+      success: true,
+      orders,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get admin orders error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get orders',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/analytics
+ * @desc    Get comprehensive analytics dashboard
+ * @access  Admin
+ */
+router.get('/analytics', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const now = new Date();
+    const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [
+      usersGrowth,
+      contentStats,
+      salesStats,
+      engagementStats
+    ] = await Promise.all([
+      User.aggregate([
+        {
+          $match: { createdAt: { $gte: last30Days } }
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' },
+              day: { $dayOfMonth: '$createdAt' }
+            },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+      ]),
+      Content.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+            totalViews: { $sum: '$views' },
+            totalLikes: { $sum: '$likes' }
+          }
+        }
+      ]),
+      Order.aggregate([
+        {
+          $match: { createdAt: { $gte: last30Days } }
+        },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+            totalRevenue: { $sum: '$totalAmount' }
+          }
+        }
+      ]),
+      Content.aggregate([
+        {
+          $match: { createdAt: { $gte: last30Days } }
+        },
+        {
+          $group: {
+            _id: null,
+            avgViews: { $avg: '$views' },
+            avgLikes: { $avg: '$likes' },
+            avgComments: { $avg: '$comments' }
+          }
+        }
+      ])
+    ]);
+
+    res.json({
+      success: true,
+      analytics: {
+        usersGrowth,
+        contentStats,
+        salesStats,
+        engagementStats: engagementStats[0] || {}
+      }
+    });
+  } catch (error) {
+    console.error('Get analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get analytics',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;
 

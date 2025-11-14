@@ -54,8 +54,14 @@ app.use(cors({
       console.log('✅ CORS allowed:', origin);
       callback(null, true);
     } else {
-      console.log('⚠️  CORS not in allowlist (allowing anyway):', origin);
-      callback(null, true); // Allow for now
+      const strict = String(process.env.CORS_STRICT || '').toLowerCase() === 'true';
+      if (strict) {
+        console.log('⛔ CORS blocked (strict mode):', origin);
+        callback(new Error('Origin not allowed by CORS'));
+      } else {
+        console.log('⚠️  CORS not in allowlist (allowing anyway):', origin);
+        callback(null, true);
+      }
     }
   },
   credentials: true,
@@ -66,15 +72,30 @@ app.use(cors({
 
 app.options('*', cors());
 
-// Rate limiting
+// Security headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
+// Rate limiting (global)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX || '100'),
   message: 'Too many requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false
 });
 app.use('/api', limiter);
+
+// Rate limiting (auth endpoints stricter)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX || '30'),
+  message: 'Too many auth attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/auth', authLimiter);
 
 // Body parsing
 app.use(express.json({ limit: '50mb' }));
@@ -131,7 +152,8 @@ console.log('\n🔄 Loading API routes...\n');
 // Authentication
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
-console.log('✅ /api/auth (Authentication)');
+app.use('/api/auth/mongodb', authRoutes); // Compatibility for legacy dashboard client
+console.log('✅ /api/auth (Authentication) + /api/auth/mongodb (Legacy Compatibility)');
 
 // Users
 const usersRoutes = require('./routes/users');
@@ -148,11 +170,30 @@ const adminUsersRoutes = require('./routes/admin/users');
 app.use('/api/admin/users', adminUsersRoutes);
 console.log('✅ /api/admin/users (Admin User Management)');
 
+// Database Monitoring (Admin)
+try {
+  const databaseRoutes = require('./routes/database');
+  app.use('/api/admin/database', databaseRoutes);
+  console.log('✅ /api/database (Database Monitoring)');
+} catch (error) {
+  console.warn('⚠️  Database routes skipped:', error.message);
+}
+
+// Banners
+try {
+  const bannersRoutes = require('./routes/banners');
+  app.use('/api/banners', bannersRoutes);
+  console.log('✅ /api/banners');
+} catch (error) {
+  console.warn('⚠️  Banners routes skipped:', error.message);
+}
+
 // Content (Videos/Posts)
 try {
   const contentRoutes = require('./routes/content');
   app.use('/api/content', contentRoutes);
-  console.log('✅ /api/content (Videos/Posts)');
+  app.use('/api/posts', contentRoutes); // Alias for compatibility
+  console.log('✅ /api/content (Videos/Posts) + /api/posts (alias)');
 } catch (error) {
   console.warn('⚠️  Content routes skipped:', error.message);
 }
@@ -197,7 +238,8 @@ try {
 try {
   const walletsRoutes = require('./routes/wallets');
   app.use('/api/wallets', walletsRoutes);
-  console.log('✅ /api/wallets');
+  app.use('/api/wallet', walletsRoutes); // Alias for singular form
+  console.log('✅ /api/wallets + /api/wallet (alias)');
 } catch (error) {
   console.warn('⚠️  Wallets routes skipped:', error.message);
 }
@@ -209,6 +251,24 @@ try {
   console.log('✅ /api/gifts');
 } catch (error) {
   console.warn('⚠️  Gifts routes skipped:', error.message);
+}
+
+// Coins
+try {
+  const coinsRoutes = require('./routes/coins');
+  app.use('/api/coins', coinsRoutes);
+  console.log('✅ /api/coins');
+} catch (error) {
+  console.warn('⚠️  Coins routes skipped:', error.message);
+}
+
+// Livestreaming
+try {
+  const livestreamingRoutes = require('./routes/livestreaming');
+  app.use('/api/live', livestreamingRoutes);
+  console.log('✅ /api/live (Livestreaming)');
+} catch (error) {
+  console.warn('⚠️  Livestreaming routes skipped:', error.message);
 }
 
 // Products
@@ -371,6 +431,15 @@ try {
   console.log('✅ /api/settings');
 } catch (error) {
   console.warn('⚠️  Settings routes skipped:', error.message);
+}
+
+// Explorer (Admin)
+try {
+  const explorerRoutes = require('./routes/explorer');
+  app.use('/api/admin/explorer', explorerRoutes);
+  console.log('✅ /api/admin/explorer (Explorer Management)');
+} catch (error) {
+  console.warn('⚠️  Explorer routes skipped:', error.message);
 }
 
 // Recommendations

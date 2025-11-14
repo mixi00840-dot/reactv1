@@ -123,6 +123,65 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/products/search
+ * @desc    Search products by query
+ * @access  Public
+ */
+router.get('/search', async (req, res) => {
+  try {
+    const { q, category, minPrice, maxPrice, page = 1, limit = 20 } = req.query;
+    
+    if (!q) {
+      return res.status(400).json({ error: 'Search query (q) is required' });
+    }
+
+    const query = {
+      $or: [
+        { name: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { tags: { $in: [new RegExp(q, 'i')] } }
+      ]
+    };
+
+    if (category) {
+      query.category = category;
+    }
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const products = await Product.find(query)
+      .populate('seller', 'username fullName avatar isVerified')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Product.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        products,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / parseInt(limit))
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error searching products:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * @route   GET /api/products/featured
  * @desc    Get featured products
  * @access  Public

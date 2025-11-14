@@ -97,13 +97,17 @@ const disconnectMongoDB = async () => {
 /**
  * Get MongoDB connection status
  */
-const getConnectionStatus = () => ({
-  isConnected,
-  readyState: mongoose.connection.readyState,
-  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
-  host: mongoose.connection.host,
-  database: mongoose.connection.name,
-});
+const getConnectionStatus = () => {
+  // Use actual mongoose readyState instead of local variable
+  // readyState: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+  const readyState = mongoose.connection.readyState;
+  return {
+    isConnected: readyState === 1, // Only true when actually connected
+    readyState: readyState,
+    host: mongoose.connection.host,
+    database: mongoose.connection.name,
+  };
+};
 
 module.exports = {
   connectMongoDB,

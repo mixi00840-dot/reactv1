@@ -9,7 +9,7 @@ const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 // ===========================
 
 // Get all coin packages
-router.get('/admin/coins/packages', verifyJWT, requireAdmin, async (req, res) => {
+router.get(['/admin/coins/packages', '/admin/coin-packages'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { status, page = 1, limit = 20, sortBy = 'sortOrder' } = req.query;
     
@@ -43,7 +43,7 @@ router.get('/admin/coins/packages', verifyJWT, requireAdmin, async (req, res) =>
 });
 
 // Get coin package statistics
-router.get('/admin/coins/stats', verifyJWT, requireAdmin, async (req, res) => {
+router.get(['/admin/coins/stats', '/admin/coin-packages/stats'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const [packageStats, transactionStats] = await Promise.all([
       CoinPackage.aggregate([
@@ -120,7 +120,7 @@ router.get('/admin/coins/stats', verifyJWT, requireAdmin, async (req, res) => {
 });
 
 // Create coin package
-router.post('/admin/coins/packages', verifyJWT, requireAdmin, async (req, res) => {
+router.post(['/admin/coins/packages', '/admin/coin-packages'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { 
       name, 
@@ -174,7 +174,7 @@ router.post('/admin/coins/packages', verifyJWT, requireAdmin, async (req, res) =
 });
 
 // Update coin package
-router.put('/admin/coins/packages/:id', verifyJWT, requireAdmin, async (req, res) => {
+router.put(['/admin/coins/packages/:id', '/admin/coin-packages/:id'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { 
       name, 
@@ -233,7 +233,7 @@ router.put('/admin/coins/packages/:id', verifyJWT, requireAdmin, async (req, res
 });
 
 // Delete coin package
-router.delete('/admin/coins/packages/:id', verifyJWT, requireAdmin, async (req, res) => {
+router.delete(['/admin/coins/packages/:id', '/admin/coin-packages/:id'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const coinPackage = await CoinPackage.findById(req.params.id);
     
@@ -268,7 +268,7 @@ router.delete('/admin/coins/packages/:id', verifyJWT, requireAdmin, async (req, 
 });
 
 // Toggle package status
-router.patch('/admin/coins/packages/:id/toggle', verifyJWT, requireAdmin, async (req, res) => {
+router.patch(['/admin/coins/packages/:id/toggle', '/admin/coin-packages/:id/toggle'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const coinPackage = await CoinPackage.findById(req.params.id);
     
@@ -291,7 +291,7 @@ router.patch('/admin/coins/packages/:id/toggle', verifyJWT, requireAdmin, async 
 });
 
 // Get coin transactions
-router.get('/admin/coins/transactions', verifyJWT, requireAdmin, async (req, res) => {
+router.get(['/admin/coins/transactions', '/admin/coin-packages/transactions'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { userId, status, page = 1, limit = 20 } = req.query;
     
@@ -330,12 +330,30 @@ router.get('/admin/coins/transactions', verifyJWT, requireAdmin, async (req, res
 // ===========================
 
 // Get active coin packages (public)
+// Backward-compatible path (old): /api/coins/coins/packages
 router.get('/coins/packages', async (req, res) => {
   try {
     const packages = await CoinPackage.find({ isActive: true })
       .sort('sortOrder -coins')
       .select('-purchaseCount -createdAt -updatedAt');
     
+    res.json({
+      success: true,
+      packages
+    });
+  } catch (error) {
+    console.error('Error fetching coin packages:', error);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+});
+
+// New flattened path: /api/coins/packages
+router.get('/packages', async (req, res) => {
+  try {
+    const packages = await CoinPackage.find({ isActive: true })
+      .sort('sortOrder -coins')
+      .select('-purchaseCount -createdAt -updatedAt');
+
     res.json({
       success: true,
       packages

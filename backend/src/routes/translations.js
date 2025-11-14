@@ -44,4 +44,19 @@ router.put('/:key/languages/:languageCode', adminOnly, setLanguageTranslation);
 router.post('/:key/languages/:languageCode/verify', adminOnly, verifyTranslation);
 router.post('/:key/auto-translate', adminOnly, autoTranslate);
 
+// Legacy compatibility – allow body-provided key
+router.post('/auto-translate', adminOnly, (req, res) => {
+  const { key } = req.body || {};
+
+  if (!key) {
+    return res.status(400).json({
+      success: false,
+      message: 'Translation key is required for auto-translate'
+    });
+  }
+
+  req.params = { ...(req.params || {}), key };
+  return autoTranslate(req, res);
+});
+
 module.exports = router;

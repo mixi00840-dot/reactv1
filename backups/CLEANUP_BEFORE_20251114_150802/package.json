@@ -1,0 +1,29 @@
+{
+  "name": "mixillo-app",
+  "version": "1.0.0",
+  "description": "Mixillo TikTok-style app with backend, dashboard, and Flutter app",
+  "scripts": {
+    "build": "cd backend && npm install",
+    "start": "cd backend && npm start",
+    "start:original": "cd backend && npm start",
+    "dev": "cd backend && npm run dev"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "mixillo",
+    "tiktok-clone",
+    "social-media",
+    "video-sharing",
+    "e-commerce"
+  ],
+  "author": "mixi00840-dot",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.9.2"
+  },
+  "dependencies": {
+    "axios": "^1.13.2"
+  }
+}

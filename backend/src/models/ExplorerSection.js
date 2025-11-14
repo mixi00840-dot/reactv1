@@ -8,7 +8,16 @@ const ExplorerSectionSchema = new mongoose.Schema({
   
   type: {
     type: String,
-    enum: ['trending', 'category', 'curated', 'personalized'],
+    enum: [
+      'trending',
+      'category',
+      'featured',
+      'curated',
+      'personalized',
+      'for-you',
+      'new',
+      'popular'
+    ],
     required: true
   },
   
@@ -20,6 +29,16 @@ const ExplorerSectionSchema = new mongoose.Schema({
   }],
   
   sortOrder: {
+    type: Number,
+    default: 0
+  },
+
+  maxItems: {
+    type: Number,
+    default: 20
+  },
+
+  views: {
     type: Number,
     default: 0
   },

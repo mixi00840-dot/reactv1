@@ -80,6 +80,215 @@ router.get('/overview', verifyJWT, requireAdmin, async (req, res) => {
   }
 });
 
+router.get('/storage', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Content = require('../models/Content');
+    const Story = require('../models/Story');
+    const Sound = require('../models/Sound');
+    const UploadSession = require('../models/UploadSession');
+
+    const MB = 1024 * 1024;
+    const fallbackSizes = {
+      video: 150 * MB,
+      image: 4 * MB,
+      live: 250 * MB,
+      text: 0.5 * MB
+    };
+
+    const [
+      contentAggregation,
+      storyAggregation,
+      audioAggregation,
+      uploadAggregation
+    ] = await Promise.all([
+      Content.aggregate([
+        {
+          $match: {
+            isDeleted: { $ne: true },
+            status: { $ne: 'removed' }
+          }
+        },
+        {
+          $project: {
+            type: '$type',
+            qualityBytes: {
+              $reduce: {
+                input: { $ifNull: ['$qualities', []] },
+                initialValue: 0,
+                in: {
+                  $add: ['$$value', { $ifNull: ['$$this.size', 0] }]
+                }
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            type: 1,
+            sizeBytes: {
+              $cond: [
+                { $gt: ['$qualityBytes', 0] },
+                '$qualityBytes',
+                {
+                  $switch: {
+                    branches: [
+                      { case: { $eq: ['$type', 'video'] }, then: fallbackSizes.video },
+                      { case: { $eq: ['$type', 'image'] }, then: fallbackSizes.image },
+                      { case: { $eq: ['$type', 'live'] }, then: fallbackSizes.live }
+                    ],
+                    default: fallbackSizes.text
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: '$type',
+            totalSize: { $sum: '$sizeBytes' },
+            count: { $sum: 1 }
+          }
+        }
+      ]),
+      Story.aggregate([
+        {
+          $group: {
+            _id: '$type',
+            count: { $sum: 1 },
+            totalDuration: { $sum: { $ifNull: ['$duration', 0] } }
+          }
+        }
+      ]),
+      Sound.aggregate([
+        {
+          $match: { status: { $ne: 'removed' } }
+        },
+        {
+          $project: {
+            duration: { $ifNull: ['$duration', 0] },
+            estimatedSize: {
+              $multiply: [{ $ifNull: ['$duration', 0] }, 24000] // ~192kbps
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalSize: { $sum: '$estimatedSize' },
+            count: { $sum: 1 }
+          }
+        }
+      ]),
+      UploadSession.aggregate([
+        {
+          $match: {
+            fileSize: { $gt: 0 }
+          }
+        },
+        {
+          $group: {
+            _id: '$status',
+            totalSize: { $sum: '$fileSize' },
+            count: { $sum: 1 }
+          }
+        }
+      ])
+    ]);
+
+    const contentMap = contentAggregation.reduce((acc, doc) => {
+      acc[doc._id || 'other'] = {
+        size: doc.totalSize || 0,
+        count: doc.count || 0
+      };
+      return acc;
+    }, {});
+
+    const storyMap = storyAggregation.reduce((acc, doc) => {
+      acc[doc._id || 'other'] = {
+        count: doc.count || 0,
+        duration: doc.totalDuration || 0
+      };
+      return acc;
+    }, {});
+
+    const audioStats = audioAggregation[0] || { totalSize: 0, count: 0 };
+
+    const uploadMap = uploadAggregation.reduce((acc, doc) => {
+      acc[doc._id || 'other'] = {
+        size: doc.totalSize || 0,
+        count: doc.count || 0
+      };
+      return acc;
+    }, {});
+
+    const storyImageCount = storyMap.image?.count || 0;
+    const storyVideoCount = storyMap.video?.count || 0;
+    const storyImageSize = storyImageCount * (2 * MB);
+    const storyVideoSize = (storyMap.video?.duration || 0) * (0.5 * MB); // ~0.5MB per second
+
+    const videoCount = (contentMap.video?.count || 0) + storyVideoCount;
+    const videoSize = (contentMap.video?.size || 0) + storyVideoSize;
+
+    const imageCount = (contentMap.image?.count || 0) + storyImageCount;
+    const imageSize = (contentMap.image?.size || 0) + storyImageSize;
+
+    const audioCount = audioStats.count || 0;
+    const audioSize = audioStats.totalSize || 0;
+
+    const otherContentCount = (contentMap.text?.count || 0) + (contentMap.live?.count || 0);
+    const otherContentSize = (contentMap.text?.size || 0) + (contentMap.live?.size || 0);
+
+    const orphanUploadCount = (uploadMap.pending?.count || 0) + (uploadMap.failed?.count || 0);
+    const orphanUploadSize = (uploadMap.pending?.size || 0) + (uploadMap.failed?.size || 0);
+
+    const otherCount = otherContentCount + orphanUploadCount;
+    const otherSize = otherContentSize + orphanUploadSize;
+
+    const totalSize = videoSize + imageSize + audioSize + otherSize;
+    const totalFiles = videoCount + imageCount + audioCount + otherCount;
+
+    const originalUploadSize = uploadMap.completed?.size || 0;
+    const compressedSize = videoSize + imageSize + audioSize;
+    const savedSize = Math.max(originalUploadSize - compressedSize, 0);
+    const compressionRatio = originalUploadSize > 0
+      ? savedSize / originalUploadSize
+      : 0;
+
+    res.json({
+      success: true,
+      totalSize,
+      totalFiles,
+      videoSize,
+      videoCount,
+      imageSize,
+      imageCount,
+      audioSize,
+      audioCount,
+      otherSize,
+      otherCount,
+      compressionStats: {
+        originalSize: originalUploadSize,
+        compressedSize,
+        savedSize,
+        compressionRatio
+      },
+      breakdown: {
+        content: contentMap,
+        stories: storyMap,
+        uploads: uploadMap
+      }
+    });
+  } catch (error) {
+    console.error('Get storage analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating storage analytics',
+      error: error.message
+    });
+  }
+});
+
 /**
  * @route   GET /api/analytics/content
  * @desc    Get all content analytics

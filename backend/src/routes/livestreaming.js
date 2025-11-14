@@ -87,11 +87,36 @@ router.get('/providers', verifyJWT, async (req, res) => {
 });
 
 /**
- * @route   GET /api/streaming/livestreams
- * @desc    Get live streams
+ * @route   GET /api/live/livestreams (legacy)
+ * @desc    Get live streams (legacy nested path)
  * @access  Public
  */
 router.get('/livestreams', async (req, res) => {
+  try {
+    const { limit = 50 } = req.query;
+
+    const livestreams = await Livestream.getLiveStreams(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { livestreams }
+    });
+
+  } catch (error) {
+    console.error('Get livestreams error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching livestreams'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/live
+ * @desc    Get live streams (flattened path)
+ * @access  Public
+ */
+router.get('/', async (req, res) => {
   try {
     const { limit = 50 } = req.query;
 

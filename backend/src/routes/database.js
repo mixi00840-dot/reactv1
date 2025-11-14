@@ -8,7 +8,7 @@ const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 // ===========================
 
 // Get database statistics
-router.get('/admin/database/stats', verifyJWT, requireAdmin, async (req, res) => {
+router.get('/stats', verifyJWT, requireAdmin, async (req, res) => {
   try {
     const db = mongoose.connection.db;
     
@@ -52,7 +52,7 @@ router.get('/admin/database/stats', verifyJWT, requireAdmin, async (req, res) =>
 });
 
 // Get all collections with their stats
-router.get('/admin/database/collections', verifyJWT, requireAdmin, async (req, res) => {
+router.get('/collections', verifyJWT, requireAdmin, async (req, res) => {
   try {
     const db = mongoose.connection.db;
     
@@ -109,7 +109,7 @@ router.get('/admin/database/collections', verifyJWT, requireAdmin, async (req, r
 });
 
 // Get database performance metrics
-router.get('/admin/database/performance', verifyJWT, requireAdmin, async (req, res) => {
+router.get('/performance', verifyJWT, requireAdmin, async (req, res) => {
   try {
     const db = mongoose.connection.db;
     
@@ -168,7 +168,7 @@ router.get('/admin/database/performance', verifyJWT, requireAdmin, async (req, r
 });
 
 // Get slow queries (requires profiling to be enabled)
-router.get('/admin/database/slow-queries', verifyJWT, requireAdmin, async (req, res) => {
+router.get('/slow-queries', verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { limit = 10 } = req.query;
     const db = mongoose.connection.db;
@@ -224,7 +224,7 @@ router.get('/admin/database/slow-queries', verifyJWT, requireAdmin, async (req, 
 });
 
 // Enable database profiling (admin only)
-router.post('/admin/database/profiling', verifyJWT, requireAdmin, async (req, res) => {
+router.post('/profiling', verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { level = 1, slowMs = 100 } = req.body;
     const db = mongoose.connection.db;
@@ -255,7 +255,7 @@ router.post('/admin/database/profiling', verifyJWT, requireAdmin, async (req, re
 });
 
 // Get index information for a collection
-router.get('/admin/database/collections/:name/indexes', verifyJWT, requireAdmin, async (req, res) => {
+router.get('/collections/:name/indexes', verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { name } = req.params;
     const db = mongoose.connection.db;

@@ -22,7 +22,7 @@ router.get('/health', (req, res) => {
  * @desc    Get all currencies (active only for public, all for admin)
  * @access  Public
  */
-router.get('/', async (req, res) => {
+router.get(['/mongodb', '/'], async (req, res) => {
   try {
     const { includeInactive } = req.query;
     
@@ -53,7 +53,7 @@ router.get('/', async (req, res) => {
  * @desc    Get default currency
  * @access  Public
  */
-router.get('/default', async (req, res) => {
+router.get(['/mongodb/default', '/default'], async (req, res) => {
   try {
     const currency = await Currency.getDefault();
 
@@ -83,7 +83,7 @@ router.get('/default', async (req, res) => {
  * @desc    Get currency by code
  * @access  Public
  */
-router.get('/:code', async (req, res) => {
+router.get(['/mongodb/:code', '/:code'], async (req, res) => {
   try {
     const currency = await Currency.findOne({ 
       code: req.params.code.toUpperCase() 
@@ -115,7 +115,7 @@ router.get('/:code', async (req, res) => {
  * @desc    Create new currency
  * @access  Admin
  */
-router.post('/', verifyJWT, requireAdmin, async (req, res) => {
+router.post(['/mongodb', '/'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { 
       code, 
@@ -182,7 +182,7 @@ router.post('/', verifyJWT, requireAdmin, async (req, res) => {
  * @desc    Update currency
  * @access  Admin
  */
-router.put('/:code', verifyJWT, requireAdmin, async (req, res) => {
+router.put(['/mongodb/:code', '/:code'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { 
       name, 
@@ -242,7 +242,7 @@ router.put('/:code', verifyJWT, requireAdmin, async (req, res) => {
  * @desc    Delete currency
  * @access  Admin
  */
-router.delete('/:code', verifyJWT, requireAdmin, async (req, res) => {
+router.delete(['/mongodb/:code', '/:code'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const currency = await Currency.findOne({ 
       code: req.params.code.toUpperCase() 
@@ -283,7 +283,7 @@ router.delete('/:code', verifyJWT, requireAdmin, async (req, res) => {
  * @desc    Update exchange rate
  * @access  Admin
  */
-router.put('/:code/rate', verifyJWT, requireAdmin, async (req, res) => {
+router.put(['/mongodb/:code/rate', '/:code/rate'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { rate } = req.body;
 

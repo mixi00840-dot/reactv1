@@ -1,0 +1,407 @@
+{
+  "timestamp": "2025-11-05T18:02:25.489Z",
+  "backend": {
+    "endpoints": [
+      {
+        "endpoint": "/health",
+        "method": "GET",
+        "status": 200,
+        "success": true
+      }
+    ],
+    "errors": [
+      {
+        "endpoint": "/api/auth/health",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/auth/firebase/health",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/users/health",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/admin/health",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/auth/firebase/me",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/auth/firebase/verify-token",
+        "method": "POST",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/products",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/stores",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/categories",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/banners",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/cms",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/users/profile",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/users/stats",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/cart",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/orders",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/wallets",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/payments",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/admin/dashboard",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/admin/users",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/admin/users/search?q=test",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/analytics",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/moderation",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/metrics",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/transcode",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/trending",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/settings",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/content",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/stories",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/comments",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/feed",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/messaging",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/streaming/providers",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/streaming/livestreams",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/player",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/uploads",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/sounds",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/monetization",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/products",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/stores",
+        "method": "GET",
+        "status": 429
+      },
+      {
+        "endpoint": "/api/orders",
+        "method": "GET",
+        "status": 429
+      }
+    ],
+    "missing": [],
+    "warnings": []
+  },
+  "adminDashboard": {
+    "pages": [],
+    "errors": [
+      {
+        "page": "Dashboard",
+        "endpoint": "/api/admin/dashboard"
+      },
+      {
+        "page": "Users",
+        "endpoint": "/api/admin/users"
+      },
+      {
+        "page": "Analytics",
+        "endpoint": "/api/analytics"
+      },
+      {
+        "page": "Metrics",
+        "endpoint": "/api/metrics"
+      },
+      {
+        "page": "Moderation",
+        "endpoint": "/api/moderation"
+      },
+      {
+        "page": "Products",
+        "endpoint": "/api/products"
+      },
+      {
+        "page": "Stores",
+        "endpoint": "/api/stores"
+      },
+      {
+        "page": "Orders",
+        "endpoint": "/api/orders"
+      },
+      {
+        "page": "Payments",
+        "endpoint": "/api/payments"
+      },
+      {
+        "page": "Wallets",
+        "endpoint": "/api/wallets"
+      },
+      {
+        "page": "Monetization",
+        "endpoint": "/api/monetization"
+      },
+      {
+        "page": "Content",
+        "endpoint": "/api/content"
+      },
+      {
+        "page": "Comments",
+        "endpoint": "/api/comments"
+      },
+      {
+        "page": "Stories",
+        "endpoint": "/api/stories"
+      },
+      {
+        "page": "Settings",
+        "endpoint": "/api/settings"
+      },
+      {
+        "page": "Trending",
+        "endpoint": "/api/trending"
+      },
+      {
+        "page": "Transcode",
+        "endpoint": "/api/transcode"
+      },
+      {
+        "page": "Uploads",
+        "endpoint": "/api/uploads"
+      },
+      {
+        "page": "Sounds",
+        "endpoint": "/api/sounds"
+      },
+      {
+        "page": "Streaming",
+        "endpoint": "/api/streaming/providers"
+      },
+      {
+        "page": "Livestreams",
+        "endpoint": "/api/streaming/livestreams"
+      }
+    ],
+    "missing": [],
+    "warnings": []
+  },
+  "security": {
+    "vulnerabilities": [
+      {
+        "endpoint": "/api/admin/dashboard",
+        "issue": "Missing authentication",
+        "severity": "HIGH"
+      },
+      {
+        "endpoint": "/api/admin/users",
+        "issue": "Missing authentication",
+        "severity": "HIGH"
+      },
+      {
+        "endpoint": "/api/users/profile",
+        "issue": "Missing authentication",
+        "severity": "HIGH"
+      },
+      {
+        "endpoint": "/api/wallets",
+        "issue": "Missing authentication",
+        "severity": "HIGH"
+      }
+    ],
+    "recommendations": [],
+    "passed": [
+      "Rate limiting active",
+      "HTTPS enabled"
+    ]
+  },
+  "storage": {
+    "configured": true,
+    "issues": [],
+    "recommendations": [
+      "Test Socket.IO real-time features manually with active server"
+    ]
+  },
+  "thirdParty": {
+    "integrations": [
+      {
+        "name": "Firebase Admin",
+        "package": "firebase-admin",
+        "installed": true
+      },
+      {
+        "name": "Google Cloud Firestore",
+        "package": "@google-cloud/firestore",
+        "installed": true
+      },
+      {
+        "name": "AWS S3",
+        "package": "@aws-sdk/client-s3",
+        "installed": true
+      },
+      {
+        "name": "Cloudinary",
+        "package": "cloudinary",
+        "installed": true
+      },
+      {
+        "name": "Socket.IO",
+        "package": "socket.io",
+        "installed": true
+      },
+      {
+        "name": "Redis (ioredis)",
+        "package": "ioredis",
+        "installed": true
+      },
+      {
+        "name": "BullMQ",
+        "package": "bullmq",
+        "installed": true
+      },
+      {
+        "name": "Nodemailer",
+        "package": "nodemailer",
+        "installed": true
+      }
+    ],
+    "missing": [],
+    "issues": [
+      "Environment variable FIREBASE_WEB_API_KEY not set",
+      "Environment variable GOOGLE_APPLICATION_CREDENTIALS not set"
+    ]
+  },
+  "workflows": {
+    "tested": [
+      "User Registration - Manual test required",
+      "Product Listing - PASSED",
+      "Order Access - PASSED"
+    ],
+    "failed": [
+      {
+        "workflow": "Admin Dashboard Access",
+        "error": "Status: 429"
+      }
+    ],
+    "missing": []
+  }
+}

@@ -3,6 +3,45 @@ const router = express.Router();
 const Setting = require('../models/Setting');
 const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
+const SECTION_KEYS = [
+  'general',
+  'email',
+  'payment',
+  'moderation',
+  'features',
+  'notifications',
+  'security',
+  'api-keys'
+];
+
+const buildDashboardSections = (settings) => {
+  const baseStructure = SECTION_KEYS.reduce((acc, key) => {
+    acc[key] = {};
+    return acc;
+  }, {});
+
+  settings.forEach(setting => {
+    const parts = setting.key.split('.');
+    if (parts.length === 2) {
+      const [section, key] = parts;
+      if (baseStructure[section]) {
+        baseStructure[section][key] = setting.value;
+      }
+    }
+  });
+
+  return baseStructure;
+};
+
+const respondWithSettings = (res, settings) => {
+  const payload = Array.isArray(settings) ? settings : [settings];
+  return res.json({
+    success: true,
+    data: { settings: payload },
+    sections: buildDashboardSections(payload)
+  });
+};
+
 /**
  * Settings Routes - MongoDB Implementation
  */
@@ -45,6 +84,35 @@ router.get('/public', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/settings/mongodb/public
+ * @desc    Compatibility endpoint for legacy dashboard public settings
+ * @access  Public
+ */
+router.get('/mongodb/public', async (req, res) => {
+  try {
+    const settings = await Setting.find({ isPublic: true });
+
+    const settingsObject = {};
+    settings.forEach(setting => {
+      settingsObject[setting.key] = setting.value;
+    });
+
+    res.json({
+      success: true,
+      data: { settings: settingsObject },
+      legacy: true
+    });
+
+  } catch (error) {
+    console.error('Get public settings (legacy) error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching settings'
+    });
+  }
+});
+
+/**
  * @route   GET /api/settings
  * @desc    Get all settings (including private)
  * @access  Admin
@@ -56,37 +124,9 @@ router.get('/', verifyJWT, requireAdmin, async (req, res) => {
     let query = {};
     if (category) query.category = category;
 
-    const settings = await Setting.find(query)
-      .populate('updatedBy', 'username fullName');
+    const settings = await Setting.find(query).populate('updatedBy', 'username fullName');
 
-    // Transform to section-based structure for dashboard
-    const sectioned = {
-      general: {},
-      email: {},
-      payment: {},
-      moderation: {},
-      features: {},
-      notifications: {},
-      security: {},
-      'api-keys': {}
-    };
-    
-    settings.forEach(setting => {
-      const parts = setting.key.split('.');
-      if (parts.length === 2) {
-        const [section, key] = parts;
-        if (sectioned[section]) {
-          sectioned[section][key] = setting.value;
-        }
-      }
-    });
-
-    res.json({
-      success: true,
-      data: { settings },
-      sections: sectioned // Include structured version for dashboard
-    });
-
+    respondWithSettings(res, settings);
   } catch (error) {
     console.error('Get settings error:', error);
     res.status(500).json({
@@ -97,90 +137,28 @@ router.get('/', verifyJWT, requireAdmin, async (req, res) => {
 });
 
 /**
- * @route   GET /api/settings/:key
- * @desc    Get setting by key
+ * @route   GET /api/settings/mongodb
+ * @desc    Legacy endpoint used by dashboard for MongoDB settings
  * @access  Admin
  */
-router.get('/:key', verifyJWT, requireAdmin, async (req, res) => {
+router.get('/mongodb', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const setting = await Setting.findOne({ key: req.params.key });
+    const { category } = req.query || {};
+    const query = category ? { category } : {};
 
-    if (!setting) {
-      return res.status(404).json({
-        success: false,
-        message: 'Setting not found'
-      });
-    }
+    const settings = await Setting.find(query).populate('updatedBy', 'username fullName');
 
     res.json({
       success: true,
-      data: { setting }
+      data: { settings },
+      sections: buildDashboardSections(settings),
+      legacy: true
     });
-
   } catch (error) {
-    console.error('Get setting error:', error);
+    console.error('Get settings (legacy) error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching setting'
-    });
-  }
-});
-
-/**
- * @route   PUT /api/settings/:key
- * @desc    Update setting
- * @access  Admin
- */
-router.put('/:key', verifyJWT, requireAdmin, async (req, res) => {
-  try {
-    // Check if key looks like a section (general, email, payment, etc.)
-    const sectionKeys = ['general', 'email', 'payment', 'moderation', 'features', 'notifications', 'security', 'api-keys'];
-    
-    if (sectionKeys.includes(req.params.key) && req.body.settings) {
-      // Bulk update for section
-      const sectionData = req.body.settings;
-      const updates = [];
-      
-      for (const [settingKey, settingValue] of Object.entries(sectionData)) {
-        const fullKey = `${req.params.key}.${settingKey}`;
-        const result = await Setting.setSetting(fullKey, settingValue, {
-          type: typeof settingValue,
-          category: req.params.key,
-          updatedBy: req.userId
-        });
-        updates.push(result);
-      }
-      
-      return res.json({
-        success: true,
-        data: { settings: updates },
-        message: `${req.params.key} settings updated successfully`
-      });
-    }
-    
-    // Single key update
-    const { value, description, category, isPublic } = req.body;
-
-    const setting = await Setting.setSetting(req.params.key, value, {
-      type: typeof value,
-      category,
-      description,
-      isPublic,
-      updatedBy: req.userId
-    });
-
-    res.json({
-      success: true,
-      data: { setting },
-      message: 'Setting updated successfully'
-    });
-
-  } catch (error) {
-    console.error('Update setting error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating setting',
-      error: error.message
+      message: 'Error fetching settings'
     });
   }
 });
@@ -303,6 +281,142 @@ router.put('/mongodb/api-keys/:section', verifyJWT, requireAdmin, async (req, re
     res.status(500).json({
       success: false,
       message: 'Error updating API keys',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/settings/mongodb/:section
+ * @desc    Legacy endpoint for updating section-based settings
+ * @access  Admin
+ */
+router.put('/mongodb/:section', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { section } = req.params;
+    const { settings: sectionSettings } = req.body;
+
+    if (!SECTION_KEYS.includes(section) && !sectionSettings) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid settings payload'
+      });
+    }
+
+    if (sectionSettings && typeof sectionSettings === 'object') {
+      const updates = [];
+
+      for (const [key, value] of Object.entries(sectionSettings)) {
+        const fullKey = `${section}.${key}`;
+        const result = await Setting.setSetting(fullKey, value, {
+          type: typeof value,
+          category: section,
+          updatedBy: req.userId
+        });
+        updates.push(result);
+      }
+
+      return res.json({
+        success: true,
+        data: { settings: updates },
+        message: `${section} settings updated successfully`,
+        legacy: true
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: 'Settings object is required for legacy endpoint'
+    });
+  } catch (error) {
+    console.error('Update legacy settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating settings',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/settings/:key
+ * @desc    Get setting by key
+ * @access  Admin
+ */
+router.get('/:key', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const setting = await Setting.findOne({ key: req.params.key });
+
+    if (!setting) {
+      return res.status(404).json({
+        success: false,
+        message: 'Setting not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { setting }
+    });
+
+  } catch (error) {
+    console.error('Get setting error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching setting'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/settings/:key
+ * @desc    Update setting
+ * @access  Admin
+ */
+router.put('/:key', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    if (SECTION_KEYS.includes(req.params.key) && req.body.settings) {
+      const sectionData = req.body.settings;
+      const updates = [];
+
+      for (const [settingKey, settingValue] of Object.entries(sectionData)) {
+        const fullKey = `${req.params.key}.${settingKey}`;
+        const result = await Setting.setSetting(fullKey, settingValue, {
+          type: typeof settingValue,
+          category: req.params.key,
+          updatedBy: req.userId
+        });
+        updates.push(result);
+      }
+
+      return res.json({
+        success: true,
+        data: { settings: updates },
+        message: `${req.params.key} settings updated successfully`
+      });
+    }
+
+    const { value, description, category, isPublic } = req.body;
+
+    const setting = await Setting.setSetting(req.params.key, value, {
+      type: typeof value,
+      category,
+      description,
+      isPublic,
+      updatedBy: req.userId
+    });
+
+    res.json({
+      success: true,
+      data: { setting },
+      message: 'Setting updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update setting error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating setting',
       error: error.message
     });
   }

@@ -1,0 +1,13 @@
+{
+  "generated_at": "2025-11-14T13:37:45.554Z",
+  "socket_io": {
+    "status": "OK",
+    "connection": true,
+    "latency_ms": null,
+    "error": null,
+    "details": {
+      "endpoint_accessible": true,
+      "transport": "polling"
+    }
+  }
+}

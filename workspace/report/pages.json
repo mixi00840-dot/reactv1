@@ -1,0 +1,361 @@
+{
+  "generated_at": "2025-11-14T13:41:46.612Z",
+  "total_pages": 35,
+  "passed": 24,
+  "warnings": 11,
+  "failed": 0,
+  "pages": [
+    {
+      "name": "Login",
+      "ui_path": "/login",
+      "api_endpoint": null,
+      "status": "OK",
+      "critical": true,
+      "api_status": null,
+      "api_latency_ms": 0,
+      "error": "No API endpoint (static page)"
+    },
+    {
+      "name": "Dashboard",
+      "ui_path": "/dashboard",
+      "api_endpoint": "/admin/dashboard",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 841,
+      "error": null
+    },
+    {
+      "name": "Users List",
+      "ui_path": "/users",
+      "api_endpoint": "/admin/users",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 391,
+      "error": null
+    },
+    {
+      "name": "User Details",
+      "ui_path": "/users/:id",
+      "api_endpoint": "/admin/users/6907e305bd986387e937a67a",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 326,
+      "error": null
+    },
+    {
+      "name": "Sellers",
+      "ui_path": "/sellers",
+      "api_endpoint": "/admin/users?role=seller",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 226,
+      "error": null
+    },
+    {
+      "name": "Seller Applications",
+      "ui_path": "/seller-applications",
+      "api_endpoint": "/seller-applications",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 193,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Content",
+      "ui_path": "/content",
+      "api_endpoint": "/content/feed",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 233,
+      "error": null
+    },
+    {
+      "name": "Posts",
+      "ui_path": "/posts",
+      "api_endpoint": "/posts/feed",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 238,
+      "error": null
+    },
+    {
+      "name": "Stories",
+      "ui_path": "/stories",
+      "api_endpoint": "/stories",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 240,
+      "error": null
+    },
+    {
+      "name": "Comments",
+      "ui_path": "/comments",
+      "api_endpoint": "/comments/admin/all",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 248,
+      "error": null
+    },
+    {
+      "name": "Shares",
+      "ui_path": "/shares",
+      "api_endpoint": "/shares",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 194,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Products",
+      "ui_path": "/products",
+      "api_endpoint": "/products",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 208,
+      "error": null
+    },
+    {
+      "name": "Categories",
+      "ui_path": "/categories",
+      "api_endpoint": "/categories",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 207,
+      "error": null
+    },
+    {
+      "name": "Stores",
+      "ui_path": "/stores",
+      "api_endpoint": "/stores",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 259,
+      "error": null
+    },
+    {
+      "name": "Orders",
+      "ui_path": "/orders",
+      "api_endpoint": "/orders",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 303,
+      "error": null
+    },
+    {
+      "name": "Shipping Methods",
+      "ui_path": "/shipping-methods",
+      "api_endpoint": "/shipping-methods",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 237,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Wallets",
+      "ui_path": "/wallets",
+      "api_endpoint": "/admin/wallets",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 305,
+      "error": null
+    },
+    {
+      "name": "Transactions",
+      "ui_path": "/transactions",
+      "api_endpoint": "/wallets/6907e305bd986387e937a67a/transactions",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 276,
+      "error": null
+    },
+    {
+      "name": "Coin Packages",
+      "ui_path": "/coin-packages",
+      "api_endpoint": "/coins/packages",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 307,
+      "error": null
+    },
+    {
+      "name": "Live Streams",
+      "ui_path": "/live-streams",
+      "api_endpoint": "/live/livestreams",
+      "status": "OK",
+      "critical": true,
+      "api_status": 200,
+      "api_latency_ms": 307,
+      "error": null
+    },
+    {
+      "name": "Stream Providers",
+      "ui_path": "/stream-providers",
+      "api_endpoint": "/admin/stream-providers",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 194,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Gifts",
+      "ui_path": "/gifts",
+      "api_endpoint": "/gifts",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 205,
+      "error": null
+    },
+    {
+      "name": "Notifications",
+      "ui_path": "/notifications",
+      "api_endpoint": "/notifications",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 242,
+      "error": null
+    },
+    {
+      "name": "Reports",
+      "ui_path": "/reports",
+      "api_endpoint": "/reports",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 180,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Strikes",
+      "ui_path": "/strikes",
+      "api_endpoint": "/strikes",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 191,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Analytics",
+      "ui_path": "/analytics",
+      "api_endpoint": "/analytics/overview",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 223,
+      "error": null
+    },
+    {
+      "name": "Settings",
+      "ui_path": "/settings",
+      "api_endpoint": null,
+      "status": "OK",
+      "critical": false,
+      "api_status": null,
+      "api_latency_ms": 0,
+      "error": "No API endpoint (static page)"
+    },
+    {
+      "name": "Admin Users",
+      "ui_path": "/admin-users",
+      "api_endpoint": "/admin/users?role=admin",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 223,
+      "error": null
+    },
+    {
+      "name": "Banners",
+      "ui_path": "/banners",
+      "api_endpoint": "/banners",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 197,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Featured",
+      "ui_path": "/featured",
+      "api_endpoint": "/featured/admin/featured",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 246,
+      "error": null
+    },
+    {
+      "name": "Database Stats",
+      "ui_path": "/database/stats",
+      "api_endpoint": "/admin/database/stats",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 204,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Database Collections",
+      "ui_path": "/database/collections",
+      "api_endpoint": "/admin/database/collections",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 245,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Database Performance",
+      "ui_path": "/database/performance",
+      "api_endpoint": "/admin/database/performance",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 211,
+      "error": "API endpoint not found"
+    },
+    {
+      "name": "Cloudinary Config",
+      "ui_path": "/cloudinary/config",
+      "api_endpoint": "/admin/cloudinary/config",
+      "status": "OK",
+      "critical": false,
+      "api_status": 200,
+      "api_latency_ms": 302,
+      "error": null
+    },
+    {
+      "name": "API Health",
+      "ui_path": "/api-health",
+      "api_endpoint": "/health",
+      "status": "WARN",
+      "critical": false,
+      "api_status": 404,
+      "api_latency_ms": 202,
+      "error": "API endpoint not found"
+    }
+  ],
+  "overall_status": "WARN",
+  "pass_rate": 68.57142857142857
+}

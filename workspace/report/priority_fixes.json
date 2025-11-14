@@ -1,0 +1,278 @@
+{
+  "generated_at": "2025-11-14T14:07:58.062Z",
+  "p0_critical": [
+    {
+      "id": "P0-1",
+      "title": "Admin Users Stats API Returns 500 Error",
+      "severity": "P0",
+      "category": "API",
+      "status": "open",
+      "description": "GET /admin/users/stats returns 500 Internal Server Error after multiple retries",
+      "impact": "Blocks admin dashboard user statistics display",
+      "reproduction_steps": [
+        "Navigate to admin dashboard",
+        "View user statistics section",
+        "API call fails with 500 error"
+      ],
+      "suggested_fix": {
+        "approach": "Debug aggregation pipeline in getUsersStats controller",
+        "files_to_modify": [
+          "backend/src/controllers/adminController.js"
+        ],
+        "estimated_time": "30 minutes",
+        "risk_level": "low"
+      },
+      "rollback_plan": "Revert controller changes, fallback to basic user count"
+    },
+    {
+      "id": "P0-2",
+      "title": "Database Monitoring Endpoints Not Registered",
+      "severity": "P0",
+      "category": "API",
+      "status": "open",
+      "description": "3 database admin endpoints return 404",
+      "impact": "Cannot monitor production database health from admin panel",
+      "affected_endpoints": [
+        "/database/admin/database/stats",
+        "/database/admin/database/collections",
+        "/database/admin/database/performance"
+      ],
+      "reproduction_steps": [
+        "Access /admin/database/stats, /admin/database/collections, /admin/database/performance",
+        "All return 404 Not Found"
+      ],
+      "suggested_fix": {
+        "approach": "Register database routes in app.js: app.use('/api/admin/database', databaseRoutes)",
+        "files_to_modify": [
+          "backend/src/app.js",
+          "backend/src/routes/database.js"
+        ],
+        "estimated_time": "15 minutes",
+        "risk_level": "low",
+        "code_patch": "workspace/P0_FIXES/P0-2-register-database-routes.patch"
+      },
+      "rollback_plan": "Comment out route registration line in app.js"
+    },
+    {
+      "id": "P0-3",
+      "title": "31 Expected Database Collections Missing",
+      "severity": "P0",
+      "category": "Database",
+      "status": "open",
+      "description": "31 collections expected by models but not found in database",
+      "impact": "Features may fail when trying to access non-existent collections",
+      "missing_collections": [
+        "profiles",
+        "followers",
+        "followings",
+        "blockedusers",
+        "posts",
+        "productvariants",
+        "cartitems",
+        "wishlists",
+        "coins",
+        "liveparticipants"
+      ],
+      "reproduction_steps": [
+        "Check database for expected collections",
+        "Compare against model definitions"
+      ],
+      "suggested_fix": {
+        "approach": "Run database migration script to create missing collections with default indexes",
+        "files_to_modify": [
+          "backend/src/scripts/create-missing-collections.js"
+        ],
+        "estimated_time": "45 minutes",
+        "risk_level": "medium"
+      },
+      "rollback_plan": "Drop newly created collections if issues occur"
+    }
+  ],
+  "p1_high": [
+    {
+      "id": "P1-1",
+      "title": "Admin Stats Endpoint Returns 404",
+      "severity": "P1",
+      "category": "API",
+      "status": "open",
+      "description": "/admin/stats returns 404 but /admin/dashboard works",
+      "impact": "Some UI components may fail if using /admin/stats instead of /admin/dashboard",
+      "reproduction_steps": [
+        "GET /api/admin/stats",
+        "Receives 404"
+      ],
+      "suggested_fix": {
+        "approach": "Add route alias: router.get('/stats', getDashboard) in admin routes",
+        "files_to_modify": [
+          "backend/src/routes/admin.js"
+        ],
+        "estimated_time": "10 minutes",
+        "risk_level": "low",
+        "code_patch": "workspace/P0_FIXES/P1-1-admin-stats-alias.patch"
+      },
+      "rollback_plan": "Remove alias line"
+    },
+    {
+      "id": "P1-2",
+      "title": "Stream Providers Admin Endpoint Missing",
+      "severity": "P1",
+      "category": "API",
+      "status": "open",
+      "description": "/admin/stream-providers returns 404",
+      "impact": "Cannot manage Agora/ZegoCloud configuration from admin panel",
+      "reproduction_steps": [
+        "Navigate to stream providers page",
+        "API call fails"
+      ],
+      "suggested_fix": {
+        "approach": "Create stream providers admin route and controller",
+        "files_to_modify": [
+          "backend/src/routes/admin.js",
+          "backend/src/controllers/streamProviderController.js"
+        ],
+        "estimated_time": "30 minutes",
+        "risk_level": "low"
+      },
+      "rollback_plan": "Remove route from admin.js"
+    },
+    {
+      "id": "P1-3",
+      "title": "6 Collections Need Performance Indexes",
+      "severity": "P1",
+      "category": "Database",
+      "status": "open",
+      "description": "Collections missing createdAt/updatedAt indexes for sorting",
+      "impact": "Slow query performance on date-sorted lists",
+      "affected_collections": [
+        "strikes",
+        "carts",
+        "stores",
+        "wallets",
+        "users",
+        "sellerapplications"
+      ],
+      "reproduction_steps": [
+        "Query large datasets sorted by date",
+        "Performance degrades"
+      ],
+      "suggested_fix": {
+        "approach": "Run db.collection.createIndex({ createdAt: -1, updatedAt: -1 }) for each collection",
+        "files_to_modify": [
+          "backend/src/scripts/add-performance-indexes.js"
+        ],
+        "estimated_time": "20 minutes",
+        "risk_level": "low"
+      },
+      "rollback_plan": "Drop indexes: db.collection.dropIndex()"
+    },
+    {
+      "id": "P1-4",
+      "title": "10 Admin Management Endpoints Missing",
+      "severity": "P1",
+      "category": "API",
+      "status": "open",
+      "description": "Admin routes for content, products, stores, orders return 404",
+      "impact": "Admin cannot manage resources from centralized /admin/* routes",
+      "affected_endpoints": [
+        "/admin/content",
+        "/admin/stories",
+        "/admin/products",
+        "/admin/stores",
+        "/admin/orders",
+        "/admin/coins",
+        "/admin/gifts",
+        "/admin/livestreams",
+        "/admin/notifications",
+        "/admin/analytics"
+      ],
+      "reproduction_steps": [
+        "Access /admin/content, /admin/products, etc.",
+        "All return 404"
+      ],
+      "suggested_fix": {
+        "approach": "Register admin sub-routes OR update frontend to use correct paths",
+        "files_to_modify": [
+          "backend/src/routes/admin.js OR admin-dashboard/src/*"
+        ],
+        "estimated_time": "60 minutes",
+        "risk_level": "medium"
+      },
+      "rollback_plan": "Revert route changes"
+    }
+  ],
+  "p2_medium": [
+    {
+      "id": "P2-1",
+      "title": "Streaming Provider Credentials Not Configured",
+      "severity": "P2",
+      "category": "Configuration",
+      "status": "open",
+      "description": "Agora and ZegoCloud endpoints return 404 or credentials missing",
+      "impact": "Live streaming features may be unavailable",
+      "reproduction_steps": [
+        "Start live stream",
+        "Token generation may fail"
+      ],
+      "suggested_fix": {
+        "approach": "Add AGORA_APP_ID, AGORA_APP_CERTIFICATE, ZEGO_APP_ID to .env",
+        "files_to_modify": [
+          "backend/.env"
+        ],
+        "estimated_time": "15 minutes",
+        "risk_level": "low"
+      },
+      "rollback_plan": "Remove credentials from .env"
+    },
+    {
+      "id": "P2-2",
+      "title": "Auth Refresh Token Endpoint Returns 401",
+      "severity": "P2",
+      "category": "API",
+      "status": "open",
+      "description": "/auth/refresh returns 401 (may need refresh token in body)",
+      "impact": "Token refresh may not work, users forced to re-login",
+      "reproduction_steps": [
+        "POST /api/auth/refresh",
+        "Returns 401 without refresh token"
+      ],
+      "suggested_fix": {
+        "approach": "Update auth controller to accept refresh token in body OR document required format",
+        "files_to_modify": [
+          "backend/src/controllers/authController.js",
+          "docs/API.md"
+        ],
+        "estimated_time": "20 minutes",
+        "risk_level": "low"
+      },
+      "rollback_plan": "Revert controller changes"
+    },
+    {
+      "id": "P2-3",
+      "title": "Very Low Production Data Volume",
+      "severity": "P2",
+      "category": "Data",
+      "status": "open",
+      "description": "Only 60 documents in production database",
+      "impact": "May indicate new environment or minimal usage; tests may be incomplete",
+      "reproduction_steps": [
+        "Check database document counts",
+        "Only 60 total documents"
+      ],
+      "suggested_fix": {
+        "approach": "Run seed script to populate test data OR verify this is expected for new production",
+        "files_to_modify": [
+          "backend/seed-database.js"
+        ],
+        "estimated_time": "30 minutes",
+        "risk_level": "low"
+      },
+      "rollback_plan": "Clean up test data: db.collection.deleteMany({ __test: true })"
+    }
+  ],
+  "summary": {
+    "total_issues": 10,
+    "p0_count": 3,
+    "p1_count": 4,
+    "p2_count": 3
+  }
+}

@@ -1,0 +1,838 @@
+{
+  "generated_at": "2025-11-14T13:30:35.361Z",
+  "mode": "full",
+  "api_base": "https://mixillo-backend-52242135857.europe-west1.run.app/api",
+  "total_endpoints": 55,
+  "passed": 32,
+  "warnings": 22,
+  "failed": 1,
+  "endpoints": [
+    {
+      "path": "/auth/me",
+      "method": "GET",
+      "category": "Auth",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 871,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/dashboard",
+        "/admin/*"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"user\":{\"notificationSettings\":{\"comments\":true,\"email\":true,\"follows\":true,\"likes\":true,\"liveStreams\":true,\"mentions\":true,\"messages\":true,\"orders\":true,\"push\":true,\"sms\":false},\"privacySettings\":{\"allowComments\":\"everyone\",\"allowMessages\":\"everyone\",\"isPrivate\":false,\"showOnlineStatus\":true},\"_id\":\"6907e305bd986387e937a67a\",\"username\":\"admin\",\"email\":\"admin@mixillo.com\",\"fullName\":\"System Administrator\",\"avatar\":null,\"bio\":\"\",\"dateOfBirth\":\"1990-01-01T00:00:00.000Z\",\"role\":\"admin\",\"status\":\"active\",\"isVerified\":true,\"isFeatured\":false,\"isLimitedFromExplore\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"postsCount\":0,\"commentsCount\":0,\"likesReceived\":0,\"profileViews\":0,\"sellerProfile\":{\"businessType\":\"individual\",\"hasActiveStore\":false,\"sellerVerificationDocuments\":[]},\"preferences\":{\"currency\":\"USD\",\"language\":\"en\",\"marketingEmails\":true,\"orderNotifications\":true,\"promoNotifications\":false},\"lastLogin\":\"2025-11-14T12:50:09.843Z\",\"emailVerifiedAt\":null,\"shippingAddresses\":[],\"createdAt\":\"2025-11-02T23:02:29.957Z\",\"updatedAt\":\"2025-11-14T12:50:09.844Z\",\"gender\":\"prefer_not_to_say\",\"isCreator\":false,\"isSeller\":false,\"likesReceivedCount\":0,\"loginCount\":14,\"migratedFromFirebase\":false,\"phone\":\"\",\"sellerStatus\":\"pending\",\"viewsCount\":0,\"website\":\"\",\"profileUrl\":\"/users/6907e305bd986387e937a67a\",\"isActive\":true,\"id\":\"6907e305bd986387e937a67a\"}}}"
+    },
+    {
+      "path": "/auth/refresh",
+      "method": "POST",
+      "category": "Auth",
+      "critical": true,
+      "status_code": 401,
+      "latency_ms": 245,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "all"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"Invalid refresh token\",\"code\":\"INVALID_REFRESH_TOKEN\"}"
+    },
+    {
+      "path": "/auth/logout",
+      "method": "POST",
+      "category": "Auth",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 358,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "all"
+      ],
+      "response_snippet": "{\"success\":true,\"message\":\"Logout successful\"}"
+    },
+    {
+      "path": "/users",
+      "method": "GET",
+      "category": "Users",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 243,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/users"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"users\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":20,\"pages\":0}}}"
+    },
+    {
+      "path": "/users/6907e305bd986387e937a67a",
+      "method": "GET",
+      "category": "Users",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 272,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/users/:id"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"user\":{\"notificationSettings\":{\"comments\":true,\"email\":true,\"follows\":true,\"likes\":true,\"liveStreams\":true,\"mentions\":true,\"messages\":true,\"orders\":true,\"push\":true,\"sms\":false},\"privacySettings\":{\"allowComments\":\"everyone\",\"allowMessages\":\"everyone\",\"isPrivate\":false,\"showOnlineStatus\":true},\"_id\":\"6907e305bd986387e937a67a\",\"username\":\"admin\",\"email\":\"admin@mixillo.com\",\"fullName\":\"System Administrator\",\"avatar\":null,\"bio\":\"\",\"dateOfBirth\":\"1990-01-01T00:00:00.000Z\",\"role\":\"admin\",\"status\":\"active\",\"isVerified\":true,\"isFeatured\":false,\"isLimitedFromExplore\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"postsCount\":0,\"commentsCount\":0,\"likesReceived\":0,\"profileViews\":0,\"sellerProfile\":{\"businessType\":\"individual\",\"hasActiveStore\":false,\"sellerVerificationDocuments\":[]},\"preferences\":{\"currency\":\"USD\",\"language\":\"en\",\"marketingEmails\":true,\"orderNotifications\":true,\"promoNotifications\":false},\"lastLogin\":\"2025-11-14T12:50:09.843Z\",\"emailVerifiedAt\":null,\"shippingAddresses\":[],\"createdAt\":\"2025-11-02T23:02:29.957Z\",\"updatedAt\":\"2025-11-14T12:50:09.844Z\",\"gender\":\"prefer_not_to_say\",\"isCreator\":false,\"isSeller\":false,\"likesReceivedCount\":0,\"loginCount\":14,\"migratedFromFirebase\":false,\"phone\":\"\",\"sellerStatus\":\"pending\",\"viewsCount\":0,\"website\":\"\",\"profileUrl\":\"/users/6907e305bd986387e937a67a\",\"isActive\":true,\"id\":\"6907e305bd986387e937a67a\",\"stats\":{\"followers\":0,\"following\":0,\"videos\":0},\"isFollowing\":false}}}"
+    },
+    {
+      "path": "/admin/users",
+      "method": "GET",
+      "category": "Admin Users",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 362,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/users"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"users\":[{\"notificationSettings\":{\"push\":true,\"email\":true,\"sms\":false,\"likes\":true,\"comments\":true,\"follows\":true,\"mentions\":true,\"messages\":true,\"liveStreams\":true,\"orders\":true},\"privacySettings\":{\"isPrivate\":false,\"allowMessages\":\"everyone\",\"allowComments\":\"everyone\",\"showOnlineStatus\":true},\"_id\":\"69171efff061c9ca15362ba2\",\"email\":\"test_1763122940177@example.com\",\"username\":\"testuser_1763122940177\",\"fullName\":\"Test User\",\"avatar\":\"\",\"bio\":\"Updated bio from API test\",\"phone\":\"\",\"gender\":\"prefer_not_to_say\",\"website\":\"\",\"role\":\"user\",\"status\":\"active\",\"isVerified\":false,\"isFeatured\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"likesReceivedCount\":0,\"viewsCount\":0,\"isCreator\":false,\"isSeller\":false,\"sellerStatus\":\"pending\",\"migratedFromFirebase\":false,\"lastLogin\":\"2025-11-14T12:22:24.830Z\",\"loginCount\":1,\"createdAt\":\"2025-11-14T12:22:23.297Z\",\"updatedAt\":\"2025-11-14T12:22:26.109Z\",\"profileUrl\":\"/users/69171efff061c9ca15362ba2\",\"isActive\":true,\"id\":\"69171efff061c9ca15362ba2\"},{\"notificationSettings\":{\"push\":true,\"email\":true,\"sms\":false,\"likes\":true,\"comments\":true,\"follows\":true,\"mentions\":true,\"messages\":true,\"liveStreams\":true,\"orders\":true},\"privacySettings\":{\"isPrivate\":false,\"allowMessages\":\"everyone\",\"allowComments\":\"everyone\",\"showOnlineStatus\":true},\"_id\":\"69171708bfae215de2748d01\",\"email\":\"socket_1763120901937@example.com\",\"username\":\"socketuser_1763120901937\",\"fullName\":\"Socket Test\",\"avatar\":\"\",\"bio\":\"\",\"phone\":\"\",\"gender\":\"prefer_not_to_say\",\"website\":\"\",\"role\":\"user\",\"status\":\"active\",\"isVerified\":false,\"isFeatured\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"likesReceivedCount\":0,\"viewsCount\":0,\"isCreator\":false,\"isSeller\":false,\"sellerStatus\":\"pending\",\"migratedFromFirebase\":false,\"lastLogin\":\"2025-11-14T11:48:24.510Z\",\"loginCount\":0,\"createdAt\":\"2025-11-14T11:48:24.512Z\",\"updatedAt\":\"2025-11-14T11:48:24.618Z\",\"profileUrl\":\"/users/69171708bfae215de2748d01\",\"isActive\":true,\"id\":\"69171708bfae215de2748d01\"},{\"notificationSettings\":{\"push\":true"
+    },
+    {
+      "path": "/admin/users/6907e305bd986387e937a67a",
+      "method": "GET",
+      "category": "Admin Users",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 232,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/users/:id"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"user\":{\"notificationSettings\":{\"comments\":true,\"email\":true,\"follows\":true,\"likes\":true,\"liveStreams\":true,\"mentions\":true,\"messages\":true,\"orders\":true,\"push\":true,\"sms\":false},\"privacySettings\":{\"allowComments\":\"everyone\",\"allowMessages\":\"everyone\",\"isPrivate\":false,\"showOnlineStatus\":true},\"_id\":\"6907e305bd986387e937a67a\",\"username\":\"admin\",\"email\":\"admin@mixillo.com\",\"fullName\":\"System Administrator\",\"avatar\":null,\"bio\":\"\",\"dateOfBirth\":\"1990-01-01T00:00:00.000Z\",\"role\":\"admin\",\"status\":\"active\",\"isVerified\":true,\"isFeatured\":false,\"isLimitedFromExplore\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"postsCount\":0,\"commentsCount\":0,\"likesReceived\":0,\"profileViews\":0,\"sellerProfile\":{\"businessType\":\"individual\",\"hasActiveStore\":false,\"sellerVerificationDocuments\":[]},\"preferences\":{\"currency\":\"USD\",\"language\":\"en\",\"marketingEmails\":true,\"orderNotifications\":true,\"promoNotifications\":false},\"lastLogin\":\"2025-11-14T12:50:09.843Z\",\"emailVerifiedAt\":null,\"shippingAddresses\":[],\"createdAt\":\"2025-11-02T23:02:29.957Z\",\"updatedAt\":\"2025-11-14T12:50:09.844Z\",\"__v\":1,\"fcmTokens\":[],\"gender\":\"prefer_not_to_say\",\"isCreator\":false,\"isSeller\":false,\"likesReceivedCount\":0,\"loginCount\":14,\"migratedFromFirebase\":false,\"phone\":\"\",\"sellerStatus\":\"pending\",\"viewsCount\":0,\"website\":\"\",\"profileUrl\":\"/users/6907e305bd986387e937a67a\",\"isActive\":true,\"id\":\"6907e305bd986387e937a67a\",\"stats\":{\"contentCount\":0,\"followersCount\":0,\"followingCount\":0}}}}"
+    },
+    {
+      "path": "/admin/users/stats",
+      "method": "GET",
+      "category": "Admin Users",
+      "critical": true,
+      "status_code": 500,
+      "latency_ms": 190,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 3,
+      "used_by_ui": [
+        "/admin/dashboard"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"Error fetching user details\"}"
+    },
+    {
+      "path": "/admin/dashboard",
+      "method": "GET",
+      "category": "Admin Core",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 225,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/dashboard"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"users\":{\"total\":31,\"active\":29,\"banned\":1},\"content\":{\"total\":0,\"active\":0,\"reported\":0},\"products\":{\"total\":0,\"pending\":0},\"orders\":{\"total\":0},\"moderation\":{\"pendingReports\":0,\"pendingApplications\":1}}}"
+    },
+    {
+      "path": "/admin/stats",
+      "method": "GET",
+      "category": "Admin Core",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 173,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/dashboard"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/stats\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/content/feed",
+      "method": "GET",
+      "category": "Content",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 195,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/content"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"content\":[]}}"
+    },
+    {
+      "path": "/posts/feed",
+      "method": "GET",
+      "category": "Content",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 195,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/posts"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"content\":[]}}"
+    },
+    {
+      "path": "/admin/content",
+      "method": "GET",
+      "category": "Admin Content",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 179,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/content"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/content\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/stories",
+      "method": "GET",
+      "category": "Content",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 226,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/stories"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"stories\":[]}}"
+    },
+    {
+      "path": "/admin/stories",
+      "method": "GET",
+      "category": "Admin Content",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 186,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/stories"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/stories\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/comments/admin/all",
+      "method": "GET",
+      "category": "Comments",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 299,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/comments"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"comments\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":20,\"pages\":0}}}"
+    },
+    {
+      "path": "/comments/admin/stats",
+      "method": "GET",
+      "category": "Comments",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 244,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/dashboard"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"total\":0,\"pending\":0,\"reported\":0,\"blocked\":0,\"approved\":0,\"today\":0}}"
+    },
+    {
+      "path": "/featured/admin/featured",
+      "method": "GET",
+      "category": "Featured",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 357,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/featured"
+      ],
+      "response_snippet": "{\"success\":true,\"featured\":[],\"pagination\":{\"currentPage\":1,\"totalPages\":0,\"totalItems\":0,\"itemsPerPage\":20}}"
+    },
+    {
+      "path": "/featured/admin/featured/stats",
+      "method": "GET",
+      "category": "Featured",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 254,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/dashboard"
+      ],
+      "response_snippet": "{\"success\":true,\"stats\":{\"total\":0,\"active\":0,\"expired\":0,\"totalImpressions\":0,\"totalClicks\":0,\"avgCTR\":0,\"byType\":[],\"byPosition\":[]}}"
+    },
+    {
+      "path": "/products",
+      "method": "GET",
+      "category": "Products",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 250,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/products",
+        "/products"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"products\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":20,\"pages\":0}}}"
+    },
+    {
+      "path": "/products/featured",
+      "method": "GET",
+      "category": "Products",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 348,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/products/featured"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"products\":[]}}"
+    },
+    {
+      "path": "/products/search",
+      "method": "GET",
+      "category": "Products",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 248,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/products"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"products\":[],\"pagination\":{\"page\":1,\"limit\":20,\"total\":0,\"pages\":0}}}"
+    },
+    {
+      "path": "/admin/products",
+      "method": "GET",
+      "category": "Admin Products",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 243,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/products"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/products\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/stores",
+      "method": "GET",
+      "category": "Stores",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 253,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/stores"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"stores\":[{\"_id\":\"690fc03c3333c7a7e0927097\",\"sellerId\":{\"_id\":\"690fbc703333c7a7e0927025\",\"username\":\"testuser_1762638960649\",\"fullName\":\"Test User\",\"avatar\":\"\",\"profileUrl\":\"/users/690fbc703333c7a7e0927025\",\"isActive\":false,\"id\":\"690fbc703333c7a7e0927025\"},\"name\":\"Test User's Store\",\"description\":\"Welcome to Test User's Store\",\"businessType\":\"individual\",\"status\":\"active\",\"isVerified\":true,\"verifiedAt\":\"2025-11-08T22:12:12.873Z\",\"productsCount\":0,\"totalSales\":0,\"totalRevenue\":0,\"rating\":0,\"reviewsCount\":0,\"followersCount\":0,\"paymentMethods\":[],\"isFeatured\":false,\"approvedBy\":\"6907e305bd986387e937a67a\",\"approvedAt\":\"2025-11-08T22:12:12.873Z\",\"shippingZones\":[],\"createdAt\":\"2025-11-08T22:12:12.876Z\",\"updatedAt\":\"2025-11-08T22:12:12.876Z\",\"slug\":\"test-user-s-store-927097\",\"__v\":0}],\"pagination\":{\"total\":1,\"page\":1,\"limit\":20,\"pages\":1}}}"
+    },
+    {
+      "path": "/admin/stores",
+      "method": "GET",
+      "category": "Admin Stores",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 250,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/stores"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/stores\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/cart",
+      "method": "GET",
+      "category": "Cart",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 243,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/carts"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"cart\":{\"_id\":\"691725aaf061c9ca15362cb2\",\"userId\":\"6907e305bd986387e937a67a\",\"subtotal\":0,\"itemsCount\":0,\"items\":[],\"createdAt\":\"2025-11-14T12:50:50.321Z\",\"updatedAt\":\"2025-11-14T12:50:50.321Z\",\"__v\":0}}}"
+    },
+    {
+      "path": "/orders",
+      "method": "GET",
+      "category": "Orders",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 345,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/orders"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"orders\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":20,\"pages\":0}}}"
+    },
+    {
+      "path": "/admin/orders",
+      "method": "GET",
+      "category": "Admin Orders",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 244,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/orders"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/orders\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/categories",
+      "method": "GET",
+      "category": "Categories",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 253,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/categories"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"categories\":[]}}"
+    },
+    {
+      "path": "/wallets",
+      "method": "GET",
+      "category": "Wallet",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 249,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/wallets"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/wallets\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/wallets/6907e305bd986387e937a67a/balance",
+      "method": "GET",
+      "category": "Wallet",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 241,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/users/:id"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"balance\":10000,\"currency\":\"USD\"}}"
+    },
+    {
+      "path": "/wallets/6907e305bd986387e937a67a/transactions",
+      "method": "GET",
+      "category": "Wallet",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 355,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/users/:id"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"transactions\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":50,\"pages\":0}}}"
+    },
+    {
+      "path": "/admin/wallets",
+      "method": "GET",
+      "category": "Admin Wallet",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 359,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/wallets"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"wallets\":[{\"pendingEarnings\":0,\"withdrawableBalance\":0,\"lifetimeWithdrawals\":0,\"isLocked\":false,\"_id\":\"6907e307bd986387e937a68e\",\"userId\":{\"_id\":\"6907e305bd986387e937a67a\",\"username\":\"admin\",\"email\":\"admin@mixillo.com\",\"fullName\":\"System Administrator\",\"avatar\":null,\"profileUrl\":\"/users/6907e305bd986387e937a67a\",\"isActive\":false,\"id\":\"6907e305bd986387e937a67a\"},\"balance\":10000,\"pendingCredit\":0,\"pendingDebit\":0,\"availableBalance\":10000,\"totalEarnings\":10000,\"totalSpendings\":0,\"monthlyEarnings\":0,\"monthlySpendings\":0,\"currency\":\"USD\",\"supportLevel\":\"silver\",\"status\":\"active\",\"isActive\":true,\"isFrozen\":false,\"security\":{\"pinAttempts\":0,\"twoFactorEnabled\":false},\"limits\":{\"daily\":{\"spending\":1000,\"withdrawal\":500},\"monthly\":{\"spending\":10000,\"withdrawal\":5000},\"transaction\":{\"min\":0.01,\"max\":5000}},\"usage\":{\"dailySpent\":0,\"totalTransactions\":0,\"lastResetDate\":\"2025-11-02T23:02:31.223Z\"},\"verificationLevel\":\"basic\",\"rewards\":{\"totalCashback\":0,\"pendingCashback\":0,\"totalRewards\":0,\"rewardPoints\":0},\"notifications\":{\"lowBalance\":{\"enabled\":true,\"threshold\":10},\"transactions\":{\"enabled\":true,\"minAmount\":1}},\"lastTransactionAt\":null,\"lastActivity\":\"2025-11-02T23:02:31.221Z\",\"createdAt\":\"2025-11-02T23:02:31.222Z\",\"updatedAt\":\"2025-11-02T23:02:31.222Z\",\"__v\":0,\"paymentMethods\":[],\"id\":\"6907e307bd986387e937a68e\"},{\"pendingEarnings\":0,\"withdrawableBalance\":0,\"lifetimeWithdrawals\":0,\"isLocked\":false,\"_id\":\"6907e30dbd986387e937a6b4\",\"userId\":{\"_id\":\"6907e30abd986387e937a6a0\",\"username\":\"tomjohnson\",\"email\":\"tom@example.com\",\"fullName\":\"Tom Johnson\",\"avatar\":null,\"profileUrl\":\"/users/6907e30abd986387e937a6a0\",\"isActive\":false,\"id\":\"6907e30abd986387e937a6a0\"},\"balance\":7890.4,\"pendingCredit\":0,\"pendingDebit\":0,\"availableBalance\":7890.4,\"totalEarnings\":23450.75,\"totalSpendings\":0,\"monthlyEarnings\":0,\"monthlySpendings\":0,\"currency\":\"USD\",\"supportLevel\":\"silver\",\"status\":\"active\",\"isActive\":true,\"isFrozen\":false,\"security\":{\"pinAttempts\":0,\"twoFactorEnabled\":false},\"limits\":{\"daily\":{\"spending\":1000,\"withdr"
+    },
+    {
+      "path": "/coins/packages",
+      "method": "GET",
+      "category": "Coins",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 246,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/coins"
+      ],
+      "response_snippet": "{\"success\":true,\"packages\":[]}"
+    },
+    {
+      "path": "/admin/coins",
+      "method": "GET",
+      "category": "Admin Coins",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 255,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/coins"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/coins\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/gifts",
+      "method": "GET",
+      "category": "Gifts",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 248,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/gifts"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"gifts\":[]}}"
+    },
+    {
+      "path": "/admin/gifts",
+      "method": "GET",
+      "category": "Admin Gifts",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 345,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/gifts"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/gifts\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/live",
+      "method": "GET",
+      "category": "Live",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 245,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/live"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"livestreams\":[]}}"
+    },
+    {
+      "path": "/live/livestreams",
+      "method": "GET",
+      "category": "Live",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 258,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/live"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"livestreams\":[]}}"
+    },
+    {
+      "path": "/admin/livestreams",
+      "method": "GET",
+      "category": "Admin Live",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 255,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/live"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/livestreams\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/admin/stream-providers",
+      "method": "GET",
+      "category": "Admin Live",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 456,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/streaming"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/stream-providers\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/notifications",
+      "method": "GET",
+      "category": "Notifications",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 353,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/notifications"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"notifications\":[],\"unreadCount\":0,\"pagination\":{\"total\":0,\"page\":1,\"limit\":50,\"pages\":0}}}"
+    },
+    {
+      "path": "/admin/notifications",
+      "method": "GET",
+      "category": "Admin Notifications",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 255,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/notifications"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/notifications\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/analytics/overview",
+      "method": "GET",
+      "category": "Analytics",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 348,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/analytics"
+      ],
+      "response_snippet": "{\"success\":true,\"data\":{\"users\":{\"total\":31,\"active\":29},\"content\":{\"total\":0},\"orders\":{\"total\":0,\"revenue\":0}}}"
+    },
+    {
+      "path": "/admin/analytics",
+      "method": "GET",
+      "category": "Admin Analytics",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 250,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/analytics"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/analytics\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/database/admin/database/stats",
+      "method": "GET",
+      "category": "Database",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 248,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/database"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/database/admin/database/stats\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/database/admin/database/collections",
+      "method": "GET",
+      "category": "Database",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 244,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/database"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/database/admin/database/collections\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/database/admin/database/performance",
+      "method": "GET",
+      "category": "Database",
+      "critical": true,
+      "status_code": 404,
+      "latency_ms": 255,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/database"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/database/admin/database/performance\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/banners/admin/banners",
+      "method": "GET",
+      "category": "Banners",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 251,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/banners"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/banners/admin/banners\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/banners/admin/banners/stats",
+      "method": "GET",
+      "category": "Banners",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 344,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/dashboard"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/banners/admin/banners/stats\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/cloudinary/admin/cloudinary/config",
+      "method": "GET",
+      "category": "Cloudinary",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 251,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/media"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/cloudinary/admin/cloudinary/config\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/cloudinary/admin/cloudinary/stats",
+      "method": "GET",
+      "category": "Cloudinary",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 247,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/media"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/cloudinary/admin/cloudinary/stats\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/cloudinary/admin/cloudinary/performance",
+      "method": "GET",
+      "category": "Cloudinary",
+      "critical": false,
+      "status_code": 404,
+      "latency_ms": 242,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/media"
+      ],
+      "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/cloudinary/admin/cloudinary/performance\",\"method\":\"GET\"}"
+    },
+    {
+      "path": "/health",
+      "method": "GET",
+      "category": "System",
+      "critical": true,
+      "status_code": 200,
+      "latency_ms": 254,
+      "response_schema_ok": false,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "healthcheck"
+      ],
+      "response_snippet": "{\"status\":\"ok\",\"message\":\"Mixillo API is running\",\"timestamp\":\"2025-11-14T13:30:36.895Z\",\"environment\":\"production\",\"uptime\":4101.869407706,\"database\":\"MongoDB\",\"mongodb\":{\"connected\":true,\"database\":\"mixillo\"}}"
+    },
+    {
+      "path": "/admin/health",
+      "method": "GET",
+      "category": "Admin System",
+      "critical": false,
+      "status_code": 200,
+      "latency_ms": 456,
+      "response_schema_ok": true,
+      "error_message": null,
+      "attempts": 1,
+      "used_by_ui": [
+        "/admin/system"
+      ],
+      "response_snippet": "{\"success\":true,\"message\":\"Admin API is working (MongoDB)\",\"database\":\"MongoDB\"}"
+    }
+  ]
+}

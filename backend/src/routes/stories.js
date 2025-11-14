@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Story = require('../models/Story');
 const User = require('../models/User');
-const { verifyJWT } = require('../middleware/jwtAuth');
+const storyController = require('../controllers/storyController');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 /**
  * Stories Routes - MongoDB Implementation
@@ -227,5 +228,19 @@ router.delete('/:id', verifyJWT, async (req, res) => {
     });
   }
 });
+
+router.get(
+  '/admin/cleanup/stats',
+  verifyJWT,
+  requireAdmin,
+  storyController.getCleanupStats
+);
+
+router.post(
+  '/admin/cleanup/trigger',
+  verifyJWT,
+  requireAdmin,
+  storyController.manualCleanup
+);
 
 module.exports = router;

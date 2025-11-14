@@ -325,7 +325,7 @@ router.get('/admin/support/faq', verifyJWT, requireAdmin, async (req, res) => {
 });
 
 // Create FAQ
-router.post('/admin/support/faq', verifyJWT, requireAdmin, async (req, res) => {
+router.post(['/admin/support/faq', '/support/faq'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { question, answer, category, isPublished, order } = req.body;
     
@@ -360,7 +360,7 @@ router.post('/admin/support/faq', verifyJWT, requireAdmin, async (req, res) => {
 });
 
 // Update FAQ
-router.put('/admin/support/faq/:id', verifyJWT, requireAdmin, async (req, res) => {
+router.put(['/admin/support/faq/:id', '/support/faq/:id'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { question, answer, category, isPublished, order } = req.body;
     
@@ -390,7 +390,7 @@ router.put('/admin/support/faq/:id', verifyJWT, requireAdmin, async (req, res) =
 });
 
 // Delete FAQ
-router.delete('/admin/support/faq/:id', verifyJWT, requireAdmin, async (req, res) => {
+router.delete(['/admin/support/faq/:id', '/support/faq/:id'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const faq = await FAQ.findByIdAndDelete(req.params.id);
     
@@ -409,7 +409,7 @@ router.delete('/admin/support/faq/:id', verifyJWT, requireAdmin, async (req, res
 });
 
 // Toggle FAQ published status
-router.patch('/admin/support/faq/:id/toggle', verifyJWT, requireAdmin, async (req, res) => {
+router.patch(['/admin/support/faq/:id/toggle', '/support/faq/:id/toggle'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const faq = await FAQ.findById(req.params.id);
     

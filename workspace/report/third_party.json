@@ -1,0 +1,22 @@
+{
+  "generated_at": "2025-11-14T13:37:45.554Z",
+  "cloudinary": {
+    "status": "OK",
+    "details": {
+      "cloud_name": "dlg6dnlj4",
+      "resources_count": 1,
+      "api_accessible": true
+    },
+    "error": null
+  },
+  "agora": {
+    "status": "WARN",
+    "details": null,
+    "error": "Endpoint not found - Agora may not be configured"
+  },
+  "zegocloud": {
+    "status": "WARN",
+    "details": null,
+    "error": "Stream providers endpoint not found"
+  }
+}

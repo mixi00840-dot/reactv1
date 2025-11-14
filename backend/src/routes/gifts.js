@@ -16,7 +16,7 @@ const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
  * @desc    Get all gifts
  * @access  Public
  */
-router.get('/', async (req, res) => {
+router.get(['/mongodb', '/'], async (req, res) => {
   try {
     const { rarity, category, minPrice, maxPrice, limit = 50 } = req.query;
 
@@ -52,7 +52,7 @@ router.get('/', async (req, res) => {
  * @desc    Get popular gifts
  * @access  Public
  */
-router.get('/popular', async (req, res) => {
+router.get(['/mongodb/popular', '/popular'], async (req, res) => {
   try {
     const { limit = 20 } = req.query;
 
@@ -79,7 +79,7 @@ router.get('/popular', async (req, res) => {
  * @desc    Get gift by ID
  * @access  Public
  */
-router.get('/:id', async (req, res) => {
+router.get(['/mongodb/:id', '/:id'], async (req, res) => {
   try {
     const gift = await Gift.findById(req.params.id);
 
@@ -109,7 +109,7 @@ router.get('/:id', async (req, res) => {
  * @desc    Create new gift (Admin only)
  * @access  Admin
  */
-router.post('/', verifyJWT, requireAdmin, async (req, res) => {
+router.post(['/mongodb', '/'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { name, description, price, icon, animation, category, rarity, creatorEarningsPercent } = req.body;
 
@@ -149,7 +149,7 @@ router.post('/', verifyJWT, requireAdmin, async (req, res) => {
  * @desc    Update gift (Admin only)
  * @access  Admin
  */
-router.put('/:id', verifyJWT, requireAdmin, async (req, res) => {
+router.put(['/mongodb/:id', '/:id'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const { name, description, price, icon, animation, category, rarity, creatorEarningsPercent, isActive } = req.body;
 
@@ -198,7 +198,7 @@ router.put('/:id', verifyJWT, requireAdmin, async (req, res) => {
  * @desc    Delete gift (Admin only)
  * @access  Admin
  */
-router.delete('/:id', verifyJWT, requireAdmin, async (req, res) => {
+router.delete(['/mongodb/:id', '/:id'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const gift = await Gift.findByIdAndDelete(req.params.id);
 
@@ -228,7 +228,7 @@ router.delete('/:id', verifyJWT, requireAdmin, async (req, res) => {
  * @desc    Get gift statistics (Admin only)
  * @access  Admin
  */
-router.get('/stats/overview', verifyJWT, requireAdmin, async (req, res) => {
+router.get(['/mongodb/stats/overview', '/stats/overview'], verifyJWT, requireAdmin, async (req, res) => {
   try {
     const [totalGifts, transactions, topGift] = await Promise.all([
       Gift.countDocuments(),

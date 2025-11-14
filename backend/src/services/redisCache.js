@@ -30,6 +30,7 @@ class RedisCacheService {
         USER_PREFS: 3600,    // 1 hour
         SEARCH: 600          // 10 minutes
       };
+      this.metrics = this.initializeMetrics();
       return;
     }
 
@@ -95,6 +96,50 @@ class RedisCacheService {
       USER_PREFS: 3600,    // 1 hour
       SEARCH: 600          // 10 minutes
     };
+    this.metrics = this.initializeMetrics();
+  }
+
+  initializeMetrics() {
+    return {
+      feedsCached: 0,
+      profilesCached: 0,
+      trendingCached: 0,
+      videosCached: 0,
+      preferencesCached: 0,
+      searchesCached: 0,
+      totalCached: 0
+    };
+  }
+
+  recordMetric(type) {
+    if (!this.metrics[type]) {
+      this.metrics[type] = 0;
+    }
+    this.metrics[type] += 1;
+    this.metrics.totalCached += 1;
+  }
+
+  parseInfo(infoString) {
+    if (!infoString) return {};
+    return infoString.split('\n').reduce((acc, line) => {
+      if (!line || line.startsWith('#')) return acc;
+      const [key, value] = line.split(':');
+      if (value === undefined) return acc;
+      const numeric = Number(value);
+      acc[key] = Number.isNaN(numeric) ? value : numeric;
+      return acc;
+    }, {});
+  }
+
+  parseDbLine(line) {
+    if (!line) return {};
+    return line.split(',').reduce((acc, pair) => {
+      const [key, value] = pair.split('=');
+      if (value === undefined) return acc;
+      const numeric = Number(value);
+      acc[key] = Number.isNaN(numeric) ? value : numeric;
+      return acc;
+    }, {});
   }
 
   /**
@@ -182,7 +227,9 @@ class RedisCacheService {
    */
   async cacheFeed(userId, feed, ttl = this.TTL.FEED) {
     const key = this.key('feed', userId);
-    return await this.set(key, feed, ttl);
+    const success = await this.set(key, feed, ttl);
+    if (success) this.recordMetric('feedsCached');
+    return success;
   }
 
   /**
@@ -206,7 +253,9 @@ class RedisCacheService {
    */
   async cacheUserProfile(userId, profile, ttl = this.TTL.USER_PROFILE) {
     const key = this.key('user', userId);
-    return await this.set(key, profile, ttl);
+    const success = await this.set(key, profile, ttl);
+    if (success) this.recordMetric('profilesCached');
+    return success;
   }
 
   /**
@@ -230,7 +279,9 @@ class RedisCacheService {
    */
   async cacheTrending(content, ttl = this.TTL.TRENDING) {
     const key = this.key('trending', 'global');
-    return await this.set(key, content, ttl);
+    const success = await this.set(key, content, ttl);
+    if (success) this.recordMetric('trendingCached');
+    return success;
   }
 
   /**
@@ -246,7 +297,9 @@ class RedisCacheService {
    */
   async cacheVideo(videoId, metadata, ttl = this.TTL.VIDEO_META) {
     const key = this.key('video', videoId);
-    return await this.set(key, metadata, ttl);
+    const success = await this.set(key, metadata, ttl);
+    if (success) this.recordMetric('videosCached');
+    return success;
   }
 
   /**
@@ -262,7 +315,9 @@ class RedisCacheService {
    */
   async cacheUserPrefs(userId, preferences, ttl = this.TTL.USER_PREFS) {
     const key = this.key('prefs', userId);
-    return await this.set(key, preferences, ttl);
+    const success = await this.set(key, preferences, ttl);
+    if (success) this.recordMetric('preferencesCached');
+    return success;
   }
 
   /**
@@ -278,7 +333,9 @@ class RedisCacheService {
    */
   async cacheSearch(query, results, ttl = this.TTL.SEARCH) {
     const key = this.key('search', query);
-    return await this.set(key, results, ttl);
+    const success = await this.set(key, results, ttl);
+    if (success) this.recordMetric('searchesCached');
+    return success;
   }
 
   /**
@@ -360,7 +417,9 @@ class RedisCacheService {
    */
   async cacheTrendingHashtags(hashtags, ttl = this.TTL.TRENDING) {
     const key = this.key('trending', 'hashtags');
-    return await this.set(key, hashtags, ttl);
+    const success = await this.set(key, hashtags, ttl);
+    if (success) this.recordMetric('trendingCached');
+    return success;
   }
 
   /**
@@ -376,8 +435,12 @@ class RedisCacheService {
    */
   async healthCheck() {
     try {
+      if (this.disabled) {
+        return { status: 'disabled', connected: false, error: 'Redis disabled' };
+      }
+
       if (!this.isConnected) {
-        return { status: 'disconnected', error: 'Not connected to Redis' };
+        return { status: 'disconnected', connected: false, error: 'Not connected to Redis' };
       }
       
       await this.client.ping();
@@ -392,19 +455,87 @@ class RedisCacheService {
    */
   async getStats() {
     try {
-      if (!this.isConnected) return null;
-      
-      const info = await this.client.info('stats');
-      const memory = await this.client.info('memory');
-      
+      if (this.disabled) {
+        return {
+          connected: false,
+          status: 'disabled',
+          feedsCached: this.metrics.feedsCached,
+          profilesCached: this.metrics.profilesCached,
+          trendingCached: this.metrics.trendingCached,
+          totalCached: this.metrics.totalCached
+        };
+      }
+
+      if (!this.isConnected) {
+        return {
+          connected: false,
+          status: 'disconnected',
+          feedsCached: this.metrics.feedsCached,
+          profilesCached: this.metrics.profilesCached,
+          trendingCached: this.metrics.trendingCached,
+          totalCached: this.metrics.totalCached
+        };
+      }
+
+      const [statsInfo, memoryInfo, serverInfo, clientsInfo, keyspaceInfo] = await Promise.all([
+        this.client.info('stats'),
+        this.client.info('memory'),
+        this.client.info('server'),
+        this.client.info('clients'),
+        this.client.info('keyspace')
+      ]);
+
+      const parsedStats = this.parseInfo(statsInfo);
+      const parsedMemory = this.parseInfo(memoryInfo);
+      const parsedServer = this.parseInfo(serverInfo);
+      const parsedClients = this.parseInfo(clientsInfo);
+      const parsedKeyspace = this.parseInfo(keyspaceInfo);
+      const db0 = this.parseDbLine(parsedKeyspace.db0);
+
+      const hits = parsedStats.keyspace_hits || 0;
+      const misses = parsedStats.keyspace_misses || 0;
+      const totalLookups = hits + misses;
+      const hitRate = totalLookups > 0 ? (hits / totalLookups) * 100 : null;
+      const missRate = hitRate !== null ? 100 - hitRate : null;
+
       return {
-        connected: this.isConnected,
-        info,
-        memory
+        connected: true,
+        status: 'healthy',
+        used_memory_human: parsedMemory.used_memory_human || 'N/A',
+        used_memory_peak_human: parsedMemory.used_memory_peak_human || 'N/A',
+        used_memory: parsedMemory.used_memory || 0,
+        used_memory_peak: parsedMemory.used_memory_peak || 0,
+        db0_keys: db0.keys || 0,
+        db0_expires: db0.expires || 0,
+        db0_avg_ttl: db0.avg_ttl || 0,
+        keyspace_hits: hits,
+        keyspace_misses: misses,
+        hitRate,
+        missRate,
+        expired_keys: parsedStats.expired_keys || 0,
+        evicted_keys: parsedStats.evicted_keys || 0,
+        connected_clients: parsedClients.connected_clients || 0,
+        uptime_in_seconds: parsedServer.uptime_in_seconds || 0,
+        instantaneous_ops_per_sec: parsedStats.instantaneous_ops_per_sec || 0,
+        avgResponseTime: parsedStats.instantaneous_ops_per_sec
+          ? (1000 / parsedStats.instantaneous_ops_per_sec)
+          : null,
+        feedsCached: this.metrics.feedsCached,
+        profilesCached: this.metrics.profilesCached,
+        trendingCached: this.metrics.trendingCached,
+        totalCached: this.metrics.totalCached
       };
     } catch (error) {
       console.error('Redis getStats error:', error);
-      return null;
+      return {
+        connected: false,
+        status: 'error',
+        error: error.message,
+        feedsCached: this.metrics.feedsCached,
+        profilesCached: this.metrics.profilesCached,
+        trendingCached: this.metrics.trendingCached,
+        totalCached: this.metrics.totalCached
+      };
     }
   }
 

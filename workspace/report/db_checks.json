@@ -1,0 +1,4072 @@
+{
+  "generated_at": "2025-11-14T13:32:18.000Z",
+  "mongo_uri": "mongodb+srv://mixi00840_db_admin:***@mixillo.tt9e6by.mongodb.net/mixillo?retryWrites=true&w=majority",
+  "collections": [
+    {
+      "name": "coupons",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "code_1",
+        "isActive_1_startDate_1_endDate_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "code": 1
+          },
+          "name": "code_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1,
+            "startDate": 1,
+            "endDate": 1
+          },
+          "name": "isActive_1_startDate_1_endDate_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "faqs",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "isPublished_1",
+        "category_1_order_1",
+        "isPublished_1_order_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "isPublished": 1
+          },
+          "name": "isPublished_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1,
+            "order": 1
+          },
+          "name": "category_1_order_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isPublished": 1,
+            "order": 1
+          },
+          "name": "isPublished_1_order_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "useractivities",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "activityType_1",
+        "timestamp_1",
+        "userId_1_timestamp_-1",
+        "activityType_1_timestamp_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "activityType": 1
+          },
+          "name": "activityType_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "timestamp": 1
+          },
+          "name": "timestamp_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "timestamp": -1
+          },
+          "name": "userId_1_timestamp_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "activityType": 1,
+            "timestamp": -1
+          },
+          "name": "activityType_1_timestamp_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "stories",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "expiresAt_1",
+        "createdAt_1",
+        "userId_1_expiresAt_1",
+        "createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "expiresAt": 1
+          },
+          "name": "expiresAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": 1
+          },
+          "name": "createdAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "expiresAt": 1
+          },
+          "name": "userId_1_expiresAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "conversations",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "lastMessage_text",
+        "participants_1_updatedAt_-1",
+        "participantStatus.userId_1_updatedAt_-1",
+        "updatedAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "_fts": "text",
+            "_ftsx": 1
+          },
+          "name": "lastMessage_text",
+          "background": true,
+          "weights": {
+            "lastMessage": 1
+          },
+          "default_language": "english",
+          "language_override": "language",
+          "textIndexVersion": 3
+        },
+        {
+          "v": 2,
+          "key": {
+            "participants": 1,
+            "updatedAt": -1
+          },
+          "name": "participants_1_updatedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "participantStatus.userId": 1,
+            "updatedAt": -1
+          },
+          "name": "participantStatus.userId_1_updatedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "updatedAt": -1
+          },
+          "name": "updatedAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "notifications",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "type_1",
+        "isRead_1",
+        "createdAt_1",
+        "userId_1_isRead_1_createdAt_-1",
+        "userId_1_type_1_createdAt_-1",
+        "createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "type": 1
+          },
+          "name": "type_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isRead": 1
+          },
+          "name": "isRead_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": 1
+          },
+          "name": "createdAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "isRead": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_isRead_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "type": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_type_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "tags",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "name_1",
+        "usageCount_-1",
+        "isTrending_1_usageCount_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "name": 1
+          },
+          "name": "name_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "usageCount": -1
+          },
+          "name": "usageCount_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isTrending": 1,
+            "usageCount": -1
+          },
+          "name": "isTrending_1_usageCount_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "contentrecommendations",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "expiresAt_1",
+        "userId_1_generatedAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "expiresAt": 1
+          },
+          "name": "expiresAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "generatedAt": -1
+          },
+          "name": "userId_1_generatedAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "banners",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "isActive_1_placement_1_sortOrder_1",
+        "startDate_1_endDate_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1,
+            "placement": 1,
+            "sortOrder": 1
+          },
+          "name": "isActive_1_placement_1_sortOrder_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "startDate": 1,
+            "endDate": 1
+          },
+          "name": "startDate_1_endDate_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "sounds",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "uploadedBy_1_status_1",
+        "status_1_usageCount_-1",
+        "isTrending_1_usageCount_-1",
+        "uploadedBy_1",
+        "status_1",
+        "status_1_createdAt_-1",
+        "usageCount_-1",
+        "isTrending_1_trendingScore_-1",
+        "title_text_artist_text"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "uploadedBy": 1,
+            "status": 1
+          },
+          "name": "uploadedBy_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "usageCount": -1
+          },
+          "name": "status_1_usageCount_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isTrending": 1,
+            "usageCount": -1
+          },
+          "name": "isTrending_1_usageCount_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "uploadedBy": 1
+          },
+          "name": "uploadedBy_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "status_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "usageCount": -1
+          },
+          "name": "usageCount_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isTrending": 1,
+            "trendingScore": -1
+          },
+          "name": "isTrending_1_trendingScore_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "_fts": "text",
+            "_ftsx": 1
+          },
+          "name": "title_text_artist_text",
+          "background": true,
+          "weights": {
+            "artist": 1,
+            "title": 1
+          },
+          "default_language": "english",
+          "language_override": "language",
+          "textIndexVersion": 3
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "analytics",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "targetType_1_targetId_1_date_1",
+        "userId_1_date_-1",
+        "userId_1",
+        "contentId_1",
+        "type_1",
+        "date_1",
+        "type_1_date_-1",
+        "contentId_1_date_-1",
+        "date_-1_type_1",
+        "createdAt_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "targetType": 1,
+            "targetId": 1,
+            "date": 1
+          },
+          "name": "targetType_1_targetId_1_date_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "date": -1
+          },
+          "name": "userId_1_date_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1
+          },
+          "name": "contentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "type": 1
+          },
+          "name": "type_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "date": 1
+          },
+          "name": "date_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "type": 1,
+            "date": -1
+          },
+          "name": "type_1_date_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1,
+            "date": -1
+          },
+          "name": "contentId_1_date_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "date": -1,
+            "type": 1
+          },
+          "name": "date_-1_type_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": 1
+          },
+          "name": "createdAt_1",
+          "background": true,
+          "expireAfterSeconds": 31536000
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "strikes",
+      "count": 3,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "status_1",
+        "createdAt_-1",
+        "expiresAt_1",
+        "userId_1_isActive_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "expiresAt": 1
+          },
+          "name": "expiresAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "isActive": 1
+          },
+          "name": "userId_1_isActive_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [
+        "updatedAt"
+      ],
+      "issues": []
+    },
+    {
+      "name": "carts",
+      "count": 7,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "items.productId_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "items.productId": 1
+          },
+          "name": "items.productId_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [
+        "createdAt",
+        "updatedAt"
+      ],
+      "issues": []
+    },
+    {
+      "name": "stores",
+      "count": 1,
+      "indexes": [
+        "_id_",
+        "sellerId_1",
+        "status_1",
+        "slug_1",
+        "status_1_isVerified_1",
+        "rating_-1_totalSales_-1",
+        "name_text_description_text_tagline_text"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "sellerId": 1
+          },
+          "name": "sellerId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "slug": 1
+          },
+          "name": "slug_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "isVerified": 1
+          },
+          "name": "status_1_isVerified_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "rating": -1,
+            "totalSales": -1
+          },
+          "name": "rating_-1_totalSales_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "_fts": "text",
+            "_ftsx": 1
+          },
+          "name": "name_text_description_text_tagline_text",
+          "background": true,
+          "weights": {
+            "description": 1,
+            "name": 1,
+            "tagline": 1
+          },
+          "default_language": "english",
+          "language_override": "language",
+          "textIndexVersion": 3
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [
+        "createdAt",
+        "updatedAt"
+      ],
+      "issues": []
+    },
+    {
+      "name": "categories",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "slug_1",
+        "parentId_1_sortOrder_1",
+        "parentId_1",
+        "isActive_1",
+        "isActive_1_isFeatured_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "slug": 1
+          },
+          "name": "slug_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "parentId": 1,
+            "sortOrder": 1
+          },
+          "name": "parentId_1_sortOrder_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "parentId": 1
+          },
+          "name": "parentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1
+          },
+          "name": "isActive_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1,
+            "isFeatured": -1
+          },
+          "name": "isActive_1_isFeatured_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "pkbattles",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "host1Id_1_createdAt_-1",
+        "host2Id_1_createdAt_-1",
+        "livestreamId_1",
+        "host1Id_1_host2Id_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "host1Id": 1,
+            "createdAt": -1
+          },
+          "name": "host1Id_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "host2Id": 1,
+            "createdAt": -1
+          },
+          "name": "host2Id_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "livestreamId": 1
+          },
+          "name": "livestreamId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "host1Id": 1,
+            "host2Id": 1
+          },
+          "name": "host1Id_1_host2Id_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "featureds",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "type_1_isActive_1_priority_-1",
+        "endDate_1",
+        "itemId_1_type_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "type": 1,
+            "isActive": 1,
+            "priority": -1
+          },
+          "name": "type_1_isActive_1_priority_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "endDate": 1
+          },
+          "name": "endDate_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "itemId": 1,
+            "type": 1
+          },
+          "name": "itemId_1_type_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "views",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "targetType_1_targetId_1_createdAt_-1",
+        "userId_1_createdAt_-1",
+        "createdAt_-1",
+        "contentId_1",
+        "userId_1",
+        "viewedAt_1",
+        "contentId_1_viewedAt_-1",
+        "userId_1_viewedAt_-1",
+        "viewedAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "targetType": 1,
+            "targetId": 1,
+            "createdAt": -1
+          },
+          "name": "targetType_1_targetId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1
+          },
+          "name": "contentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "viewedAt": 1
+          },
+          "name": "viewedAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1,
+            "viewedAt": -1
+          },
+          "name": "contentId_1_viewedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "viewedAt": -1
+          },
+          "name": "userId_1_viewedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "viewedAt": -1
+          },
+          "name": "viewedAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "scheduledcontents",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "scheduledFor_1",
+        "status_1",
+        "status_1_scheduledFor_1",
+        "userId_1_scheduledFor_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "scheduledFor": 1
+          },
+          "name": "scheduledFor_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "scheduledFor": 1
+          },
+          "name": "status_1_scheduledFor_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "scheduledFor": -1
+          },
+          "name": "userId_1_scheduledFor_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "tickets",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "ticketNumber_1",
+        "status_1",
+        "userId_1_status_1",
+        "assignedTo_1_status_1",
+        "createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ticketNumber": 1
+          },
+          "name": "ticketNumber_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "status": 1
+          },
+          "name": "userId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "assignedTo": 1,
+            "status": 1
+          },
+          "name": "assignedTo_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "multihostsessions",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "livestreamId_1",
+        "hosts.userId_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "livestreamId": 1
+          },
+          "name": "livestreamId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "hosts.userId": 1
+          },
+          "name": "hosts.userId_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "contents",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "status_1",
+        "userId_1_createdAt_-1",
+        "status_1_publishedAt_-1",
+        "status_1_viewsCount_-1",
+        "createdAt_-1",
+        "publishedAt_-1",
+        "hashtags_1",
+        "soundId_1",
+        "caption_text_hashtags_text",
+        "feedScore_1",
+        "status_1_createdAt_-1",
+        "hashtags_1_createdAt_-1",
+        "viewsCount_-1_likesCount_-1",
+        "feedScore_-1_createdAt_-1",
+        "moderationScore_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "publishedAt": -1
+          },
+          "name": "status_1_publishedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "viewsCount": -1
+          },
+          "name": "status_1_viewsCount_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "publishedAt": -1
+          },
+          "name": "publishedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "hashtags": 1
+          },
+          "name": "hashtags_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "soundId": 1
+          },
+          "name": "soundId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "_fts": "text",
+            "_ftsx": 1
+          },
+          "name": "caption_text_hashtags_text",
+          "background": true,
+          "weights": {
+            "caption": 1,
+            "hashtags": 1
+          },
+          "default_language": "english",
+          "language_override": "language",
+          "textIndexVersion": 3
+        },
+        {
+          "v": 2,
+          "key": {
+            "feedScore": 1
+          },
+          "name": "feedScore_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "status_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "hashtags": 1,
+            "createdAt": -1
+          },
+          "name": "hashtags_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "viewsCount": -1,
+            "likesCount": -1
+          },
+          "name": "viewsCount_-1_likesCount_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "feedScore": -1,
+            "createdAt": -1
+          },
+          "name": "feedScore_-1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "moderationScore": 1
+          },
+          "name": "moderationScore_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "shares",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "targetType_1_targetId_1_createdAt_-1",
+        "userId_1_createdAt_-1",
+        "method_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "targetType": 1,
+            "targetId": 1,
+            "createdAt": -1
+          },
+          "name": "targetType_1_targetId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "method": 1
+          },
+          "name": "method_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "wallettransactions",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "transactionId_1",
+        "walletId_1",
+        "walletId_1_createdAt_-1",
+        "type_1",
+        "relatedOrderId_1",
+        "status_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "transactionId": 1
+          },
+          "name": "transactionId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "walletId": 1
+          },
+          "name": "walletId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "walletId": 1,
+            "createdAt": -1
+          },
+          "name": "walletId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "type": 1
+          },
+          "name": "type_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "relatedOrderId": 1
+          },
+          "name": "relatedOrderId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "searchqueries",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "query_1",
+        "timestamp_1",
+        "query_1_timestamp_-1",
+        "userId_1_timestamp_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "query": 1
+          },
+          "name": "query_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "timestamp": 1
+          },
+          "name": "timestamp_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "query": 1,
+            "timestamp": -1
+          },
+          "name": "query_1_timestamp_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "timestamp": -1
+          },
+          "name": "userId_1_timestamp_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "saves",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1_targetType_1_targetId_1",
+        "userId_1_collectionName_1_createdAt_-1",
+        "targetType_1_targetId_1",
+        "userId_1",
+        "contentId_1",
+        "createdAt_1",
+        "userId_1_contentId_1",
+        "userId_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "targetType": 1,
+            "targetId": 1
+          },
+          "name": "userId_1_targetType_1_targetId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "collectionName": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_collectionName_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "targetType": 1,
+            "targetId": 1
+          },
+          "name": "targetType_1_targetId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1
+          },
+          "name": "contentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": 1
+          },
+          "name": "createdAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "contentId": 1
+          },
+          "name": "userId_1_contentId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "subscriptions",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1_creatorId_1",
+        "creatorId_1_status_1",
+        "status_1_nextBillingDate_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "creatorId": 1
+          },
+          "name": "userId_1_creatorId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "creatorId": 1,
+            "status": 1
+          },
+          "name": "creatorId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "nextBillingDate": 1
+          },
+          "name": "status_1_nextBillingDate_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "products",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "storeId_1",
+        "sellerId_1",
+        "sku_1",
+        "category_1",
+        "status_1",
+        "slug_1",
+        "storeId_1_status_1",
+        "sellerId_1_status_1",
+        "category_1_status_1",
+        "status_1_isPublished_1",
+        "createdAt_-1",
+        "rating_-1_salesCount_-1",
+        "price_1",
+        "name_text_description_text_tags_text_brand_text"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "storeId": 1
+          },
+          "name": "storeId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "sellerId": 1
+          },
+          "name": "sellerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "sku": 1
+          },
+          "name": "sku_1",
+          "background": true,
+          "unique": true,
+          "sparse": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1
+          },
+          "name": "category_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "slug": 1
+          },
+          "name": "slug_1",
+          "background": true,
+          "unique": true,
+          "sparse": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "storeId": 1,
+            "status": 1
+          },
+          "name": "storeId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "sellerId": 1,
+            "status": 1
+          },
+          "name": "sellerId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1,
+            "status": 1
+          },
+          "name": "category_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "isPublished": 1
+          },
+          "name": "status_1_isPublished_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "rating": -1,
+            "salesCount": -1
+          },
+          "name": "rating_-1_salesCount_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "price": 1
+          },
+          "name": "price_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "_fts": "text",
+            "_ftsx": 1
+          },
+          "name": "name_text_description_text_tags_text_brand_text",
+          "background": true,
+          "weights": {
+            "brand": 1,
+            "description": 1,
+            "name": 1,
+            "tags": 1
+          },
+          "default_language": "english",
+          "language_override": "language",
+          "textIndexVersion": 3
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "payments",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "orderId_1",
+        "status_1",
+        "idempotencyKey_1",
+        "userId_1_createdAt_-1",
+        "status_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "orderId": 1
+          },
+          "name": "orderId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "idempotencyKey": 1
+          },
+          "name": "idempotencyKey_1",
+          "background": true,
+          "unique": true,
+          "sparse": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "status_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "messages",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "conversationId_1",
+        "senderId_1",
+        "createdAt_1",
+        "conversationId_1_createdAt_-1",
+        "senderId_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "conversationId": 1
+          },
+          "name": "conversationId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "senderId": 1
+          },
+          "name": "senderId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": 1
+          },
+          "name": "createdAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "conversationId": 1,
+            "createdAt": -1
+          },
+          "name": "conversationId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "senderId": 1,
+            "createdAt": -1
+          },
+          "name": "senderId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "trendingconfigs",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "category_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1
+          },
+          "name": "category_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "wallets",
+      "count": 14,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "status_1",
+        "balance_1",
+        "supportLevel_1",
+        "totalEarnings_-1",
+        "verificationLevel_1",
+        "lastActivity_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "balance": 1
+          },
+          "name": "balance_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "supportLevel": 1
+          },
+          "name": "supportLevel_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "totalEarnings": -1
+          },
+          "name": "totalEarnings_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "verificationLevel": 1
+          },
+          "name": "verificationLevel_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "lastActivity": -1
+          },
+          "name": "lastActivity_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [
+        "createdAt",
+        "updatedAt"
+      ],
+      "issues": []
+    },
+    {
+      "name": "streamproviders",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "name_1",
+        "enabled_1_priority_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "name": 1
+          },
+          "name": "name_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "enabled": 1,
+            "priority": 1
+          },
+          "name": "enabled_1_priority_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "uploadsessions",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "status_1",
+        "expiresAt_1",
+        "userId_1_status_1",
+        "fileKey_1",
+        "expiresAt_1_status_1",
+        "userId_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "expiresAt": 1
+          },
+          "name": "expiresAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "status": 1
+          },
+          "name": "userId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "fileKey": 1
+          },
+          "name": "fileKey_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "expiresAt": 1,
+            "status": 1
+          },
+          "name": "expiresAt_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "levels",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "level_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "level": 1
+          },
+          "name": "level_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "moderationqueues",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "contentType_1",
+        "contentId_1",
+        "priority_1",
+        "status_1",
+        "status_1_priority_-1_createdAt_1",
+        "contentType_1_contentId_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentType": 1
+          },
+          "name": "contentType_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1
+          },
+          "name": "contentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "priority": 1
+          },
+          "name": "priority_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "priority": -1,
+            "createdAt": 1
+          },
+          "name": "status_1_priority_-1_createdAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentType": 1,
+            "contentId": 1
+          },
+          "name": "contentType_1_contentId_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "trendingrecords",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "contentId_1",
+        "category_1",
+        "period_1",
+        "date_1",
+        "period_1_category_1_date_-1_rank_1",
+        "date_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1
+          },
+          "name": "contentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1
+          },
+          "name": "category_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "period": 1
+          },
+          "name": "period_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "date": 1
+          },
+          "name": "date_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "period": 1,
+            "category": 1,
+            "date": -1,
+            "rank": 1
+          },
+          "name": "period_1_category_1_date_-1_rank_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "date": -1
+          },
+          "name": "date_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "livestreams",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "hostId_1",
+        "streamId_1",
+        "status_1",
+        "hostId_1_status_1",
+        "status_1_startedAt_-1",
+        "createdAt_-1",
+        "participants.userId_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "hostId": 1
+          },
+          "name": "hostId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "streamId": 1
+          },
+          "name": "streamId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "hostId": 1,
+            "status": 1
+          },
+          "name": "hostId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "startedAt": -1
+          },
+          "name": "status_1_startedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "participants.userId": 1
+          },
+          "name": "participants.userId_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "coinpackages",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "isActive_1",
+        "isActive_1_sortOrder_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1
+          },
+          "name": "isActive_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1,
+            "sortOrder": 1
+          },
+          "name": "isActive_1_sortOrder_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "contentmetrics",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "contentId_1",
+        "date_1",
+        "contentId_1_date_-1",
+        "date_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1
+          },
+          "name": "contentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "date": 1
+          },
+          "name": "date_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1,
+            "date": -1
+          },
+          "name": "contentId_1_date_-1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "date": -1
+          },
+          "name": "date_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "follows",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "followerId_1",
+        "followingId_1",
+        "createdAt_1",
+        "followerId_1_followingId_1",
+        "followingId_1_createdAt_-1",
+        "createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "followerId": 1
+          },
+          "name": "followerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "followingId": 1
+          },
+          "name": "followingId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": 1
+          },
+          "name": "createdAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "followerId": 1,
+            "followingId": 1
+          },
+          "name": "followerId_1_followingId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "followingId": 1,
+            "createdAt": -1
+          },
+          "name": "followingId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "reports",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "targetType_1_targetId_1_createdAt_-1",
+        "reportedBy_1_createdAt_-1",
+        "status_1_priority_-1_createdAt_-1",
+        "reporterId_1",
+        "reportedType_1",
+        "reportedId_1",
+        "reportedUserId_1",
+        "status_1",
+        "reportedType_1_reportedId_1",
+        "status_1_createdAt_-1",
+        "reporterId_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "targetType": 1,
+            "targetId": 1,
+            "createdAt": -1
+          },
+          "name": "targetType_1_targetId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "reportedBy": 1,
+            "createdAt": -1
+          },
+          "name": "reportedBy_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "priority": -1,
+            "createdAt": -1
+          },
+          "name": "status_1_priority_-1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "reporterId": 1
+          },
+          "name": "reporterId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "reportedType": 1
+          },
+          "name": "reportedType_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "reportedId": 1
+          },
+          "name": "reportedId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "reportedUserId": 1
+          },
+          "name": "reportedUserId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "reportedType": 1,
+            "reportedId": 1
+          },
+          "name": "reportedType_1_reportedId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "status_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "reporterId": 1,
+            "createdAt": -1
+          },
+          "name": "reporterId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "likes",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1_targetType_1_targetId_1",
+        "targetType_1_targetId_1_createdAt_-1",
+        "userId_1_createdAt_-1",
+        "userId_1",
+        "contentId_1",
+        "createdAt_1",
+        "userId_1_contentId_1",
+        "contentId_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "targetType": 1,
+            "targetId": 1
+          },
+          "name": "userId_1_targetType_1_targetId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "targetType": 1,
+            "targetId": 1,
+            "createdAt": -1
+          },
+          "name": "targetType_1_targetId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1
+          },
+          "name": "contentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": 1
+          },
+          "name": "createdAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "contentId": 1
+          },
+          "name": "userId_1_contentId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1,
+            "createdAt": -1
+          },
+          "name": "contentId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "settings",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "key_1",
+        "category_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "key": 1
+          },
+          "name": "key_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1
+          },
+          "name": "category_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "transactions",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "walletId_1",
+        "type_1",
+        "referenceId_1",
+        "status_1",
+        "userId_1_createdAt_-1",
+        "walletId_1_createdAt_-1",
+        "type_1_status_1",
+        "referenceId_1_referenceType_1",
+        "paymentId_1",
+        "status_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "walletId": 1
+          },
+          "name": "walletId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "type": 1
+          },
+          "name": "type_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "referenceId": 1
+          },
+          "name": "referenceId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "walletId": 1,
+            "createdAt": -1
+          },
+          "name": "walletId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "type": 1,
+            "status": 1
+          },
+          "name": "type_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "referenceId": 1,
+            "referenceType": 1
+          },
+          "name": "referenceId_1_referenceType_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "paymentId": 1
+          },
+          "name": "paymentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "status_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "users",
+      "count": 31,
+      "indexes": [
+        "_id_",
+        "username_1",
+        "email_1",
+        "status_1",
+        "createdAt_-1",
+        "firebaseUid_1",
+        "role_1_status_1",
+        "isVerified_1_isFeatured_1",
+        "lastActiveAt_-1",
+        "username_text_fullName_text_bio_text"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "username": 1
+          },
+          "name": "username_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "email": 1
+          },
+          "name": "email_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": -1
+          },
+          "name": "createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "firebaseUid": 1
+          },
+          "name": "firebaseUid_1",
+          "background": true,
+          "unique": true,
+          "sparse": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "role": 1,
+            "status": 1
+          },
+          "name": "role_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isVerified": 1,
+            "isFeatured": 1
+          },
+          "name": "isVerified_1_isFeatured_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "lastActiveAt": -1
+          },
+          "name": "lastActiveAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "_fts": "text",
+            "_ftsx": 1
+          },
+          "name": "username_text_fullName_text_bio_text",
+          "background": true,
+          "weights": {
+            "bio": 1,
+            "fullName": 1,
+            "username": 1
+          },
+          "default_language": "english",
+          "language_override": "language",
+          "textIndexVersion": 3
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [
+        "updatedAt"
+      ],
+      "issues": []
+    },
+    {
+      "name": "orders",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "orderNumber_1",
+        "paymentStatus_1",
+        "status_1",
+        "userId_1_createdAt_-1",
+        "items.storeId_1_createdAt_-1",
+        "sellerId_1_status_1",
+        "status_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "orderNumber": 1
+          },
+          "name": "orderNumber_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "paymentStatus": 1
+          },
+          "name": "paymentStatus_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "items.storeId": 1,
+            "createdAt": -1
+          },
+          "name": "items.storeId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "sellerId": 1,
+            "status": 1
+          },
+          "name": "sellerId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "status_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "recommendationmetadatas",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "userId_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "gifttransactions",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "giftId_1",
+        "senderId_1",
+        "recipientId_1",
+        "status_1",
+        "createdAt_1",
+        "livestreamId_1_createdAt_-1",
+        "contentId_1_createdAt_-1",
+        "senderId_1_createdAt_-1",
+        "recipientId_1_createdAt_-1",
+        "giftId_1_createdAt_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "giftId": 1
+          },
+          "name": "giftId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "senderId": 1
+          },
+          "name": "senderId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "recipientId": 1
+          },
+          "name": "recipientId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdAt": 1
+          },
+          "name": "createdAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "livestreamId": 1,
+            "createdAt": -1
+          },
+          "name": "livestreamId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1,
+            "createdAt": -1
+          },
+          "name": "contentId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "senderId": 1,
+            "createdAt": -1
+          },
+          "name": "senderId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "recipientId": 1,
+            "createdAt": -1
+          },
+          "name": "recipientId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "giftId": 1,
+            "createdAt": -1
+          },
+          "name": "giftId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "explorersections",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "type_1_sortOrder_1",
+        "isActive_1_sortOrder_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "type": 1,
+            "sortOrder": 1
+          },
+          "name": "type_1_sortOrder_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1,
+            "sortOrder": 1
+          },
+          "name": "isActive_1_sortOrder_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "currencies",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "code_1",
+        "isActive_1_isDefault_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "code": 1
+          },
+          "name": "code_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1,
+            "isDefault": -1
+          },
+          "name": "isActive_1_isDefault_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "comments",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "contentId_1",
+        "userId_1",
+        "parentId_1",
+        "contentId_1_createdAt_-1",
+        "userId_1_createdAt_-1",
+        "parentId_1_createdAt_-1",
+        "contentId_1_isPinned_-1_likesCount_-1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1
+          },
+          "name": "contentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "parentId": 1
+          },
+          "name": "parentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1,
+            "createdAt": -1
+          },
+          "name": "contentId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "name": "userId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "parentId": 1,
+            "createdAt": -1
+          },
+          "name": "parentId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contentId": 1,
+            "isPinned": -1,
+            "likesCount": -1
+          },
+          "name": "contentId_1_isPinned_-1_likesCount_-1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "gifts",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "category_1",
+        "isActive_1",
+        "category_1_isActive_1",
+        "popularity_-1",
+        "isFeatured_1_popularity_-1",
+        "price_1",
+        "rarity_1_isActive_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1
+          },
+          "name": "category_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1
+          },
+          "name": "isActive_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1,
+            "isActive": 1
+          },
+          "name": "category_1_isActive_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "popularity": -1
+          },
+          "name": "popularity_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isFeatured": 1,
+            "popularity": -1
+          },
+          "name": "isFeatured_1_popularity_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "price": 1
+          },
+          "name": "price_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "rarity": 1,
+            "isActive": 1
+          },
+          "name": "rarity_1_isActive_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "subscriptiontiers",
+      "count": 0,
+      "indexes": [
+        "_id_",
+        "creatorId_1_isActive_1",
+        "creatorId_1_sortOrder_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "creatorId": 1,
+            "isActive": 1
+          },
+          "name": "creatorId_1_isActive_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "creatorId": 1,
+            "sortOrder": 1
+          },
+          "name": "creatorId_1_sortOrder_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [],
+      "issues": []
+    },
+    {
+      "name": "sellerapplications",
+      "count": 4,
+      "indexes": [
+        "_id_",
+        "userId_1",
+        "status_1",
+        "submittedAt_-1",
+        "status_1_createdAt_1"
+      ],
+      "index_details": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "submittedAt": -1
+          },
+          "name": "submittedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "createdAt": 1
+          },
+          "name": "status_1_createdAt_1",
+          "background": true
+        }
+      ],
+      "sample_duplicate_groups": [],
+      "orphan_refs": [],
+      "missing_indexes": [
+        "updatedAt"
+      ],
+      "issues": []
+    }
+  ],
+  "summary": {
+    "total_collections_expected": 74,
+    "total_collections_found": 55,
+    "total_documents": 60,
+    "missing_collections": [
+      "profiles",
+      "followers",
+      "followings",
+      "blockedusers",
+      "posts",
+      "productvariants",
+      "cartitems",
+      "wishlists",
+      "coins",
+      "liveparticipants",
+      "livegifts",
+      "chatrooms",
+      "adminusers",
+      "adminactions",
+      "systemsettings",
+      "themes",
+      "translations",
+      "featured",
+      "shippingmethods",
+      "supporterbadges",
+      "creatorearnings",
+      "contentrights",
+      "videoqualitysettings",
+      "transcodejobs",
+      "streamfilters",
+      "liveshoppingsessions",
+      "customerservicetickets",
+      "pages",
+      "adcampaigns",
+      "aimoderation",
+      "recommendationmetadata"
+    ],
+    "collections_with_issues": []
+  }
+}

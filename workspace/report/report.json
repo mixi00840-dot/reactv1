@@ -1,0 +1,5698 @@
+{
+  "meta": {
+    "generated_at": "2025-11-14T14:08:52.169Z",
+    "audit_id": "AUDIT-20251114-001",
+    "audit_type": "full_production_audit",
+    "duration_minutes": 58,
+    "auditor": "GitHub Copilot Automated Audit System",
+    "environment": "production"
+  },
+  "overall_health": {
+    "status": "FAIL",
+    "pass_rate": "62.2%",
+    "critical_failures": 3,
+    "high_priority_issues": 4,
+    "medium_priority_issues": 3,
+    "summary": "System partially functional with 3 critical issues requiring immediate attention"
+  },
+  "infrastructure": {
+    "api_base": "https://mixillo-backend-52242135857.europe-west1.run.app/api",
+    "admin_dashboard": "https://admin-dashboard-mixillo.vercel.app",
+    "database": "mongodb+srv://mixillo.tt9e6by.mongodb.net/mixillo",
+    "deployment": "Google Cloud Run (europe-west1)",
+    "cdn": "Cloudinary (dlg6dnlj4)"
+  },
+  "test_results": {
+    "api_endpoints": {
+      "total_tested": 55,
+      "passed": 32,
+      "warnings": 22,
+      "failed": 1,
+      "pass_rate": "58.2%",
+      "avg_latency_ms": 282,
+      "details": [
+        {
+          "path": "/auth/me",
+          "method": "GET",
+          "category": "Auth",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 871,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/dashboard",
+            "/admin/*"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"user\":{\"notificationSettings\":{\"comments\":true,\"email\":true,\"follows\":true,\"likes\":true,\"liveStreams\":true,\"mentions\":true,\"messages\":true,\"orders\":true,\"push\":true,\"sms\":false},\"privacySettings\":{\"allowComments\":\"everyone\",\"allowMessages\":\"everyone\",\"isPrivate\":false,\"showOnlineStatus\":true},\"_id\":\"6907e305bd986387e937a67a\",\"username\":\"admin\",\"email\":\"admin@mixillo.com\",\"fullName\":\"System Administrator\",\"avatar\":null,\"bio\":\"\",\"dateOfBirth\":\"1990-01-01T00:00:00.000Z\",\"role\":\"admin\",\"status\":\"active\",\"isVerified\":true,\"isFeatured\":false,\"isLimitedFromExplore\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"postsCount\":0,\"commentsCount\":0,\"likesReceived\":0,\"profileViews\":0,\"sellerProfile\":{\"businessType\":\"individual\",\"hasActiveStore\":false,\"sellerVerificationDocuments\":[]},\"preferences\":{\"currency\":\"USD\",\"language\":\"en\",\"marketingEmails\":true,\"orderNotifications\":true,\"promoNotifications\":false},\"lastLogin\":\"2025-11-14T12:50:09.843Z\",\"emailVerifiedAt\":null,\"shippingAddresses\":[],\"createdAt\":\"2025-11-02T23:02:29.957Z\",\"updatedAt\":\"2025-11-14T12:50:09.844Z\",\"gender\":\"prefer_not_to_say\",\"isCreator\":false,\"isSeller\":false,\"likesReceivedCount\":0,\"loginCount\":14,\"migratedFromFirebase\":false,\"phone\":\"\",\"sellerStatus\":\"pending\",\"viewsCount\":0,\"website\":\"\",\"profileUrl\":\"/users/6907e305bd986387e937a67a\",\"isActive\":true,\"id\":\"6907e305bd986387e937a67a\"}}}"
+        },
+        {
+          "path": "/auth/refresh",
+          "method": "POST",
+          "category": "Auth",
+          "critical": true,
+          "status_code": 401,
+          "latency_ms": 245,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "all"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"Invalid refresh token\",\"code\":\"INVALID_REFRESH_TOKEN\"}"
+        },
+        {
+          "path": "/auth/logout",
+          "method": "POST",
+          "category": "Auth",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 358,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "all"
+          ],
+          "response_snippet": "{\"success\":true,\"message\":\"Logout successful\"}"
+        },
+        {
+          "path": "/users",
+          "method": "GET",
+          "category": "Users",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 243,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/users"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"users\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":20,\"pages\":0}}}"
+        },
+        {
+          "path": "/users/6907e305bd986387e937a67a",
+          "method": "GET",
+          "category": "Users",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 272,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/users/:id"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"user\":{\"notificationSettings\":{\"comments\":true,\"email\":true,\"follows\":true,\"likes\":true,\"liveStreams\":true,\"mentions\":true,\"messages\":true,\"orders\":true,\"push\":true,\"sms\":false},\"privacySettings\":{\"allowComments\":\"everyone\",\"allowMessages\":\"everyone\",\"isPrivate\":false,\"showOnlineStatus\":true},\"_id\":\"6907e305bd986387e937a67a\",\"username\":\"admin\",\"email\":\"admin@mixillo.com\",\"fullName\":\"System Administrator\",\"avatar\":null,\"bio\":\"\",\"dateOfBirth\":\"1990-01-01T00:00:00.000Z\",\"role\":\"admin\",\"status\":\"active\",\"isVerified\":true,\"isFeatured\":false,\"isLimitedFromExplore\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"postsCount\":0,\"commentsCount\":0,\"likesReceived\":0,\"profileViews\":0,\"sellerProfile\":{\"businessType\":\"individual\",\"hasActiveStore\":false,\"sellerVerificationDocuments\":[]},\"preferences\":{\"currency\":\"USD\",\"language\":\"en\",\"marketingEmails\":true,\"orderNotifications\":true,\"promoNotifications\":false},\"lastLogin\":\"2025-11-14T12:50:09.843Z\",\"emailVerifiedAt\":null,\"shippingAddresses\":[],\"createdAt\":\"2025-11-02T23:02:29.957Z\",\"updatedAt\":\"2025-11-14T12:50:09.844Z\",\"gender\":\"prefer_not_to_say\",\"isCreator\":false,\"isSeller\":false,\"likesReceivedCount\":0,\"loginCount\":14,\"migratedFromFirebase\":false,\"phone\":\"\",\"sellerStatus\":\"pending\",\"viewsCount\":0,\"website\":\"\",\"profileUrl\":\"/users/6907e305bd986387e937a67a\",\"isActive\":true,\"id\":\"6907e305bd986387e937a67a\",\"stats\":{\"followers\":0,\"following\":0,\"videos\":0},\"isFollowing\":false}}}"
+        },
+        {
+          "path": "/admin/users",
+          "method": "GET",
+          "category": "Admin Users",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 362,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/users"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"users\":[{\"notificationSettings\":{\"push\":true,\"email\":true,\"sms\":false,\"likes\":true,\"comments\":true,\"follows\":true,\"mentions\":true,\"messages\":true,\"liveStreams\":true,\"orders\":true},\"privacySettings\":{\"isPrivate\":false,\"allowMessages\":\"everyone\",\"allowComments\":\"everyone\",\"showOnlineStatus\":true},\"_id\":\"69171efff061c9ca15362ba2\",\"email\":\"test_1763122940177@example.com\",\"username\":\"testuser_1763122940177\",\"fullName\":\"Test User\",\"avatar\":\"\",\"bio\":\"Updated bio from API test\",\"phone\":\"\",\"gender\":\"prefer_not_to_say\",\"website\":\"\",\"role\":\"user\",\"status\":\"active\",\"isVerified\":false,\"isFeatured\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"likesReceivedCount\":0,\"viewsCount\":0,\"isCreator\":false,\"isSeller\":false,\"sellerStatus\":\"pending\",\"migratedFromFirebase\":false,\"lastLogin\":\"2025-11-14T12:22:24.830Z\",\"loginCount\":1,\"createdAt\":\"2025-11-14T12:22:23.297Z\",\"updatedAt\":\"2025-11-14T12:22:26.109Z\",\"profileUrl\":\"/users/69171efff061c9ca15362ba2\",\"isActive\":true,\"id\":\"69171efff061c9ca15362ba2\"},{\"notificationSettings\":{\"push\":true,\"email\":true,\"sms\":false,\"likes\":true,\"comments\":true,\"follows\":true,\"mentions\":true,\"messages\":true,\"liveStreams\":true,\"orders\":true},\"privacySettings\":{\"isPrivate\":false,\"allowMessages\":\"everyone\",\"allowComments\":\"everyone\",\"showOnlineStatus\":true},\"_id\":\"69171708bfae215de2748d01\",\"email\":\"socket_1763120901937@example.com\",\"username\":\"socketuser_1763120901937\",\"fullName\":\"Socket Test\",\"avatar\":\"\",\"bio\":\"\",\"phone\":\"\",\"gender\":\"prefer_not_to_say\",\"website\":\"\",\"role\":\"user\",\"status\":\"active\",\"isVerified\":false,\"isFeatured\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"likesReceivedCount\":0,\"viewsCount\":0,\"isCreator\":false,\"isSeller\":false,\"sellerStatus\":\"pending\",\"migratedFromFirebase\":false,\"lastLogin\":\"2025-11-14T11:48:24.510Z\",\"loginCount\":0,\"createdAt\":\"2025-11-14T11:48:24.512Z\",\"updatedAt\":\"2025-11-14T11:48:24.618Z\",\"profileUrl\":\"/users/69171708bfae215de2748d01\",\"isActive\":true,\"id\":\"69171708bfae215de2748d01\"},{\"notificationSettings\":{\"push\":true"
+        },
+        {
+          "path": "/admin/users/6907e305bd986387e937a67a",
+          "method": "GET",
+          "category": "Admin Users",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 232,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/users/:id"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"user\":{\"notificationSettings\":{\"comments\":true,\"email\":true,\"follows\":true,\"likes\":true,\"liveStreams\":true,\"mentions\":true,\"messages\":true,\"orders\":true,\"push\":true,\"sms\":false},\"privacySettings\":{\"allowComments\":\"everyone\",\"allowMessages\":\"everyone\",\"isPrivate\":false,\"showOnlineStatus\":true},\"_id\":\"6907e305bd986387e937a67a\",\"username\":\"admin\",\"email\":\"admin@mixillo.com\",\"fullName\":\"System Administrator\",\"avatar\":null,\"bio\":\"\",\"dateOfBirth\":\"1990-01-01T00:00:00.000Z\",\"role\":\"admin\",\"status\":\"active\",\"isVerified\":true,\"isFeatured\":false,\"isLimitedFromExplore\":false,\"followersCount\":0,\"followingCount\":0,\"videosCount\":0,\"postsCount\":0,\"commentsCount\":0,\"likesReceived\":0,\"profileViews\":0,\"sellerProfile\":{\"businessType\":\"individual\",\"hasActiveStore\":false,\"sellerVerificationDocuments\":[]},\"preferences\":{\"currency\":\"USD\",\"language\":\"en\",\"marketingEmails\":true,\"orderNotifications\":true,\"promoNotifications\":false},\"lastLogin\":\"2025-11-14T12:50:09.843Z\",\"emailVerifiedAt\":null,\"shippingAddresses\":[],\"createdAt\":\"2025-11-02T23:02:29.957Z\",\"updatedAt\":\"2025-11-14T12:50:09.844Z\",\"__v\":1,\"fcmTokens\":[],\"gender\":\"prefer_not_to_say\",\"isCreator\":false,\"isSeller\":false,\"likesReceivedCount\":0,\"loginCount\":14,\"migratedFromFirebase\":false,\"phone\":\"\",\"sellerStatus\":\"pending\",\"viewsCount\":0,\"website\":\"\",\"profileUrl\":\"/users/6907e305bd986387e937a67a\",\"isActive\":true,\"id\":\"6907e305bd986387e937a67a\",\"stats\":{\"contentCount\":0,\"followersCount\":0,\"followingCount\":0}}}}"
+        },
+        {
+          "path": "/admin/users/stats",
+          "method": "GET",
+          "category": "Admin Users",
+          "critical": true,
+          "status_code": 500,
+          "latency_ms": 190,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 3,
+          "used_by_ui": [
+            "/admin/dashboard"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"Error fetching user details\"}"
+        },
+        {
+          "path": "/admin/dashboard",
+          "method": "GET",
+          "category": "Admin Core",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 225,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/dashboard"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"users\":{\"total\":31,\"active\":29,\"banned\":1},\"content\":{\"total\":0,\"active\":0,\"reported\":0},\"products\":{\"total\":0,\"pending\":0},\"orders\":{\"total\":0},\"moderation\":{\"pendingReports\":0,\"pendingApplications\":1}}}"
+        },
+        {
+          "path": "/admin/stats",
+          "method": "GET",
+          "category": "Admin Core",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 173,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/dashboard"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/stats\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/content/feed",
+          "method": "GET",
+          "category": "Content",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 195,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/content"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"content\":[]}}"
+        },
+        {
+          "path": "/posts/feed",
+          "method": "GET",
+          "category": "Content",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 195,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/posts"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"content\":[]}}"
+        },
+        {
+          "path": "/admin/content",
+          "method": "GET",
+          "category": "Admin Content",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 179,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/content"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/content\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/stories",
+          "method": "GET",
+          "category": "Content",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 226,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/stories"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"stories\":[]}}"
+        },
+        {
+          "path": "/admin/stories",
+          "method": "GET",
+          "category": "Admin Content",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 186,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/stories"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/stories\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/comments/admin/all",
+          "method": "GET",
+          "category": "Comments",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 299,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/comments"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"comments\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":20,\"pages\":0}}}"
+        },
+        {
+          "path": "/comments/admin/stats",
+          "method": "GET",
+          "category": "Comments",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 244,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/dashboard"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"total\":0,\"pending\":0,\"reported\":0,\"blocked\":0,\"approved\":0,\"today\":0}}"
+        },
+        {
+          "path": "/featured/admin/featured",
+          "method": "GET",
+          "category": "Featured",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 357,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/featured"
+          ],
+          "response_snippet": "{\"success\":true,\"featured\":[],\"pagination\":{\"currentPage\":1,\"totalPages\":0,\"totalItems\":0,\"itemsPerPage\":20}}"
+        },
+        {
+          "path": "/featured/admin/featured/stats",
+          "method": "GET",
+          "category": "Featured",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 254,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/dashboard"
+          ],
+          "response_snippet": "{\"success\":true,\"stats\":{\"total\":0,\"active\":0,\"expired\":0,\"totalImpressions\":0,\"totalClicks\":0,\"avgCTR\":0,\"byType\":[],\"byPosition\":[]}}"
+        },
+        {
+          "path": "/products",
+          "method": "GET",
+          "category": "Products",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 250,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/products",
+            "/products"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"products\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":20,\"pages\":0}}}"
+        },
+        {
+          "path": "/products/featured",
+          "method": "GET",
+          "category": "Products",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 348,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/products/featured"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"products\":[]}}"
+        },
+        {
+          "path": "/products/search",
+          "method": "GET",
+          "category": "Products",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 248,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/products"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"products\":[],\"pagination\":{\"page\":1,\"limit\":20,\"total\":0,\"pages\":0}}}"
+        },
+        {
+          "path": "/admin/products",
+          "method": "GET",
+          "category": "Admin Products",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 243,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/products"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/products\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/stores",
+          "method": "GET",
+          "category": "Stores",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 253,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/stores"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"stores\":[{\"_id\":\"690fc03c3333c7a7e0927097\",\"sellerId\":{\"_id\":\"690fbc703333c7a7e0927025\",\"username\":\"testuser_1762638960649\",\"fullName\":\"Test User\",\"avatar\":\"\",\"profileUrl\":\"/users/690fbc703333c7a7e0927025\",\"isActive\":false,\"id\":\"690fbc703333c7a7e0927025\"},\"name\":\"Test User's Store\",\"description\":\"Welcome to Test User's Store\",\"businessType\":\"individual\",\"status\":\"active\",\"isVerified\":true,\"verifiedAt\":\"2025-11-08T22:12:12.873Z\",\"productsCount\":0,\"totalSales\":0,\"totalRevenue\":0,\"rating\":0,\"reviewsCount\":0,\"followersCount\":0,\"paymentMethods\":[],\"isFeatured\":false,\"approvedBy\":\"6907e305bd986387e937a67a\",\"approvedAt\":\"2025-11-08T22:12:12.873Z\",\"shippingZones\":[],\"createdAt\":\"2025-11-08T22:12:12.876Z\",\"updatedAt\":\"2025-11-08T22:12:12.876Z\",\"slug\":\"test-user-s-store-927097\",\"__v\":0}],\"pagination\":{\"total\":1,\"page\":1,\"limit\":20,\"pages\":1}}}"
+        },
+        {
+          "path": "/admin/stores",
+          "method": "GET",
+          "category": "Admin Stores",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 250,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/stores"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/stores\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/cart",
+          "method": "GET",
+          "category": "Cart",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 243,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/carts"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"cart\":{\"_id\":\"691725aaf061c9ca15362cb2\",\"userId\":\"6907e305bd986387e937a67a\",\"subtotal\":0,\"itemsCount\":0,\"items\":[],\"createdAt\":\"2025-11-14T12:50:50.321Z\",\"updatedAt\":\"2025-11-14T12:50:50.321Z\",\"__v\":0}}}"
+        },
+        {
+          "path": "/orders",
+          "method": "GET",
+          "category": "Orders",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 345,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/orders"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"orders\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":20,\"pages\":0}}}"
+        },
+        {
+          "path": "/admin/orders",
+          "method": "GET",
+          "category": "Admin Orders",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 244,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/orders"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/orders\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/categories",
+          "method": "GET",
+          "category": "Categories",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 253,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/categories"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"categories\":[]}}"
+        },
+        {
+          "path": "/wallets",
+          "method": "GET",
+          "category": "Wallet",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 249,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/wallets"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/wallets\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/wallets/6907e305bd986387e937a67a/balance",
+          "method": "GET",
+          "category": "Wallet",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 241,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/users/:id"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"balance\":10000,\"currency\":\"USD\"}}"
+        },
+        {
+          "path": "/wallets/6907e305bd986387e937a67a/transactions",
+          "method": "GET",
+          "category": "Wallet",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 355,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/users/:id"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"transactions\":[],\"pagination\":{\"total\":0,\"page\":1,\"limit\":50,\"pages\":0}}}"
+        },
+        {
+          "path": "/admin/wallets",
+          "method": "GET",
+          "category": "Admin Wallet",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 359,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/wallets"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"wallets\":[{\"pendingEarnings\":0,\"withdrawableBalance\":0,\"lifetimeWithdrawals\":0,\"isLocked\":false,\"_id\":\"6907e307bd986387e937a68e\",\"userId\":{\"_id\":\"6907e305bd986387e937a67a\",\"username\":\"admin\",\"email\":\"admin@mixillo.com\",\"fullName\":\"System Administrator\",\"avatar\":null,\"profileUrl\":\"/users/6907e305bd986387e937a67a\",\"isActive\":false,\"id\":\"6907e305bd986387e937a67a\"},\"balance\":10000,\"pendingCredit\":0,\"pendingDebit\":0,\"availableBalance\":10000,\"totalEarnings\":10000,\"totalSpendings\":0,\"monthlyEarnings\":0,\"monthlySpendings\":0,\"currency\":\"USD\",\"supportLevel\":\"silver\",\"status\":\"active\",\"isActive\":true,\"isFrozen\":false,\"security\":{\"pinAttempts\":0,\"twoFactorEnabled\":false},\"limits\":{\"daily\":{\"spending\":1000,\"withdrawal\":500},\"monthly\":{\"spending\":10000,\"withdrawal\":5000},\"transaction\":{\"min\":0.01,\"max\":5000}},\"usage\":{\"dailySpent\":0,\"totalTransactions\":0,\"lastResetDate\":\"2025-11-02T23:02:31.223Z\"},\"verificationLevel\":\"basic\",\"rewards\":{\"totalCashback\":0,\"pendingCashback\":0,\"totalRewards\":0,\"rewardPoints\":0},\"notifications\":{\"lowBalance\":{\"enabled\":true,\"threshold\":10},\"transactions\":{\"enabled\":true,\"minAmount\":1}},\"lastTransactionAt\":null,\"lastActivity\":\"2025-11-02T23:02:31.221Z\",\"createdAt\":\"2025-11-02T23:02:31.222Z\",\"updatedAt\":\"2025-11-02T23:02:31.222Z\",\"__v\":0,\"paymentMethods\":[],\"id\":\"6907e307bd986387e937a68e\"},{\"pendingEarnings\":0,\"withdrawableBalance\":0,\"lifetimeWithdrawals\":0,\"isLocked\":false,\"_id\":\"6907e30dbd986387e937a6b4\",\"userId\":{\"_id\":\"6907e30abd986387e937a6a0\",\"username\":\"tomjohnson\",\"email\":\"tom@example.com\",\"fullName\":\"Tom Johnson\",\"avatar\":null,\"profileUrl\":\"/users/6907e30abd986387e937a6a0\",\"isActive\":false,\"id\":\"6907e30abd986387e937a6a0\"},\"balance\":7890.4,\"pendingCredit\":0,\"pendingDebit\":0,\"availableBalance\":7890.4,\"totalEarnings\":23450.75,\"totalSpendings\":0,\"monthlyEarnings\":0,\"monthlySpendings\":0,\"currency\":\"USD\",\"supportLevel\":\"silver\",\"status\":\"active\",\"isActive\":true,\"isFrozen\":false,\"security\":{\"pinAttempts\":0,\"twoFactorEnabled\":false},\"limits\":{\"daily\":{\"spending\":1000,\"withdr"
+        },
+        {
+          "path": "/coins/packages",
+          "method": "GET",
+          "category": "Coins",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 246,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/coins"
+          ],
+          "response_snippet": "{\"success\":true,\"packages\":[]}"
+        },
+        {
+          "path": "/admin/coins",
+          "method": "GET",
+          "category": "Admin Coins",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 255,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/coins"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/coins\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/gifts",
+          "method": "GET",
+          "category": "Gifts",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 248,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/gifts"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"gifts\":[]}}"
+        },
+        {
+          "path": "/admin/gifts",
+          "method": "GET",
+          "category": "Admin Gifts",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 345,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/gifts"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/gifts\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/live",
+          "method": "GET",
+          "category": "Live",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 245,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/live"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"livestreams\":[]}}"
+        },
+        {
+          "path": "/live/livestreams",
+          "method": "GET",
+          "category": "Live",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 258,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/live"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"livestreams\":[]}}"
+        },
+        {
+          "path": "/admin/livestreams",
+          "method": "GET",
+          "category": "Admin Live",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 255,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/live"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/livestreams\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/admin/stream-providers",
+          "method": "GET",
+          "category": "Admin Live",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 456,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/streaming"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/stream-providers\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/notifications",
+          "method": "GET",
+          "category": "Notifications",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 353,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/notifications"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"notifications\":[],\"unreadCount\":0,\"pagination\":{\"total\":0,\"page\":1,\"limit\":50,\"pages\":0}}}"
+        },
+        {
+          "path": "/admin/notifications",
+          "method": "GET",
+          "category": "Admin Notifications",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 255,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/notifications"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/notifications\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/analytics/overview",
+          "method": "GET",
+          "category": "Analytics",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 348,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/analytics"
+          ],
+          "response_snippet": "{\"success\":true,\"data\":{\"users\":{\"total\":31,\"active\":29},\"content\":{\"total\":0},\"orders\":{\"total\":0,\"revenue\":0}}}"
+        },
+        {
+          "path": "/admin/analytics",
+          "method": "GET",
+          "category": "Admin Analytics",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 250,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/analytics"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/admin/analytics\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/database/admin/database/stats",
+          "method": "GET",
+          "category": "Database",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 248,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/database"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/database/admin/database/stats\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/database/admin/database/collections",
+          "method": "GET",
+          "category": "Database",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 244,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/database"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/database/admin/database/collections\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/database/admin/database/performance",
+          "method": "GET",
+          "category": "Database",
+          "critical": true,
+          "status_code": 404,
+          "latency_ms": 255,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/database"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/database/admin/database/performance\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/banners/admin/banners",
+          "method": "GET",
+          "category": "Banners",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 251,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/banners"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/banners/admin/banners\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/banners/admin/banners/stats",
+          "method": "GET",
+          "category": "Banners",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 344,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/dashboard"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/banners/admin/banners/stats\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/cloudinary/admin/cloudinary/config",
+          "method": "GET",
+          "category": "Cloudinary",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 251,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/media"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/cloudinary/admin/cloudinary/config\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/cloudinary/admin/cloudinary/stats",
+          "method": "GET",
+          "category": "Cloudinary",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 247,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/media"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/cloudinary/admin/cloudinary/stats\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/cloudinary/admin/cloudinary/performance",
+          "method": "GET",
+          "category": "Cloudinary",
+          "critical": false,
+          "status_code": 404,
+          "latency_ms": 242,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/media"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"API endpoint not found\",\"path\":\"/api/cloudinary/admin/cloudinary/performance\",\"method\":\"GET\"}"
+        },
+        {
+          "path": "/health",
+          "method": "GET",
+          "category": "System",
+          "critical": true,
+          "status_code": 200,
+          "latency_ms": 254,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "healthcheck"
+          ],
+          "response_snippet": "{\"status\":\"ok\",\"message\":\"Mixillo API is running\",\"timestamp\":\"2025-11-14T13:30:36.895Z\",\"environment\":\"production\",\"uptime\":4101.869407706,\"database\":\"MongoDB\",\"mongodb\":{\"connected\":true,\"database\":\"mixillo\"}}"
+        },
+        {
+          "path": "/admin/health",
+          "method": "GET",
+          "category": "Admin System",
+          "critical": false,
+          "status_code": 200,
+          "latency_ms": 456,
+          "response_schema_ok": true,
+          "error_message": null,
+          "attempts": 1,
+          "used_by_ui": [
+            "/admin/system"
+          ],
+          "response_snippet": "{\"success\":true,\"message\":\"Admin API is working (MongoDB)\",\"database\":\"MongoDB\"}"
+        }
+      ],
+      "critical_failures": [
+        {
+          "path": "/admin/users/stats",
+          "method": "GET",
+          "category": "Admin Users",
+          "critical": true,
+          "status_code": 500,
+          "latency_ms": 190,
+          "response_schema_ok": false,
+          "error_message": null,
+          "attempts": 3,
+          "used_by_ui": [
+            "/admin/dashboard"
+          ],
+          "response_snippet": "{\"success\":false,\"message\":\"Error fetching user details\"}"
+        }
+      ]
+    },
+    "admin_pages": {
+      "total_tested": 35,
+      "passed": 24,
+      "warnings": 11,
+      "failed": 0,
+      "pass_rate": "68.6%",
+      "overall_status": "WARN",
+      "details": [
+        {
+          "name": "Login",
+          "ui_path": "/login",
+          "api_endpoint": null,
+          "status": "OK",
+          "critical": true,
+          "api_status": null,
+          "api_latency_ms": 0,
+          "error": "No API endpoint (static page)"
+        },
+        {
+          "name": "Dashboard",
+          "ui_path": "/dashboard",
+          "api_endpoint": "/admin/dashboard",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 841,
+          "error": null
+        },
+        {
+          "name": "Users List",
+          "ui_path": "/users",
+          "api_endpoint": "/admin/users",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 391,
+          "error": null
+        },
+        {
+          "name": "User Details",
+          "ui_path": "/users/:id",
+          "api_endpoint": "/admin/users/6907e305bd986387e937a67a",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 326,
+          "error": null
+        },
+        {
+          "name": "Sellers",
+          "ui_path": "/sellers",
+          "api_endpoint": "/admin/users?role=seller",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 226,
+          "error": null
+        },
+        {
+          "name": "Seller Applications",
+          "ui_path": "/seller-applications",
+          "api_endpoint": "/seller-applications",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 193,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Content",
+          "ui_path": "/content",
+          "api_endpoint": "/content/feed",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 233,
+          "error": null
+        },
+        {
+          "name": "Posts",
+          "ui_path": "/posts",
+          "api_endpoint": "/posts/feed",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 238,
+          "error": null
+        },
+        {
+          "name": "Stories",
+          "ui_path": "/stories",
+          "api_endpoint": "/stories",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 240,
+          "error": null
+        },
+        {
+          "name": "Comments",
+          "ui_path": "/comments",
+          "api_endpoint": "/comments/admin/all",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 248,
+          "error": null
+        },
+        {
+          "name": "Shares",
+          "ui_path": "/shares",
+          "api_endpoint": "/shares",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 194,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Products",
+          "ui_path": "/products",
+          "api_endpoint": "/products",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 208,
+          "error": null
+        },
+        {
+          "name": "Categories",
+          "ui_path": "/categories",
+          "api_endpoint": "/categories",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 207,
+          "error": null
+        },
+        {
+          "name": "Stores",
+          "ui_path": "/stores",
+          "api_endpoint": "/stores",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 259,
+          "error": null
+        },
+        {
+          "name": "Orders",
+          "ui_path": "/orders",
+          "api_endpoint": "/orders",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 303,
+          "error": null
+        },
+        {
+          "name": "Shipping Methods",
+          "ui_path": "/shipping-methods",
+          "api_endpoint": "/shipping-methods",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 237,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Wallets",
+          "ui_path": "/wallets",
+          "api_endpoint": "/admin/wallets",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 305,
+          "error": null
+        },
+        {
+          "name": "Transactions",
+          "ui_path": "/transactions",
+          "api_endpoint": "/wallets/6907e305bd986387e937a67a/transactions",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 276,
+          "error": null
+        },
+        {
+          "name": "Coin Packages",
+          "ui_path": "/coin-packages",
+          "api_endpoint": "/coins/packages",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 307,
+          "error": null
+        },
+        {
+          "name": "Live Streams",
+          "ui_path": "/live-streams",
+          "api_endpoint": "/live/livestreams",
+          "status": "OK",
+          "critical": true,
+          "api_status": 200,
+          "api_latency_ms": 307,
+          "error": null
+        },
+        {
+          "name": "Stream Providers",
+          "ui_path": "/stream-providers",
+          "api_endpoint": "/admin/stream-providers",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 194,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Gifts",
+          "ui_path": "/gifts",
+          "api_endpoint": "/gifts",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 205,
+          "error": null
+        },
+        {
+          "name": "Notifications",
+          "ui_path": "/notifications",
+          "api_endpoint": "/notifications",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 242,
+          "error": null
+        },
+        {
+          "name": "Reports",
+          "ui_path": "/reports",
+          "api_endpoint": "/reports",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 180,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Strikes",
+          "ui_path": "/strikes",
+          "api_endpoint": "/strikes",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 191,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Analytics",
+          "ui_path": "/analytics",
+          "api_endpoint": "/analytics/overview",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 223,
+          "error": null
+        },
+        {
+          "name": "Settings",
+          "ui_path": "/settings",
+          "api_endpoint": null,
+          "status": "OK",
+          "critical": false,
+          "api_status": null,
+          "api_latency_ms": 0,
+          "error": "No API endpoint (static page)"
+        },
+        {
+          "name": "Admin Users",
+          "ui_path": "/admin-users",
+          "api_endpoint": "/admin/users?role=admin",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 223,
+          "error": null
+        },
+        {
+          "name": "Banners",
+          "ui_path": "/banners",
+          "api_endpoint": "/banners",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 197,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Featured",
+          "ui_path": "/featured",
+          "api_endpoint": "/featured/admin/featured",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 246,
+          "error": null
+        },
+        {
+          "name": "Database Stats",
+          "ui_path": "/database/stats",
+          "api_endpoint": "/admin/database/stats",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 204,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Database Collections",
+          "ui_path": "/database/collections",
+          "api_endpoint": "/admin/database/collections",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 245,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Database Performance",
+          "ui_path": "/database/performance",
+          "api_endpoint": "/admin/database/performance",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 211,
+          "error": "API endpoint not found"
+        },
+        {
+          "name": "Cloudinary Config",
+          "ui_path": "/cloudinary/config",
+          "api_endpoint": "/admin/cloudinary/config",
+          "status": "OK",
+          "critical": false,
+          "api_status": 200,
+          "api_latency_ms": 302,
+          "error": null
+        },
+        {
+          "name": "API Health",
+          "ui_path": "/api-health",
+          "api_endpoint": "/health",
+          "status": "WARN",
+          "critical": false,
+          "api_status": 404,
+          "api_latency_ms": 202,
+          "error": "API endpoint not found"
+        }
+      ]
+    },
+    "database": {
+      "total_collections_expected": 74,
+      "total_collections_found": 55,
+      "total_documents": 60,
+      "missing_collections": [
+        "profiles",
+        "followers",
+        "followings",
+        "blockedusers",
+        "posts",
+        "productvariants",
+        "cartitems",
+        "wishlists",
+        "coins",
+        "liveparticipants",
+        "livegifts",
+        "chatrooms",
+        "adminusers",
+        "adminactions",
+        "systemsettings",
+        "themes",
+        "translations",
+        "featured",
+        "shippingmethods",
+        "supporterbadges",
+        "creatorearnings",
+        "contentrights",
+        "videoqualitysettings",
+        "transcodejobs",
+        "streamfilters",
+        "liveshoppingsessions",
+        "customerservicetickets",
+        "pages",
+        "adcampaigns",
+        "aimoderation",
+        "recommendationmetadata"
+      ],
+      "collections_needing_indexes": 6,
+      "integrity_issues": 0,
+      "details": [
+        {
+          "name": "coupons",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "code_1",
+            "isActive_1_startDate_1_endDate_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "code": 1
+              },
+              "name": "code_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1,
+                "startDate": 1,
+                "endDate": 1
+              },
+              "name": "isActive_1_startDate_1_endDate_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "faqs",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "isPublished_1",
+            "category_1_order_1",
+            "isPublished_1_order_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "isPublished": 1
+              },
+              "name": "isPublished_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "category": 1,
+                "order": 1
+              },
+              "name": "category_1_order_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isPublished": 1,
+                "order": 1
+              },
+              "name": "isPublished_1_order_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "useractivities",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "activityType_1",
+            "timestamp_1",
+            "userId_1_timestamp_-1",
+            "activityType_1_timestamp_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "activityType": 1
+              },
+              "name": "activityType_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "timestamp": 1
+              },
+              "name": "timestamp_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "timestamp": -1
+              },
+              "name": "userId_1_timestamp_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "activityType": 1,
+                "timestamp": -1
+              },
+              "name": "activityType_1_timestamp_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "stories",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "expiresAt_1",
+            "createdAt_1",
+            "userId_1_expiresAt_1",
+            "createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "expiresAt": 1
+              },
+              "name": "expiresAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": 1
+              },
+              "name": "createdAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "expiresAt": 1
+              },
+              "name": "userId_1_expiresAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "conversations",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "lastMessage_text",
+            "participants_1_updatedAt_-1",
+            "participantStatus.userId_1_updatedAt_-1",
+            "updatedAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "_fts": "text",
+                "_ftsx": 1
+              },
+              "name": "lastMessage_text",
+              "background": true,
+              "weights": {
+                "lastMessage": 1
+              },
+              "default_language": "english",
+              "language_override": "language",
+              "textIndexVersion": 3
+            },
+            {
+              "v": 2,
+              "key": {
+                "participants": 1,
+                "updatedAt": -1
+              },
+              "name": "participants_1_updatedAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "participantStatus.userId": 1,
+                "updatedAt": -1
+              },
+              "name": "participantStatus.userId_1_updatedAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "updatedAt": -1
+              },
+              "name": "updatedAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "notifications",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "type_1",
+            "isRead_1",
+            "createdAt_1",
+            "userId_1_isRead_1_createdAt_-1",
+            "userId_1_type_1_createdAt_-1",
+            "createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "type": 1
+              },
+              "name": "type_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isRead": 1
+              },
+              "name": "isRead_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": 1
+              },
+              "name": "createdAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "isRead": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_isRead_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "type": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_type_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "tags",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "name_1",
+            "usageCount_-1",
+            "isTrending_1_usageCount_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "name": 1
+              },
+              "name": "name_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "usageCount": -1
+              },
+              "name": "usageCount_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isTrending": 1,
+                "usageCount": -1
+              },
+              "name": "isTrending_1_usageCount_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "contentrecommendations",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "expiresAt_1",
+            "userId_1_generatedAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "expiresAt": 1
+              },
+              "name": "expiresAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "generatedAt": -1
+              },
+              "name": "userId_1_generatedAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "banners",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "isActive_1_placement_1_sortOrder_1",
+            "startDate_1_endDate_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1,
+                "placement": 1,
+                "sortOrder": 1
+              },
+              "name": "isActive_1_placement_1_sortOrder_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "startDate": 1,
+                "endDate": 1
+              },
+              "name": "startDate_1_endDate_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "sounds",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "uploadedBy_1_status_1",
+            "status_1_usageCount_-1",
+            "isTrending_1_usageCount_-1",
+            "uploadedBy_1",
+            "status_1",
+            "status_1_createdAt_-1",
+            "usageCount_-1",
+            "isTrending_1_trendingScore_-1",
+            "title_text_artist_text"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "uploadedBy": 1,
+                "status": 1
+              },
+              "name": "uploadedBy_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "usageCount": -1
+              },
+              "name": "status_1_usageCount_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isTrending": 1,
+                "usageCount": -1
+              },
+              "name": "isTrending_1_usageCount_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "uploadedBy": 1
+              },
+              "name": "uploadedBy_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "createdAt": -1
+              },
+              "name": "status_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "usageCount": -1
+              },
+              "name": "usageCount_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isTrending": 1,
+                "trendingScore": -1
+              },
+              "name": "isTrending_1_trendingScore_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "_fts": "text",
+                "_ftsx": 1
+              },
+              "name": "title_text_artist_text",
+              "background": true,
+              "weights": {
+                "artist": 1,
+                "title": 1
+              },
+              "default_language": "english",
+              "language_override": "language",
+              "textIndexVersion": 3
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "analytics",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "targetType_1_targetId_1_date_1",
+            "userId_1_date_-1",
+            "userId_1",
+            "contentId_1",
+            "type_1",
+            "date_1",
+            "type_1_date_-1",
+            "contentId_1_date_-1",
+            "date_-1_type_1",
+            "createdAt_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "targetType": 1,
+                "targetId": 1,
+                "date": 1
+              },
+              "name": "targetType_1_targetId_1_date_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "date": -1
+              },
+              "name": "userId_1_date_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1
+              },
+              "name": "contentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "type": 1
+              },
+              "name": "type_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "date": 1
+              },
+              "name": "date_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "type": 1,
+                "date": -1
+              },
+              "name": "type_1_date_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1,
+                "date": -1
+              },
+              "name": "contentId_1_date_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "date": -1,
+                "type": 1
+              },
+              "name": "date_-1_type_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": 1
+              },
+              "name": "createdAt_1",
+              "background": true,
+              "expireAfterSeconds": 31536000
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "strikes",
+          "count": 3,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "status_1",
+            "createdAt_-1",
+            "expiresAt_1",
+            "userId_1_isActive_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "expiresAt": 1
+              },
+              "name": "expiresAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "isActive": 1
+              },
+              "name": "userId_1_isActive_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [
+            "updatedAt"
+          ],
+          "issues": []
+        },
+        {
+          "name": "carts",
+          "count": 7,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "items.productId_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "items.productId": 1
+              },
+              "name": "items.productId_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [
+            "createdAt",
+            "updatedAt"
+          ],
+          "issues": []
+        },
+        {
+          "name": "stores",
+          "count": 1,
+          "indexes": [
+            "_id_",
+            "sellerId_1",
+            "status_1",
+            "slug_1",
+            "status_1_isVerified_1",
+            "rating_-1_totalSales_-1",
+            "name_text_description_text_tagline_text"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "sellerId": 1
+              },
+              "name": "sellerId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "slug": 1
+              },
+              "name": "slug_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "isVerified": 1
+              },
+              "name": "status_1_isVerified_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "rating": -1,
+                "totalSales": -1
+              },
+              "name": "rating_-1_totalSales_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "_fts": "text",
+                "_ftsx": 1
+              },
+              "name": "name_text_description_text_tagline_text",
+              "background": true,
+              "weights": {
+                "description": 1,
+                "name": 1,
+                "tagline": 1
+              },
+              "default_language": "english",
+              "language_override": "language",
+              "textIndexVersion": 3
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [
+            "createdAt",
+            "updatedAt"
+          ],
+          "issues": []
+        },
+        {
+          "name": "categories",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "slug_1",
+            "parentId_1_sortOrder_1",
+            "parentId_1",
+            "isActive_1",
+            "isActive_1_isFeatured_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "slug": 1
+              },
+              "name": "slug_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "parentId": 1,
+                "sortOrder": 1
+              },
+              "name": "parentId_1_sortOrder_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "parentId": 1
+              },
+              "name": "parentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1
+              },
+              "name": "isActive_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1,
+                "isFeatured": -1
+              },
+              "name": "isActive_1_isFeatured_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "pkbattles",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "host1Id_1_createdAt_-1",
+            "host2Id_1_createdAt_-1",
+            "livestreamId_1",
+            "host1Id_1_host2Id_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "host1Id": 1,
+                "createdAt": -1
+              },
+              "name": "host1Id_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "host2Id": 1,
+                "createdAt": -1
+              },
+              "name": "host2Id_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "livestreamId": 1
+              },
+              "name": "livestreamId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "host1Id": 1,
+                "host2Id": 1
+              },
+              "name": "host1Id_1_host2Id_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "featureds",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "type_1_isActive_1_priority_-1",
+            "endDate_1",
+            "itemId_1_type_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "type": 1,
+                "isActive": 1,
+                "priority": -1
+              },
+              "name": "type_1_isActive_1_priority_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "endDate": 1
+              },
+              "name": "endDate_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "itemId": 1,
+                "type": 1
+              },
+              "name": "itemId_1_type_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "views",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "targetType_1_targetId_1_createdAt_-1",
+            "userId_1_createdAt_-1",
+            "createdAt_-1",
+            "contentId_1",
+            "userId_1",
+            "viewedAt_1",
+            "contentId_1_viewedAt_-1",
+            "userId_1_viewedAt_-1",
+            "viewedAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "targetType": 1,
+                "targetId": 1,
+                "createdAt": -1
+              },
+              "name": "targetType_1_targetId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1
+              },
+              "name": "contentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "viewedAt": 1
+              },
+              "name": "viewedAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1,
+                "viewedAt": -1
+              },
+              "name": "contentId_1_viewedAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "viewedAt": -1
+              },
+              "name": "userId_1_viewedAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "viewedAt": -1
+              },
+              "name": "viewedAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "scheduledcontents",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "scheduledFor_1",
+            "status_1",
+            "status_1_scheduledFor_1",
+            "userId_1_scheduledFor_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "scheduledFor": 1
+              },
+              "name": "scheduledFor_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "scheduledFor": 1
+              },
+              "name": "status_1_scheduledFor_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "scheduledFor": -1
+              },
+              "name": "userId_1_scheduledFor_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "tickets",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "ticketNumber_1",
+            "status_1",
+            "userId_1_status_1",
+            "assignedTo_1_status_1",
+            "createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "ticketNumber": 1
+              },
+              "name": "ticketNumber_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "status": 1
+              },
+              "name": "userId_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "assignedTo": 1,
+                "status": 1
+              },
+              "name": "assignedTo_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "multihostsessions",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "livestreamId_1",
+            "hosts.userId_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "livestreamId": 1
+              },
+              "name": "livestreamId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "hosts.userId": 1
+              },
+              "name": "hosts.userId_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "contents",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "status_1",
+            "userId_1_createdAt_-1",
+            "status_1_publishedAt_-1",
+            "status_1_viewsCount_-1",
+            "createdAt_-1",
+            "publishedAt_-1",
+            "hashtags_1",
+            "soundId_1",
+            "caption_text_hashtags_text",
+            "feedScore_1",
+            "status_1_createdAt_-1",
+            "hashtags_1_createdAt_-1",
+            "viewsCount_-1_likesCount_-1",
+            "feedScore_-1_createdAt_-1",
+            "moderationScore_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "publishedAt": -1
+              },
+              "name": "status_1_publishedAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "viewsCount": -1
+              },
+              "name": "status_1_viewsCount_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "publishedAt": -1
+              },
+              "name": "publishedAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "hashtags": 1
+              },
+              "name": "hashtags_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "soundId": 1
+              },
+              "name": "soundId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "_fts": "text",
+                "_ftsx": 1
+              },
+              "name": "caption_text_hashtags_text",
+              "background": true,
+              "weights": {
+                "caption": 1,
+                "hashtags": 1
+              },
+              "default_language": "english",
+              "language_override": "language",
+              "textIndexVersion": 3
+            },
+            {
+              "v": 2,
+              "key": {
+                "feedScore": 1
+              },
+              "name": "feedScore_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "createdAt": -1
+              },
+              "name": "status_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "hashtags": 1,
+                "createdAt": -1
+              },
+              "name": "hashtags_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "viewsCount": -1,
+                "likesCount": -1
+              },
+              "name": "viewsCount_-1_likesCount_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "feedScore": -1,
+                "createdAt": -1
+              },
+              "name": "feedScore_-1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "moderationScore": 1
+              },
+              "name": "moderationScore_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "shares",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "targetType_1_targetId_1_createdAt_-1",
+            "userId_1_createdAt_-1",
+            "method_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "targetType": 1,
+                "targetId": 1,
+                "createdAt": -1
+              },
+              "name": "targetType_1_targetId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "method": 1
+              },
+              "name": "method_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "wallettransactions",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "transactionId_1",
+            "walletId_1",
+            "walletId_1_createdAt_-1",
+            "type_1",
+            "relatedOrderId_1",
+            "status_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "transactionId": 1
+              },
+              "name": "transactionId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "walletId": 1
+              },
+              "name": "walletId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "walletId": 1,
+                "createdAt": -1
+              },
+              "name": "walletId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "type": 1
+              },
+              "name": "type_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "relatedOrderId": 1
+              },
+              "name": "relatedOrderId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "searchqueries",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "query_1",
+            "timestamp_1",
+            "query_1_timestamp_-1",
+            "userId_1_timestamp_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "query": 1
+              },
+              "name": "query_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "timestamp": 1
+              },
+              "name": "timestamp_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "query": 1,
+                "timestamp": -1
+              },
+              "name": "query_1_timestamp_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "timestamp": -1
+              },
+              "name": "userId_1_timestamp_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "saves",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1_targetType_1_targetId_1",
+            "userId_1_collectionName_1_createdAt_-1",
+            "targetType_1_targetId_1",
+            "userId_1",
+            "contentId_1",
+            "createdAt_1",
+            "userId_1_contentId_1",
+            "userId_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "targetType": 1,
+                "targetId": 1
+              },
+              "name": "userId_1_targetType_1_targetId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "collectionName": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_collectionName_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "targetType": 1,
+                "targetId": 1
+              },
+              "name": "targetType_1_targetId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1
+              },
+              "name": "contentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": 1
+              },
+              "name": "createdAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "contentId": 1
+              },
+              "name": "userId_1_contentId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "subscriptions",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1_creatorId_1",
+            "creatorId_1_status_1",
+            "status_1_nextBillingDate_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "creatorId": 1
+              },
+              "name": "userId_1_creatorId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "creatorId": 1,
+                "status": 1
+              },
+              "name": "creatorId_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "nextBillingDate": 1
+              },
+              "name": "status_1_nextBillingDate_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "products",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "storeId_1",
+            "sellerId_1",
+            "sku_1",
+            "category_1",
+            "status_1",
+            "slug_1",
+            "storeId_1_status_1",
+            "sellerId_1_status_1",
+            "category_1_status_1",
+            "status_1_isPublished_1",
+            "createdAt_-1",
+            "rating_-1_salesCount_-1",
+            "price_1",
+            "name_text_description_text_tags_text_brand_text"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "storeId": 1
+              },
+              "name": "storeId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "sellerId": 1
+              },
+              "name": "sellerId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "sku": 1
+              },
+              "name": "sku_1",
+              "background": true,
+              "unique": true,
+              "sparse": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "category": 1
+              },
+              "name": "category_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "slug": 1
+              },
+              "name": "slug_1",
+              "background": true,
+              "unique": true,
+              "sparse": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "storeId": 1,
+                "status": 1
+              },
+              "name": "storeId_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "sellerId": 1,
+                "status": 1
+              },
+              "name": "sellerId_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "category": 1,
+                "status": 1
+              },
+              "name": "category_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "isPublished": 1
+              },
+              "name": "status_1_isPublished_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "rating": -1,
+                "salesCount": -1
+              },
+              "name": "rating_-1_salesCount_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "price": 1
+              },
+              "name": "price_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "_fts": "text",
+                "_ftsx": 1
+              },
+              "name": "name_text_description_text_tags_text_brand_text",
+              "background": true,
+              "weights": {
+                "brand": 1,
+                "description": 1,
+                "name": 1,
+                "tags": 1
+              },
+              "default_language": "english",
+              "language_override": "language",
+              "textIndexVersion": 3
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "payments",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "orderId_1",
+            "status_1",
+            "idempotencyKey_1",
+            "userId_1_createdAt_-1",
+            "status_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "orderId": 1
+              },
+              "name": "orderId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "idempotencyKey": 1
+              },
+              "name": "idempotencyKey_1",
+              "background": true,
+              "unique": true,
+              "sparse": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "createdAt": -1
+              },
+              "name": "status_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "messages",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "conversationId_1",
+            "senderId_1",
+            "createdAt_1",
+            "conversationId_1_createdAt_-1",
+            "senderId_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "conversationId": 1
+              },
+              "name": "conversationId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "senderId": 1
+              },
+              "name": "senderId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": 1
+              },
+              "name": "createdAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "conversationId": 1,
+                "createdAt": -1
+              },
+              "name": "conversationId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "senderId": 1,
+                "createdAt": -1
+              },
+              "name": "senderId_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "trendingconfigs",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "category_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "category": 1
+              },
+              "name": "category_1",
+              "background": true,
+              "unique": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "wallets",
+          "count": 14,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "status_1",
+            "balance_1",
+            "supportLevel_1",
+            "totalEarnings_-1",
+            "verificationLevel_1",
+            "lastActivity_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "balance": 1
+              },
+              "name": "balance_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "supportLevel": 1
+              },
+              "name": "supportLevel_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "totalEarnings": -1
+              },
+              "name": "totalEarnings_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "verificationLevel": 1
+              },
+              "name": "verificationLevel_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "lastActivity": -1
+              },
+              "name": "lastActivity_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [
+            "createdAt",
+            "updatedAt"
+          ],
+          "issues": []
+        },
+        {
+          "name": "streamproviders",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "name_1",
+            "enabled_1_priority_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "name": 1
+              },
+              "name": "name_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "enabled": 1,
+                "priority": 1
+              },
+              "name": "enabled_1_priority_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "uploadsessions",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "status_1",
+            "expiresAt_1",
+            "userId_1_status_1",
+            "fileKey_1",
+            "expiresAt_1_status_1",
+            "userId_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "expiresAt": 1
+              },
+              "name": "expiresAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "status": 1
+              },
+              "name": "userId_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "fileKey": 1
+              },
+              "name": "fileKey_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "expiresAt": 1,
+                "status": 1
+              },
+              "name": "expiresAt_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "levels",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "level_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "level": 1
+              },
+              "name": "level_1",
+              "background": true,
+              "unique": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "moderationqueues",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "contentType_1",
+            "contentId_1",
+            "priority_1",
+            "status_1",
+            "status_1_priority_-1_createdAt_1",
+            "contentType_1_contentId_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentType": 1
+              },
+              "name": "contentType_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1
+              },
+              "name": "contentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "priority": 1
+              },
+              "name": "priority_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "priority": -1,
+                "createdAt": 1
+              },
+              "name": "status_1_priority_-1_createdAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentType": 1,
+                "contentId": 1
+              },
+              "name": "contentType_1_contentId_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "trendingrecords",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "contentId_1",
+            "category_1",
+            "period_1",
+            "date_1",
+            "period_1_category_1_date_-1_rank_1",
+            "date_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1
+              },
+              "name": "contentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "category": 1
+              },
+              "name": "category_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "period": 1
+              },
+              "name": "period_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "date": 1
+              },
+              "name": "date_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "period": 1,
+                "category": 1,
+                "date": -1,
+                "rank": 1
+              },
+              "name": "period_1_category_1_date_-1_rank_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "date": -1
+              },
+              "name": "date_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "livestreams",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "hostId_1",
+            "streamId_1",
+            "status_1",
+            "hostId_1_status_1",
+            "status_1_startedAt_-1",
+            "createdAt_-1",
+            "participants.userId_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "hostId": 1
+              },
+              "name": "hostId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "streamId": 1
+              },
+              "name": "streamId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "hostId": 1,
+                "status": 1
+              },
+              "name": "hostId_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "startedAt": -1
+              },
+              "name": "status_1_startedAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "participants.userId": 1
+              },
+              "name": "participants.userId_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "coinpackages",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "isActive_1",
+            "isActive_1_sortOrder_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1
+              },
+              "name": "isActive_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1,
+                "sortOrder": 1
+              },
+              "name": "isActive_1_sortOrder_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "contentmetrics",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "contentId_1",
+            "date_1",
+            "contentId_1_date_-1",
+            "date_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1
+              },
+              "name": "contentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "date": 1
+              },
+              "name": "date_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1,
+                "date": -1
+              },
+              "name": "contentId_1_date_-1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "date": -1
+              },
+              "name": "date_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "follows",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "followerId_1",
+            "followingId_1",
+            "createdAt_1",
+            "followerId_1_followingId_1",
+            "followingId_1_createdAt_-1",
+            "createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "followerId": 1
+              },
+              "name": "followerId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "followingId": 1
+              },
+              "name": "followingId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": 1
+              },
+              "name": "createdAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "followerId": 1,
+                "followingId": 1
+              },
+              "name": "followerId_1_followingId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "followingId": 1,
+                "createdAt": -1
+              },
+              "name": "followingId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "reports",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "targetType_1_targetId_1_createdAt_-1",
+            "reportedBy_1_createdAt_-1",
+            "status_1_priority_-1_createdAt_-1",
+            "reporterId_1",
+            "reportedType_1",
+            "reportedId_1",
+            "reportedUserId_1",
+            "status_1",
+            "reportedType_1_reportedId_1",
+            "status_1_createdAt_-1",
+            "reporterId_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "targetType": 1,
+                "targetId": 1,
+                "createdAt": -1
+              },
+              "name": "targetType_1_targetId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "reportedBy": 1,
+                "createdAt": -1
+              },
+              "name": "reportedBy_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "priority": -1,
+                "createdAt": -1
+              },
+              "name": "status_1_priority_-1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "reporterId": 1
+              },
+              "name": "reporterId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "reportedType": 1
+              },
+              "name": "reportedType_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "reportedId": 1
+              },
+              "name": "reportedId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "reportedUserId": 1
+              },
+              "name": "reportedUserId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "reportedType": 1,
+                "reportedId": 1
+              },
+              "name": "reportedType_1_reportedId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "createdAt": -1
+              },
+              "name": "status_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "reporterId": 1,
+                "createdAt": -1
+              },
+              "name": "reporterId_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "likes",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1_targetType_1_targetId_1",
+            "targetType_1_targetId_1_createdAt_-1",
+            "userId_1_createdAt_-1",
+            "userId_1",
+            "contentId_1",
+            "createdAt_1",
+            "userId_1_contentId_1",
+            "contentId_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "targetType": 1,
+                "targetId": 1
+              },
+              "name": "userId_1_targetType_1_targetId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "targetType": 1,
+                "targetId": 1,
+                "createdAt": -1
+              },
+              "name": "targetType_1_targetId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1
+              },
+              "name": "contentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": 1
+              },
+              "name": "createdAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "contentId": 1
+              },
+              "name": "userId_1_contentId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1,
+                "createdAt": -1
+              },
+              "name": "contentId_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "settings",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "key_1",
+            "category_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "key": 1
+              },
+              "name": "key_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "category": 1
+              },
+              "name": "category_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "transactions",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "walletId_1",
+            "type_1",
+            "referenceId_1",
+            "status_1",
+            "userId_1_createdAt_-1",
+            "walletId_1_createdAt_-1",
+            "type_1_status_1",
+            "referenceId_1_referenceType_1",
+            "paymentId_1",
+            "status_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "walletId": 1
+              },
+              "name": "walletId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "type": 1
+              },
+              "name": "type_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "referenceId": 1
+              },
+              "name": "referenceId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "walletId": 1,
+                "createdAt": -1
+              },
+              "name": "walletId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "type": 1,
+                "status": 1
+              },
+              "name": "type_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "referenceId": 1,
+                "referenceType": 1
+              },
+              "name": "referenceId_1_referenceType_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "paymentId": 1
+              },
+              "name": "paymentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "createdAt": -1
+              },
+              "name": "status_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "users",
+          "count": 31,
+          "indexes": [
+            "_id_",
+            "username_1",
+            "email_1",
+            "status_1",
+            "createdAt_-1",
+            "firebaseUid_1",
+            "role_1_status_1",
+            "isVerified_1_isFeatured_1",
+            "lastActiveAt_-1",
+            "username_text_fullName_text_bio_text"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "username": 1
+              },
+              "name": "username_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "email": 1
+              },
+              "name": "email_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": -1
+              },
+              "name": "createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "firebaseUid": 1
+              },
+              "name": "firebaseUid_1",
+              "background": true,
+              "unique": true,
+              "sparse": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "role": 1,
+                "status": 1
+              },
+              "name": "role_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isVerified": 1,
+                "isFeatured": 1
+              },
+              "name": "isVerified_1_isFeatured_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "lastActiveAt": -1
+              },
+              "name": "lastActiveAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "_fts": "text",
+                "_ftsx": 1
+              },
+              "name": "username_text_fullName_text_bio_text",
+              "background": true,
+              "weights": {
+                "bio": 1,
+                "fullName": 1,
+                "username": 1
+              },
+              "default_language": "english",
+              "language_override": "language",
+              "textIndexVersion": 3
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [
+            "updatedAt"
+          ],
+          "issues": []
+        },
+        {
+          "name": "orders",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "orderNumber_1",
+            "paymentStatus_1",
+            "status_1",
+            "userId_1_createdAt_-1",
+            "items.storeId_1_createdAt_-1",
+            "sellerId_1_status_1",
+            "status_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "orderNumber": 1
+              },
+              "name": "orderNumber_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "paymentStatus": 1
+              },
+              "name": "paymentStatus_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "items.storeId": 1,
+                "createdAt": -1
+              },
+              "name": "items.storeId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "sellerId": 1,
+                "status": 1
+              },
+              "name": "sellerId_1_status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "createdAt": -1
+              },
+              "name": "status_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "recommendationmetadatas",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "userId_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true,
+              "unique": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "gifttransactions",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "giftId_1",
+            "senderId_1",
+            "recipientId_1",
+            "status_1",
+            "createdAt_1",
+            "livestreamId_1_createdAt_-1",
+            "contentId_1_createdAt_-1",
+            "senderId_1_createdAt_-1",
+            "recipientId_1_createdAt_-1",
+            "giftId_1_createdAt_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "giftId": 1
+              },
+              "name": "giftId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "senderId": 1
+              },
+              "name": "senderId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "recipientId": 1
+              },
+              "name": "recipientId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "createdAt": 1
+              },
+              "name": "createdAt_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "livestreamId": 1,
+                "createdAt": -1
+              },
+              "name": "livestreamId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1,
+                "createdAt": -1
+              },
+              "name": "contentId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "senderId": 1,
+                "createdAt": -1
+              },
+              "name": "senderId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "recipientId": 1,
+                "createdAt": -1
+              },
+              "name": "recipientId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "giftId": 1,
+                "createdAt": -1
+              },
+              "name": "giftId_1_createdAt_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "explorersections",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "type_1_sortOrder_1",
+            "isActive_1_sortOrder_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "type": 1,
+                "sortOrder": 1
+              },
+              "name": "type_1_sortOrder_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1,
+                "sortOrder": 1
+              },
+              "name": "isActive_1_sortOrder_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "currencies",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "code_1",
+            "isActive_1_isDefault_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "code": 1
+              },
+              "name": "code_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1,
+                "isDefault": -1
+              },
+              "name": "isActive_1_isDefault_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "comments",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "contentId_1",
+            "userId_1",
+            "parentId_1",
+            "contentId_1_createdAt_-1",
+            "userId_1_createdAt_-1",
+            "parentId_1_createdAt_-1",
+            "contentId_1_isPinned_-1_likesCount_-1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1
+              },
+              "name": "contentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "parentId": 1
+              },
+              "name": "parentId_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1,
+                "createdAt": -1
+              },
+              "name": "contentId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1,
+                "createdAt": -1
+              },
+              "name": "userId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "parentId": 1,
+                "createdAt": -1
+              },
+              "name": "parentId_1_createdAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "contentId": 1,
+                "isPinned": -1,
+                "likesCount": -1
+              },
+              "name": "contentId_1_isPinned_-1_likesCount_-1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "gifts",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "category_1",
+            "isActive_1",
+            "category_1_isActive_1",
+            "popularity_-1",
+            "isFeatured_1_popularity_-1",
+            "price_1",
+            "rarity_1_isActive_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "category": 1
+              },
+              "name": "category_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isActive": 1
+              },
+              "name": "isActive_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "category": 1,
+                "isActive": 1
+              },
+              "name": "category_1_isActive_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "popularity": -1
+              },
+              "name": "popularity_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "isFeatured": 1,
+                "popularity": -1
+              },
+              "name": "isFeatured_1_popularity_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "price": 1
+              },
+              "name": "price_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "rarity": 1,
+                "isActive": 1
+              },
+              "name": "rarity_1_isActive_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "subscriptiontiers",
+          "count": 0,
+          "indexes": [
+            "_id_",
+            "creatorId_1_isActive_1",
+            "creatorId_1_sortOrder_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "creatorId": 1,
+                "isActive": 1
+              },
+              "name": "creatorId_1_isActive_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "creatorId": 1,
+                "sortOrder": 1
+              },
+              "name": "creatorId_1_sortOrder_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [],
+          "issues": []
+        },
+        {
+          "name": "sellerapplications",
+          "count": 4,
+          "indexes": [
+            "_id_",
+            "userId_1",
+            "status_1",
+            "submittedAt_-1",
+            "status_1_createdAt_1"
+          ],
+          "index_details": [
+            {
+              "v": 2,
+              "key": {
+                "_id": 1
+              },
+              "name": "_id_"
+            },
+            {
+              "v": 2,
+              "key": {
+                "userId": 1
+              },
+              "name": "userId_1",
+              "background": true,
+              "unique": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1
+              },
+              "name": "status_1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "submittedAt": -1
+              },
+              "name": "submittedAt_-1",
+              "background": true
+            },
+            {
+              "v": 2,
+              "key": {
+                "status": 1,
+                "createdAt": 1
+              },
+              "name": "status_1_createdAt_1",
+              "background": true
+            }
+          ],
+          "sample_duplicate_groups": [],
+          "orphan_refs": [],
+          "missing_indexes": [
+            "updatedAt"
+          ],
+          "issues": []
+        }
+      ]
+    },
+    "third_party_integrations": {
+      "cloudinary": {
+        "status": "OK",
+        "details": {
+          "cloud_name": "dlg6dnlj4",
+          "resources_count": 1,
+          "api_accessible": true
+        },
+        "error": null
+      },
+      "agora": {
+        "status": "WARN",
+        "details": null,
+        "error": "Endpoint not found - Agora may not be configured"
+      },
+      "zegocloud": {
+        "status": "WARN",
+        "details": null,
+        "error": "Stream providers endpoint not found"
+      },
+      "socket_io": {
+        "status": "OK",
+        "connection": true,
+        "latency_ms": null,
+        "error": null,
+        "details": {
+          "endpoint_accessible": true,
+          "transport": "polling"
+        }
+      }
+    }
+  },
+  "priority_fixes": {
+    "generated_at": "2025-11-14T14:07:58.062Z",
+    "p0_critical": [
+      {
+        "id": "P0-1",
+        "title": "Admin Users Stats API Returns 500 Error",
+        "severity": "P0",
+        "category": "API",
+        "status": "open",
+        "description": "GET /admin/users/stats returns 500 Internal Server Error after multiple retries",
+        "impact": "Blocks admin dashboard user statistics display",
+        "reproduction_steps": [
+          "Navigate to admin dashboard",
+          "View user statistics section",
+          "API call fails with 500 error"
+        ],
+        "suggested_fix": {
+          "approach": "Debug aggregation pipeline in getUsersStats controller",
+          "files_to_modify": [
+            "backend/src/controllers/adminController.js"
+          ],
+          "estimated_time": "30 minutes",
+          "risk_level": "low"
+        },
+        "rollback_plan": "Revert controller changes, fallback to basic user count"
+      },
+      {
+        "id": "P0-2",
+        "title": "Database Monitoring Endpoints Not Registered",
+        "severity": "P0",
+        "category": "API",
+        "status": "open",
+        "description": "3 database admin endpoints return 404",
+        "impact": "Cannot monitor production database health from admin panel",
+        "affected_endpoints": [
+          "/database/admin/database/stats",
+          "/database/admin/database/collections",
+          "/database/admin/database/performance"
+        ],
+        "reproduction_steps": [
+          "Access /admin/database/stats, /admin/database/collections, /admin/database/performance",
+          "All return 404 Not Found"
+        ],
+        "suggested_fix": {
+          "approach": "Register database routes in app.js: app.use('/api/admin/database', databaseRoutes)",
+          "files_to_modify": [
+            "backend/src/app.js",
+            "backend/src/routes/database.js"
+          ],
+          "estimated_time": "15 minutes",
+          "risk_level": "low",
+          "code_patch": "workspace/P0_FIXES/P0-2-register-database-routes.patch"
+        },
+        "rollback_plan": "Comment out route registration line in app.js"
+      },
+      {
+        "id": "P0-3",
+        "title": "31 Expected Database Collections Missing",
+        "severity": "P0",
+        "category": "Database",
+        "status": "open",
+        "description": "31 collections expected by models but not found in database",
+        "impact": "Features may fail when trying to access non-existent collections",
+        "missing_collections": [
+          "profiles",
+          "followers",
+          "followings",
+          "blockedusers",
+          "posts",
+          "productvariants",
+          "cartitems",
+          "wishlists",
+          "coins",
+          "liveparticipants"
+        ],
+        "reproduction_steps": [
+          "Check database for expected collections",
+          "Compare against model definitions"
+        ],
+        "suggested_fix": {
+          "approach": "Run database migration script to create missing collections with default indexes",
+          "files_to_modify": [
+            "backend/src/scripts/create-missing-collections.js"
+          ],
+          "estimated_time": "45 minutes",
+          "risk_level": "medium"
+        },
+        "rollback_plan": "Drop newly created collections if issues occur"
+      }
+    ],
+    "p1_high": [
+      {
+        "id": "P1-1",
+        "title": "Admin Stats Endpoint Returns 404",
+        "severity": "P1",
+        "category": "API",
+        "status": "open",
+        "description": "/admin/stats returns 404 but /admin/dashboard works",
+        "impact": "Some UI components may fail if using /admin/stats instead of /admin/dashboard",
+        "reproduction_steps": [
+          "GET /api/admin/stats",
+          "Receives 404"
+        ],
+        "suggested_fix": {
+          "approach": "Add route alias: router.get('/stats', getDashboard) in admin routes",
+          "files_to_modify": [
+            "backend/src/routes/admin.js"
+          ],
+          "estimated_time": "10 minutes",
+          "risk_level": "low",
+          "code_patch": "workspace/P0_FIXES/P1-1-admin-stats-alias.patch"
+        },
+        "rollback_plan": "Remove alias line"
+      },
+      {
+        "id": "P1-2",
+        "title": "Stream Providers Admin Endpoint Missing",
+        "severity": "P1",
+        "category": "API",
+        "status": "open",
+        "description": "/admin/stream-providers returns 404",
+        "impact": "Cannot manage Agora/ZegoCloud configuration from admin panel",
+        "reproduction_steps": [
+          "Navigate to stream providers page",
+          "API call fails"
+        ],
+        "suggested_fix": {
+          "approach": "Create stream providers admin route and controller",
+          "files_to_modify": [
+            "backend/src/routes/admin.js",
+            "backend/src/controllers/streamProviderController.js"
+          ],
+          "estimated_time": "30 minutes",
+          "risk_level": "low"
+        },
+        "rollback_plan": "Remove route from admin.js"
+      },
+      {
+        "id": "P1-3",
+        "title": "6 Collections Need Performance Indexes",
+        "severity": "P1",
+        "category": "Database",
+        "status": "open",
+        "description": "Collections missing createdAt/updatedAt indexes for sorting",
+        "impact": "Slow query performance on date-sorted lists",
+        "affected_collections": [
+          "strikes",
+          "carts",
+          "stores",
+          "wallets",
+          "users",
+          "sellerapplications"
+        ],
+        "reproduction_steps": [
+          "Query large datasets sorted by date",
+          "Performance degrades"
+        ],
+        "suggested_fix": {
+          "approach": "Run db.collection.createIndex({ createdAt: -1, updatedAt: -1 }) for each collection",
+          "files_to_modify": [
+            "backend/src/scripts/add-performance-indexes.js"
+          ],
+          "estimated_time": "20 minutes",
+          "risk_level": "low"
+        },
+        "rollback_plan": "Drop indexes: db.collection.dropIndex()"
+      },
+      {
+        "id": "P1-4",
+        "title": "10 Admin Management Endpoints Missing",
+        "severity": "P1",
+        "category": "API",
+        "status": "open",
+        "description": "Admin routes for content, products, stores, orders return 404",
+        "impact": "Admin cannot manage resources from centralized /admin/* routes",
+        "affected_endpoints": [
+          "/admin/content",
+          "/admin/stories",
+          "/admin/products",
+          "/admin/stores",
+          "/admin/orders",
+          "/admin/coins",
+          "/admin/gifts",
+          "/admin/livestreams",
+          "/admin/notifications",
+          "/admin/analytics"
+        ],
+        "reproduction_steps": [
+          "Access /admin/content, /admin/products, etc.",
+          "All return 404"
+        ],
+        "suggested_fix": {
+          "approach": "Register admin sub-routes OR update frontend to use correct paths",
+          "files_to_modify": [
+            "backend/src/routes/admin.js OR admin-dashboard/src/*"
+          ],
+          "estimated_time": "60 minutes",
+          "risk_level": "medium"
+        },
+        "rollback_plan": "Revert route changes"
+      }
+    ],
+    "p2_medium": [
+      {
+        "id": "P2-1",
+        "title": "Streaming Provider Credentials Not Configured",
+        "severity": "P2",
+        "category": "Configuration",
+        "status": "open",
+        "description": "Agora and ZegoCloud endpoints return 404 or credentials missing",
+        "impact": "Live streaming features may be unavailable",
+        "reproduction_steps": [
+          "Start live stream",
+          "Token generation may fail"
+        ],
+        "suggested_fix": {
+          "approach": "Add AGORA_APP_ID, AGORA_APP_CERTIFICATE, ZEGO_APP_ID to .env",
+          "files_to_modify": [
+            "backend/.env"
+          ],
+          "estimated_time": "15 minutes",
+          "risk_level": "low"
+        },
+        "rollback_plan": "Remove credentials from .env"
+      },
+      {
+        "id": "P2-2",
+        "title": "Auth Refresh Token Endpoint Returns 401",
+        "severity": "P2",
+        "category": "API",
+        "status": "open",
+        "description": "/auth/refresh returns 401 (may need refresh token in body)",
+        "impact": "Token refresh may not work, users forced to re-login",
+        "reproduction_steps": [
+          "POST /api/auth/refresh",
+          "Returns 401 without refresh token"
+        ],
+        "suggested_fix": {
+          "approach": "Update auth controller to accept refresh token in body OR document required format",
+          "files_to_modify": [
+            "backend/src/controllers/authController.js",
+            "docs/API.md"
+          ],
+          "estimated_time": "20 minutes",
+          "risk_level": "low"
+        },
+        "rollback_plan": "Revert controller changes"
+      },
+      {
+        "id": "P2-3",
+        "title": "Very Low Production Data Volume",
+        "severity": "P2",
+        "category": "Data",
+        "status": "open",
+        "description": "Only 60 documents in production database",
+        "impact": "May indicate new environment or minimal usage; tests may be incomplete",
+        "reproduction_steps": [
+          "Check database document counts",
+          "Only 60 total documents"
+        ],
+        "suggested_fix": {
+          "approach": "Run seed script to populate test data OR verify this is expected for new production",
+          "files_to_modify": [
+            "backend/seed-database.js"
+          ],
+          "estimated_time": "30 minutes",
+          "risk_level": "low"
+        },
+        "rollback_plan": "Clean up test data: db.collection.deleteMany({ __test: true })"
+      }
+    ],
+    "summary": {
+      "total_issues": 10,
+      "p0_count": 3,
+      "p1_count": 4,
+      "p2_count": 3
+    }
+  },
+  "recommendations": {
+    "immediate_actions": [
+      {
+        "priority": "P0",
+        "action": "Fix Admin Users Stats 500 Error",
+        "reason": "Blocks dashboard functionality",
+        "estimated_time": "30 minutes"
+      },
+      {
+        "priority": "P0",
+        "action": "Register Database Monitoring Routes",
+        "reason": "Cannot monitor production database health",
+        "estimated_time": "15 minutes"
+      },
+      {
+        "priority": "P0",
+        "action": "Create Missing Database Collections",
+        "reason": "Prevents feature failures when accessing non-existent collections",
+        "estimated_time": "45 minutes"
+      }
+    ],
+    "short_term": [
+      {
+        "priority": "P1",
+        "action": "Add Admin Stats Route Alias",
+        "estimated_time": "10 minutes"
+      },
+      {
+        "priority": "P1",
+        "action": "Register Missing Admin Management Endpoints",
+        "estimated_time": "60 minutes"
+      },
+      {
+        "priority": "P1",
+        "action": "Add Performance Indexes to 6 Collections",
+        "estimated_time": "20 minutes"
+      }
+    ],
+    "long_term": [
+      {
+        "priority": "P2",
+        "action": "Configure Agora/ZegoCloud Credentials",
+        "estimated_time": "15 minutes"
+      },
+      {
+        "priority": "P2",
+        "action": "Fix Auth Refresh Token Endpoint",
+        "estimated_time": "20 minutes"
+      },
+      {
+        "priority": "P2",
+        "action": "Populate Production Data",
+        "estimated_time": "30 minutes"
+      }
+    ]
+  },
+  "artifacts": {
+    "reports": [
+      "workspace/report/endpoints.json",
+      "workspace/report/db_checks.json",
+      "workspace/report/third_party.json",
+      "workspace/report/realtime.json",
+      "workspace/report/pages.json",
+      "workspace/report/priority_fixes.json"
+    ],
+    "screenshots": "workspace/report/artifacts/screenshots/",
+    "backup_reference": "workspace/report/artifacts/backup_reference_*.json",
+    "fixes": "workspace/P0_FIXES/",
+    "logs": "workspace/report/progress.log"
+  },
+  "next_steps": [
+    "1. Review P0 critical issues and assign to developers",
+    "2. Apply P0 fixes using patches in workspace/P0_FIXES/",
+    "3. Test fixes in staging environment before production deployment",
+    "4. Deploy fixes to production with rollback plan ready",
+    "5. Monitor logs after deployment for any regressions",
+    "6. Schedule P1/P2 fixes for next sprint",
+    "7. Re-run audit after fixes to validate improvements"
+  ]
+}

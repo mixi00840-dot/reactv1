@@ -21,7 +21,9 @@
   "author": "mixi00840-dot",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^24.9.2"
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.9.2",
+    "playwright": "^1.56.1"
   },
   "dependencies": {
     "axios": "^1.13.2"
