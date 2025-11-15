@@ -6,6 +6,6 @@ export const useSystemSettings = () => ({
 })
 
 export const useUpdateSystemSettings = () => ({
-  mutate: jest.fn(),
+  mutate: () => {},
   isLoading: false,
 })
