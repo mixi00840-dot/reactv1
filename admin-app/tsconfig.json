@@ -15,14 +15,29 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
+      "@/app/*": [
+        "src/app/*"
+      ],
       "@/components/*": [
         "src/components/*"
       ],
       "@/lib/*": [
         "src/lib/*"
       ],
+      "@/providers/*": [
+        "src/providers/*"
+      ],
       "@/stores/*": [
         "src/stores/*"
+      ],
+      "@/store": [
+        "src/store"
+      ],
+      "@/store/*": [
+        "src/store/*"
+      ],
+      "@/hooks/*": [
+        "src/hooks/*"
       ],
       "@/styles/*": [
         "src/styles/*"

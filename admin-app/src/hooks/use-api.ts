@@ -151,6 +151,21 @@ export function useRejectContent() {
   });
 }
 
+// Ban Content
+export function useBanContent() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const { data } = await api.post(`/admin/content/${id}/ban`, { reason });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['content'] });
+    },
+  });
+}
+
 // Products List
 export function useProducts(page: number = 1, limit: number = 20, filters?: any) {
   return useQuery({
