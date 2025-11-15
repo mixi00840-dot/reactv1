@@ -22,7 +22,10 @@ const allowedOrigins = [
   // Flutter app (mobile - no origin)
   null,
   undefined,
-  // Admin Dashboard
+  // Admin Dashboard - New Next.js App
+  'https://admin-h7z7jg1bh-mixillo.vercel.app',
+  'https://admin-app-mixillo.vercel.app',
+  // Admin Dashboard - Legacy
   'https://admin-dashboard-mixillo.vercel.app',
   'https://mixillo-admin.netlify.app',
   // Development
