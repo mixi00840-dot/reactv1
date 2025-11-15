@@ -182,6 +182,36 @@ export function useProducts(page: number = 1, limit: number = 20, filters?: any)
   });
 }
 
+// Approve Product
+export function useApproveProduct() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/admin/products/${id}/approve`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+}
+
+// Reject Product
+export function useRejectProduct() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const { data } = await api.post(`/admin/products/${id}/reject`, { reason });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+}
+
 // Orders List
 export function useOrders(page: number = 1, limit: number = 20, filters?: any) {
   return useQuery({
