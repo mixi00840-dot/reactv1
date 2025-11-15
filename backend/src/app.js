@@ -25,6 +25,8 @@ const allowedOrigins = [
   // Admin Dashboard - New Next.js App
   'https://admin-h7z7jg1bh-mixillo.vercel.app',
   'https://admin-9hqxherz6-mixillo.vercel.app',
+  'https://admin-jggx36g20-mixillo.vercel.app',
+  'https://admin-2n34mu7q9-mixillo.vercel.app',
   'https://admin-app-mixillo.vercel.app',
   // Admin Dashboard - Legacy
   'https://admin-dashboard-mixillo.vercel.app',

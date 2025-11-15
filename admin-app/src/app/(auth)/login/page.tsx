@@ -18,7 +18,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL as string;
-      const res = await axios.post(`${baseUrl}/auth/login`, { email, password });
+      const res = await axios.post(`${baseUrl}/api/auth/login`, { email, password });
       const token = res.data?.token || res.data?.accessToken || res.data?.access_token;
       if (!token) throw new Error('Invalid response');
       Cookies.set('token', token, { expires: 7 });
