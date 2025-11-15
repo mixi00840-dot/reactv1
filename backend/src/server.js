@@ -10,8 +10,9 @@ const { scheduledContentJob, livestreamReminderJob } = require('./jobs/scheduled
 
 const PORT = process.env.PORT || 5000;
 
-// Bind host: allow override via HOST env, default to 0.0.0.0 in production
-const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
+// Bind host: Use 0.0.0.0 to bind to all interfaces (IPv4 + IPv6)
+// This fixes Windows localhost IPv6 binding issues
+const HOST = process.env.HOST || '0.0.0.0';
 
 console.log('🚀 Starting Mixillo API server...');
 console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -72,6 +73,13 @@ server.listen(PORT, HOST, () => {
   console.log(`🔗 Health check: http://${HOST}:${PORT}/health`);
   console.log(`⚡ WebSocket server ready`);
   console.log(`⏰ Cron jobs initialized`);
+  console.log(`✅ Server is actively listening and ready for requests`);
+  
+  // Test that server is actually working
+  setTimeout(() => {
+    console.log(`🔍 Server still running after 3 seconds. Listening: ${server.listening}`);
+    console.log(`🔍 Server address:`, server.address());
+  }, 3000);
 }).on('error', (err) => {
   console.error('❌ Server failed to start:', err);
   process.exit(1);

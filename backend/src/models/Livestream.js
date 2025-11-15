@@ -278,7 +278,8 @@ LivestreamSchema.statics.getScheduledStreams = function(userId) {
   .sort({ scheduledFor: 1 });
 };
 
-const Livestream = mongoose.model('Livestream', LivestreamSchema);
+// Prevent model overwrite error
+const Livestream = mongoose.models.Livestream || mongoose.model('Livestream', LivestreamSchema);
 
 module.exports = Livestream;
 

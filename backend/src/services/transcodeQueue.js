@@ -11,41 +11,49 @@ const os = require('os');
  * Manages distributed video transcoding workers
  */
 
-// Redis connection with error handling (optional for development)
-const redisConnection = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: process.env.REDIS_PORT || 6379,
-  password: process.env.REDIS_PASSWORD,
-  maxRetriesPerRequest: null, // Required for BullMQ
-  enableReadyCheck: false,
-  retryStrategy: (times) => {
-    // Stop retrying after 3 attempts
-    if (times > 3) {
-      console.warn('⚠️  Redis unavailable - transcoding queue disabled (install Redis for production)');
-      return null;
-    }
-    return Math.min(times * 200, 1000);
-  },
-  lazyConnect: true // Don't connect immediately
-});
+// Check if Redis is enabled
+const redisEnabled = process.env.REDIS_ENABLED !== 'false' && process.env.REDIS_HOST;
 
-// Handle Redis connection errors gracefully
-redisConnection.on('error', (err) => {
-  if (err.code === 'ECONNREFUSED') {
-    console.warn('⚠️  Redis not running - transcoding features limited. Install Redis for full functionality.');
-  } else {
-    console.error('Redis error:', err.message);
-  }
-});
-
-// Create queue (only if Redis is available)
 let transcodeQueue = null;
 let redisAvailable = false;
+let redisConnection = null;
 
-try {
-  transcodeQueue = new Queue('video-transcode', {
-    connection: redisConnection,
-    defaultJobOptions: {
+if (!redisEnabled) {
+  console.log('ℹ️  Redis disabled - Transcoding queue unavailable (set REDIS_HOST to enable)');
+} else {
+  // Redis connection with error handling (optional for development)
+  redisConnection = new Redis({
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || 6379,
+    password: process.env.REDIS_PASSWORD,
+    maxRetriesPerRequest: null, // Required for BullMQ
+    enableReadyCheck: false,
+    retryStrategy: (times) => {
+      // Stop retrying after 3 attempts
+      if (times > 3) {
+        console.warn('⚠️  Redis unavailable - transcoding queue disabled (install Redis for production)');
+        return null;
+      }
+      return Math.min(times * 200, 1000);
+    },
+    lazyConnect: true // Don't connect immediately
+  });
+
+  // Handle Redis connection errors gracefully
+  redisConnection.on('error', (err) => {
+    if (err.code === 'ECONNREFUSED') {
+      console.warn('⚠️  Redis not running - transcoding features limited. Install Redis for full functionality.');
+    } else {
+      console.error('Redis error:', err.message);
+    }
+  });
+}
+
+if (redisEnabled) {
+  try {
+    transcodeQueue = new Queue('video-transcode', {
+      connection: redisConnection,
+      defaultJobOptions: {
       attempts: 3,
       backoff: {
         type: 'exponential',
@@ -59,22 +67,21 @@ try {
         count: 500 // Keep last 500 failed jobs
       }
     }
-  });
-  
-  // Test connection
-  redisConnection.connect().then(() => {
-    redisAvailable = true;
-    console.log('✅ Redis connected - transcoding queue active');
-  }).catch(() => {
-    redisAvailable = false;
-    console.warn('⚠️  Redis unavailable - transcoding disabled');
-  });
-} catch (error) {
-  console.warn('⚠️  Failed to create transcode queue:', error.message);
-  transcodeQueue = null;
-}
-
-/**
+    });
+    
+    // Test connection
+    redisConnection.connect().then(() => {
+      redisAvailable = true;
+      console.log('✅ Redis connected - transcoding queue active');
+    }).catch(() => {
+      redisAvailable = false;
+      console.warn('⚠️  Redis unavailable - transcoding disabled');
+    });
+  } catch (error) {
+    console.warn('⚠️  Failed to create transcode queue:', error.message);
+    transcodeQueue = null;
+  }
+}/**
  * Add video transcoding job to queue
  */
 async function addTranscodeJob(contentId, options = {}) {
