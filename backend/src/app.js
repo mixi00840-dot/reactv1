@@ -200,6 +200,15 @@ const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
 console.log('✅ /api/admin (Admin Panel)');
 
+// Admin Dashboard Stats
+try {
+  const dashboardRoutes = require('./routes/dashboard');
+  app.use('/api/admin/dashboard', dashboardRoutes);
+  console.log('✅ /api/admin/dashboard (Dashboard Stats)');
+} catch (error) {
+  console.warn('⚠️  Dashboard routes skipped:', error.message);
+}
+
 // Admin User Management (separate routes)
 const adminUsersRoutes = require('./routes/admin/users');
 app.use('/api/admin/users', adminUsersRoutes);

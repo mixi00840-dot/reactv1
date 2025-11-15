@@ -17,17 +17,25 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL as string;
-      const res = await axios.post(`${baseUrl}/api/auth/login`, { 
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const loginUrl = `${baseUrl}/api/auth/login`;
+      console.log('Attempting login to:', loginUrl);
+      console.log('Request body:', { identifier: email, password: '***' });
+      
+      const res = await axios.post(loginUrl, { 
         identifier: email, 
         password 
       });
-      const token = res.data?.token || res.data?.accessToken || res.data?.access_token;
-      if (!token) throw new Error('Invalid response');
+      
+      console.log('Login response:', res.data);
+      const token = res.data?.data?.token || res.data?.token || res.data?.accessToken || res.data?.access_token;
+      if (!token) throw new Error('Invalid response - no token found');
       Cookies.set('token', token, { expires: 7 });
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err?.response?.data?.error || err?.message || 'Login failed');
+      console.error('Login error:', err);
+      console.error('Error response:', err?.response?.data);
+      setError(err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
