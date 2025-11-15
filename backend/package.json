@@ -11,6 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:integration": "jest tests/integration",
+    "test:integration:admin": "jest tests/integration/admin-api.test.js",
     "test:unit": "jest tests/unit",
     "seed": "node src/scripts/seedDatabase.js",
     "seed:content": "node seed-content.js",

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Setting = require('../models/Setting');
+const SystemSettings = require('../models/SystemSettings');
 const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 const SECTION_KEYS = [
@@ -143,15 +144,49 @@ router.get('/', verifyJWT, requireAdmin, async (req, res) => {
  */
 router.get('/mongodb', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const { category } = req.query || {};
-    const query = category ? { category } : {};
+    // Get all SystemSettings organized by category
+    const categories = ['streaming', 'storage', 'ai', 'translation', 'payment', 'general'];
+    const sections = {};
 
-    const settings = await Setting.find(query).populate('updatedBy', 'username fullName');
+    for (const category of categories) {
+      sections[category] = await SystemSettings.getCategorySettings(category);
+    }
+
+    // Also include environment-based API keys
+    sections.apiKeys = {
+      agora: {
+        appId: process.env.AGORA_APP_ID || '',
+        certificate: process.env.AGORA_APP_CERTIFICATE || '',
+        enabled: !!(process.env.AGORA_APP_ID && process.env.AGORA_APP_CERTIFICATE)
+      },
+      zegoCloud: {
+        appId: process.env.ZEGO_APP_ID || '',
+        appSign: process.env.ZEGO_APP_SIGN || '',
+        enabled: !!(process.env.ZEGO_APP_ID && process.env.ZEGO_APP_SIGN)
+      },
+      cloudinary: {
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+        apiKey: process.env.CLOUDINARY_API_KEY || '',
+        apiSecret: process.env.CLOUDINARY_API_SECRET ? '***configured' : '',
+        enabled: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY)
+      },
+      vertexAI: {
+        projectId: process.env.GOOGLE_CLOUD_PROJECT || '',
+        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
+        enabled: !!process.env.GOOGLE_APPLICATION_CREDENTIALS
+      },
+      smtp: {
+        host: process.env.SMTP_HOST || '',
+        port: process.env.SMTP_PORT || 587,
+        user: process.env.SMTP_USER || '',
+        enabled: !!(process.env.SMTP_HOST && process.env.SMTP_USER)
+      }
+    };
 
     res.json({
       success: true,
-      data: { settings },
-      sections: buildDashboardSections(settings),
+      sections,
+      data: sections,
       legacy: true
     });
   } catch (error) {
@@ -159,6 +194,63 @@ router.get('/mongodb', verifyJWT, requireAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching settings'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/settings/mongodb/:section
+ * @desc    Update settings for a specific section (legacy dashboard endpoint)
+ * @access  Admin
+ */
+router.put('/mongodb/:section', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { section } = req.params;
+    const { settings } = req.body;
+
+    if (!settings || typeof settings !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'Settings object is required'
+      });
+    }
+
+    // Map dashboard sections to SystemSettings categories
+    const categoryMap = {
+      general: 'general',
+      email: 'general',
+      payment: 'payment',
+      moderation: 'ai',
+      features: 'general',
+      limits: 'general',
+      apiKeys: 'streaming' // API keys can go to streaming or create new category
+    };
+
+    const category = categoryMap[section] || 'general';
+
+    // Save each setting
+    const results = [];
+    for (const [key, value] of Object.entries(settings)) {
+      try {
+        await SystemSettings.setSetting(category, `${section}.${key}`, value, req.user._id);
+        results.push({ key, success: true });
+      } catch (err) {
+        console.error(`Error saving ${section}.${key}:`, err);
+        results.push({ key, success: false, error: err.message });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `${section} settings updated successfully`,
+      results
+    });
+  } catch (error) {
+    console.error('Update settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating settings',
+      error: error.message
     });
   }
 });

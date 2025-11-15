@@ -13,7 +13,7 @@ const {
   getTranslationStats,
   autoTranslate
 } = require('../controllers/translationController');
-const { adminOnly, superAdminOnly } = require('../middleware/auth');
+const { adminOnly, superAdminOnly, authMiddleware } = require('../middleware/auth');
 
 // Public translation routes (accessible without auth for testing)
 router.get('/', async (req, res) => {
@@ -29,23 +29,23 @@ router.get('/', async (req, res) => {
 });
 
 // Admin routes require authentication
-router.get('/admin', adminOnly, getTranslations);
-router.get('/stats', adminOnly, getTranslationStats);
-router.get('/export', adminOnly, exportTranslations);
-router.post('/import', adminOnly, importTranslations);
+router.get('/admin', authMiddleware, adminOnly, getTranslations);
+router.get('/stats', authMiddleware, adminOnly, getTranslationStats);
+router.get('/export', authMiddleware, adminOnly, exportTranslations);
+router.post('/import', authMiddleware, adminOnly, importTranslations);
 
-router.get('/:key', adminOnly, getTranslation);
-router.post('/', adminOnly, createTranslation);
-router.put('/:key', adminOnly, updateTranslation);
-router.delete('/:key', superAdminOnly, deleteTranslation);
+router.get('/:key', authMiddleware, adminOnly, getTranslation);
+router.post('/', authMiddleware, adminOnly, createTranslation);
+router.put('/:key', authMiddleware, adminOnly, updateTranslation);
+router.delete('/:key', authMiddleware, superAdminOnly, deleteTranslation);
 
 // Language-specific translations
-router.put('/:key/languages/:languageCode', adminOnly, setLanguageTranslation);
-router.post('/:key/languages/:languageCode/verify', adminOnly, verifyTranslation);
-router.post('/:key/auto-translate', adminOnly, autoTranslate);
+router.put('/:key/languages/:languageCode', authMiddleware, adminOnly, setLanguageTranslation);
+router.post('/:key/languages/:languageCode/verify', authMiddleware, adminOnly, verifyTranslation);
+router.post('/:key/auto-translate', authMiddleware, adminOnly, autoTranslate);
 
 // Legacy compatibility – allow body-provided key
-router.post('/auto-translate', adminOnly, (req, res) => {
+router.post('/auto-translate', authMiddleware, adminOnly, (req, res) => {
   const { key } = req.body || {};
 
   if (!key) {

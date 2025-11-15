@@ -24,7 +24,7 @@ async function seedDatabase() {
         username: 'admin',
         email: 'admin@mixillo.com',
         fullName: 'System Administrator',
-        password: 'Admin123!',
+        password: 'Admin@123456',
         role: 'admin',
         status: 'active',
         isVerified: true,
@@ -33,8 +33,9 @@ async function seedDatabase() {
       });
       await adminUser.save();
       console.log('✅ Admin user created');
+      console.log(`   Username: admin`);
       console.log(`   Email: admin@mixillo.com`);
-      console.log(`   Password: Admin123!`);
+      console.log(`   Password: Admin@123456`);
     }
 
     // Create test users

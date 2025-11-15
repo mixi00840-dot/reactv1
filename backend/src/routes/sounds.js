@@ -22,7 +22,7 @@ router.get('/health', (req, res) => {
  * @desc    Get all sounds
  * @access  Public
  */
-router.get('/', async (req, res) => {
+router.get(['/', '/mongodb'], async (req, res) => {
   try {
     const { page = 1, limit = 50, genre, search } = req.query;
     const skip = (page - 1) * limit;
@@ -69,7 +69,7 @@ router.get('/', async (req, res) => {
  * @desc    Get trending sounds
  * @access  Public
  */
-router.get('/trending', async (req, res) => {
+router.get(['/trending', '/mongodb/trending'], async (req, res) => {
   try {
     const { limit = 20 } = req.query;
 
@@ -100,7 +100,7 @@ router.get('/trending', async (req, res) => {
  * @desc    Get sound by ID
  * @access  Public
  */
-router.get('/:id', async (req, res) => {
+router.get(['/:id', '/mongodb/:id'], async (req, res) => {
   try {
     const sound = await Sound.findById(req.params.id)
       .populate('uploadedBy', 'username fullName avatar isVerified');

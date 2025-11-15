@@ -77,23 +77,50 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// Rate limiting (global)
+// ============================================
+// RATE LIMITING - PRODUCTION-READY CONFIGURATION
+// ============================================
+
+// Global API rate limiting (generous for dashboards, strict enough for security)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX || '100'),
-  message: 'Too many requests, please try again later.',
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX || '2000'), // 2000 requests per 15min (admin needs high limit)
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.',
+    retryAfter: '15 minutes'
+  },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for:
+    // 1. Admin routes (need high throughput for dashboards)
+    // 2. Health checks
+    // 3. Webhooks
+    return req.path.startsWith('/admin/') || 
+           req.path === '/health' ||
+           req.path.includes('/webhooks/') ||
+           req.path.includes('/realtime/');
+  },
+  // Custom key generator to handle proxies correctly
+  keyGenerator: (req) => {
+    return req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  }
 });
 app.use('/api', limiter);
 
-// Rate limiting (auth endpoints stricter)
+// Auth endpoints - stricter but still reasonable
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX || '30'),
-  message: 'Too many auth attempts, please try again later.',
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX || '50'), // 50 login attempts per 15min
+  message: {
+    success: false,
+    message: 'Too many authentication attempts, please try again later.',
+    retryAfter: '15 minutes'
+  },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  skipSuccessfulRequests: true // Don't count successful logins
 });
 app.use('/api/auth', authLimiter);
 
@@ -512,6 +539,96 @@ try {
   console.log('✅ /api/webhooks/cloudinary');
 } catch (error) {
   console.warn('⚠️  Cloudinary webhooks skipped:', error.message);
+}
+
+// Translations
+try {
+  const translationsRoutes = require('./routes/translations');
+  app.use('/api/translations', translationsRoutes);
+  console.log('✅ /api/translations');
+} catch (error) {
+  console.warn('⚠️  Translations routes skipped:', error.message);
+}
+
+// Currencies
+try {
+  const currenciesRoutes = require('./routes/currencies');
+  app.use('/api/currencies', currenciesRoutes);
+  console.log('✅ /api/currencies');
+} catch (error) {
+  console.warn('⚠️  Currencies routes skipped:', error.message);
+}
+
+// Coupons
+try {
+  const couponsRoutes = require('./routes/coupons');
+  app.use('/api/coupons', couponsRoutes);
+  console.log('✅ /api/coupons');
+} catch (error) {
+  console.warn('⚠️  Coupons routes skipped:', error.message);
+}
+
+// Customer Service/Support
+try {
+  const customerServiceRoutes = require('./routes/customerService');
+  app.use('/api/support', customerServiceRoutes);
+  console.log('✅ /api/support');
+} catch (error) {
+  console.warn('⚠️  Customer service routes skipped:', error.message);
+}
+
+// Shipping
+try {
+  const shippingRoutes = require('./routes/shipping');
+  app.use('/api/shipping', shippingRoutes);
+  console.log('✅ /api/shipping');
+} catch (error) {
+  console.warn('⚠️  Shipping routes skipped:', error.message);
+}
+
+// Tags
+try {
+  const tagsRoutes = require('./routes/tags');
+  app.use('/api/tags', tagsRoutes);
+  console.log('✅ /api/tags');
+} catch (error) {
+  console.warn('⚠️  Tags routes skipped:', error.message);
+}
+
+// Monetization
+try {
+  const monetizationRoutes = require('./routes/monetization');
+  app.use('/api/monetization', monetizationRoutes);
+  console.log('✅ /api/monetization');
+} catch (error) {
+  console.warn('⚠️  Monetization routes skipped:', error.message);
+}
+
+// Livestreams
+try {
+  const livestreamsRoutes = require('./routes/livestreams');
+  app.use('/api/livestreams', livestreamsRoutes);
+  console.log('✅ /api/livestreams');
+} catch (error) {
+  console.warn('⚠️  Livestreams routes skipped:', error.message);
+}
+
+// Transcode
+try {
+  const transcodeRoutes = require('./routes/transcode');
+  app.use('/api/transcode', transcodeRoutes);
+  console.log('✅ /api/transcode');
+} catch (error) {
+  console.warn('⚠️  Transcode routes skipped:', error.message);
+}
+
+// Streaming Providers
+try {
+  const streamProvidersRoutes = require('./routes/streamProviders');
+  app.use('/api/streaming/providers', streamProvidersRoutes);
+  console.log('✅ /api/streaming/providers');
+} catch (error) {
+  console.warn('⚠️  Stream providers routes skipped:', error.message);
 }
 
 console.log('\n✅ All routes loaded successfully\n');

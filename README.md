@@ -1,63 +1,84 @@
-# Mixillo User Management System
+# Mixillo - TikTok-Style Social Commerce Platform
 
-A complete TikTok-style app backend and admin dashboard for managing users and sellers with comprehensive control features.
+Complete backend API system and modern admin dashboard for video-first social commerce with integrated e-commerce, live streaming, and digital wallet features.
 
-## 🚀 Quick Deploy to Render
+## 🚀 Quick Deploy
 
-### Backend API
-1. Create a new **Web Service** on [Render](https://render.com)
-2. Connect this GitHub repository
-3. Use these settings:
-   - **Environment**: Node
-   - **Build Command**: `cd backend && npm install`
-   - **Start Command**: `cd backend && npm start`
-   - **Auto-Deploy**: Yes
-
-### Environment Variables Required
-Add these in Render Dashboard → Environment:
-```
-NODE_ENV=production
-MONGODB_URI=mongodb+srv://your-connection-string
-JWT_SECRET=your-super-secret-key
-FRONTEND_URL=https://your-frontend-domain.com
+### Backend API (Google Cloud Run)
+```powershell
+cd backend
+gcloud run deploy mixillo-backend \
+  --source . \
+  --region=europe-west1 \
+  --allow-unauthenticated \
+  --project=mixillo \
+  --port=5000
 ```
 
-### Admin Dashboard Deploy
-1. Create another **Static Site** on Render
-2. Build Command: `cd admin-dashboard && npm install && npm run build`
-3. Publish Directory: `admin-dashboard/build`
+### Admin Dashboard (Next.js 14)
+```powershell
+cd admin-app
+npm install
+npm run build
+npm start
+```
 
-## 🚀 Features
+Deploy to Vercel/Netlify:
+```powershell
+# Vercel
+vercel --prod
+
+# Or Netlify
+netlify deploy --prod
+```
+
+## 🎯 Features
 
 ### Backend API
-- **JWT Authentication** for users and admins
-- **User Management** with role-based access control
-- **Seller Application System** with document verification
-- **File Upload** support for avatars and documents
-- **Admin Controls**: ban, suspend, verify, feature users
-- **Wallet Management** with earnings tracking
-- **Strike System** for user moderation
-- **MongoDB** with Mongoose ODM
-- **Express.js** with comprehensive middleware
+- **64 MongoDB Models** covering users, content, e-commerce, wallets, live streaming
+- **JWT Authentication** with refresh tokens
+- **Real-time Features** via Socket.IO (notifications, live streams)
+- **File Processing** with Cloudinary CDN
+- **Live Streaming** via Agora/ZegoCloud
+- **AI Integration** - Google Cloud Speech API for auto-captions
+- **Payment Processing** with Stripe/PayPal
+- **Digital Wallet** with virtual currency and gifting
+- **E-commerce** - Products, orders, carts, wishlists
+- **Content Moderation** - AI-powered + manual review
+- **Analytics** - User growth, engagement, revenue metrics
 
-### Admin Dashboard
-- **Modern React UI** with Material-UI components
-- **Real-time Analytics** with Chart.js
-- **User Management** with advanced filtering
-- **Seller Application Review** with document preview
-- **Strike Management** for user moderation
+### Admin Dashboard (New Next.js 14)
+- **20+ Management Pages** with DataTables
+- **Moderation Actions** - Approve/reject/ban with inline buttons
+- **Real-time Notifications** via Socket.IO
+- **Analytics Dashboard** - User growth, sales, engagement charts
+- **Dark Mode** with CSS variables
+- **E2E Tests** - Cypress with data-cy selectors
+- **TypeScript** throughout
 - **Responsive Design** for all devices
 
 ## 📁 Project Structure
 
 ```
-├── backend/                  # Node.js Express API
+├── backend/                  # Node.js Express API + Socket.IO
 │   ├── src/
-│   │   ├── controllers/      # Request handlers
-│   │   ├── models/          # MongoDB schemas
-│   │   ├── routes/          # API endpoints
-│   │   ├── middleware/      # Auth, upload, validation
-│   │   ├── utils/           # Database, helpers
+│   │   ├── controllers/      # Business logic (64 endpoints)
+│   │   ├── models/          # 64 Mongoose schemas
+│   │   ├── routes/          # API route definitions
+│   │   ├── middleware/      # Auth, validation, rate limiting
+│   │   ├── services/        # Socket.IO, Redis, external APIs
+│   │   └── utils/           # Helpers, validators
+│   ├── uploads/             # Local file storage
+│   └── tests/               # Integration & unit tests
+├── admin-app/               # Next.js 14 Admin Dashboard (NEW)
+│   ├── src/
+│   │   ├── app/            # App Router pages
+│   │   ├── components/     # Reusable UI + DataTable
+│   │   ├── lib/            # API client, Socket.IO, utils
+│   │   └── stores/         # Zustand state management
+│   └── cypress/            # E2E tests with data-cy selectors
+├── docs/                    # API documentation
+└── backups/                # Legacy admin backup
 │   │   └── app.js           # Main application
 │   ├── uploads/             # File storage
 │   ├── package.json

@@ -19,7 +19,7 @@ const results = {
   passed: 0,
   failed: 0,
   warnings: 0,
-  pages: []
+  pages: /** @type {Array<{name: string, path: string, status: string, critical: boolean, load_time_ms: number, console_errors: string[], network_errors: Array<{url: string, status: number}>, screenshot: string | null, error: string | null}>} */ ([])
 };
 
 // Define all pages to test
@@ -88,7 +88,12 @@ const userDetailTabs = [
 ];
 
 test.describe('Admin Dashboard Audit', () => {
-  let browser, context, page;
+  /** @type {import('@playwright/test').Browser} */
+  let browser;
+  /** @type {import('@playwright/test').BrowserContext} */
+  let context;
+  /** @type {import('@playwright/test').Page} */
+  let page;
   
   test.beforeAll(async ({ browser: b }) => {
     browser = b;
@@ -130,10 +135,10 @@ test.describe('Admin Dashboard Audit', () => {
         status: 'UNKNOWN',
         critical: pageConfig.critical,
         load_time_ms: 0,
-        console_errors: [],
-        network_errors: [],
-        screenshot: null,
-        error: null
+        console_errors: /** @type {string[]} */ ([]),
+        network_errors: /** @type {Array<{url: string, status: number}>} */ ([]),
+        screenshot: /** @type {string | null} */ (null),
+        error: /** @type {string | null} */ (null)
       };
       
       results.total_pages++;
@@ -202,10 +207,10 @@ test.describe('Admin Dashboard Audit', () => {
         
       } catch (error) {
         pageResult.status = 'FAIL';
-        pageResult.error = error.message;
+        pageResult.error = error instanceof Error ? error.message : String(error);
         pageResult.load_time_ms = Date.now() - startTime;
         results.failed++;
-        console.log(`      ❌ FAIL - ${error.message}`);
+        console.log(`      ❌ FAIL - ${error instanceof Error ? error.message : String(error)}`);
       }
       
       results.pages.push(pageResult);
@@ -233,10 +238,10 @@ test.describe('Admin Dashboard Audit', () => {
           status: 'UNKNOWN',
           critical: false,
           load_time_ms: 0,
-          console_errors: [],
-          network_errors: [],
-          screenshot: null,
-          error: null
+          console_errors: /** @type {string[]} */ ([]),
+          network_errors: /** @type {Array<{url: string, status: number}>} */ ([]),
+          screenshot: /** @type {string | null} */ (null),
+          error: /** @type {string | null} */ (null)
         };
         
         results.total_pages++;
@@ -263,9 +268,9 @@ test.describe('Admin Dashboard Audit', () => {
           
         } catch (error) {
           tabResult.status = 'FAIL';
-          tabResult.error = error.message;
+          tabResult.error = error instanceof Error ? error.message : String(error);
           results.failed++;
-          console.log(`   ❌ ${tabName} tab FAIL - ${error.message}`);
+          console.log(`   ❌ ${tabName} tab FAIL - ${error instanceof Error ? error.message : String(error)}`);
         }
         
         results.pages.push(tabResult);

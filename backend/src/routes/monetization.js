@@ -45,6 +45,7 @@ const formatRevenueChart = (docs, startDate, days) => {
 
 router.get(
   ['/mongodb/stats', '/admin/stats', '/stats'],
+  authMiddleware,
   adminMiddleware,
   async (req, res) => {
     try {
@@ -208,6 +209,7 @@ router.get(
 
 router.get(
   ['/mongodb/transactions', '/admin/transactions', '/transactions'],
+  authMiddleware,
   adminMiddleware,
   async (req, res) => {
     try {
@@ -252,6 +254,7 @@ router.get(
 
 router.get(
   ['/mongodb/revenue-chart', '/admin/revenue-chart', '/revenue-chart'],
+  authMiddleware,
   adminMiddleware,
   async (req, res) => {
     try {

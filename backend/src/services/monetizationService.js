@@ -1,6 +1,6 @@
 const CreatorEarnings = require('../models/CreatorEarnings');
 const AdCampaign = require('../models/AdCampaign');
-const CreatorSubscription = require('../models/CreatorSubscription');
+const Subscription = require('../models/Subscription'); // Fixed: Use Subscription instead of Subscription
 const SubscriptionTier = require('../models/SubscriptionTier');
 
 /**
@@ -355,7 +355,7 @@ class MonetizationService {
     }
     
     // Check if already subscribed
-    const existing = await CreatorSubscription.findOne({
+    const existing = await Subscription.findOne({
       subscriber: subscriberId,
       creator: creatorId,
       status: 'active'
@@ -366,7 +366,7 @@ class MonetizationService {
     }
     
     // Create subscription
-    const subscription = new CreatorSubscription({
+    const subscription = new Subscription({
       creator: creatorId,
       subscriber: subscriberId,
       tier: tier.level,
@@ -395,7 +395,7 @@ class MonetizationService {
    * Cancel subscription
    */
   async cancelSubscription(subscriptionId, reason, cancelledBy = 'subscriber', feedback = '') {
-    const subscription = await CreatorSubscription.findOne({ subscriptionId });
+    const subscription = await Subscription.findOne({ subscriptionId });
     
     if (!subscription) {
       throw new Error('Subscription not found');
@@ -420,7 +420,7 @@ class MonetizationService {
    * Process subscription renewal
    */
   async renewSubscription(subscriptionId, paymentResult) {
-    const subscription = await CreatorSubscription.findOne({ subscriptionId });
+    const subscription = await Subscription.findOne({ subscriptionId });
     
     if (!subscription) {
       throw new Error('Subscription not found');
@@ -435,7 +435,7 @@ class MonetizationService {
    * Get user's subscriptions
    */
   async getUserSubscriptions(userId, status = 'active') {
-    const subscriptions = await CreatorSubscription.getUserSubscriptions(userId, status);
+    const subscriptions = await Subscription.getUserSubscriptions(userId, status);
     return { success: true, subscriptions };
   }
   
@@ -443,7 +443,7 @@ class MonetizationService {
    * Get subscriptions due for renewal
    */
   async getSubscriptionsDueForRenewal(days = 3) {
-    const subscriptions = await CreatorSubscription.getDueForRenewal(days);
+    const subscriptions = await Subscription.getDueForRenewal(days);
     return { success: true, subscriptions };
   }
   
@@ -451,7 +451,7 @@ class MonetizationService {
    * Calculate MRR for creator
    */
   async calculateMRR(creatorId) {
-    const mrr = await CreatorSubscription.calculateMRR(creatorId);
+    const mrr = await Subscription.calculateMRR(creatorId);
     return { success: true, mrr };
   }
   
@@ -459,9 +459,9 @@ class MonetizationService {
    * Get subscription statistics
    */
   async getSubscriptionStats(creatorId) {
-    const stats = await CreatorSubscription.getCreatorStats(creatorId);
+    const stats = await Subscription.getCreatorStats(creatorId);
     const tierStats = await SubscriptionTier.getTierStats(creatorId);
-    const mrr = await CreatorSubscription.calculateMRR(creatorId);
+    const mrr = await Subscription.calculateMRR(creatorId);
     
     return {
       success: true,
@@ -483,8 +483,8 @@ class MonetizationService {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     
     const earnings = await CreatorEarnings.getCreatorEarnings(creatorId, monthStart, monthEnd);
-    const subscriptions = await CreatorSubscription.getCreatorSubscriptions(creatorId, 'active');
-    const mrr = await CreatorSubscription.calculateMRR(creatorId);
+    const subscriptions = await Subscription.getSubscriptions(creatorId, 'active');
+    const mrr = await Subscription.calculateMRR(creatorId);
     const tierInfo = await this.calculateCreatorTier(creatorId);
     
     return {
@@ -502,3 +502,4 @@ class MonetizationService {
 }
 
 module.exports = new MonetizationService();
+

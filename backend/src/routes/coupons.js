@@ -239,11 +239,7 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// Apply rate limiting
-router.use(rateLimitMiddleware({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // 100 requests per 15 minutes
-}));
+// Rate limiting removed - handled by global limiter in app.js
 
 // ===============================
 // COUPON MANAGEMENT ROUTES
