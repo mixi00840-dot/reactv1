@@ -215,7 +215,7 @@ router.get('/analytics', verifyJWT, async (req, res) => {
       matchQuery.userId = userId;
     } else {
       // If no userId specified, use current user
-      matchQuery.userId = req.user.id;
+      matchQuery.userId = req.userId; // Fixed: was req.user.id
     }
     
     if (Object.keys(dateFilter).length > 0) {

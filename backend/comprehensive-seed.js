@@ -278,7 +278,7 @@ async function seedSounds() {
     sounds.push({
       title: faker.music.songName(),
       artist: faker.person.fullName(),
-      url: `https://example.com/sounds/${faker.string.uuid()}.mp3`,
+      audioUrl: `https://example.com/sounds/${faker.string.uuid()}.mp3`,
       duration: faker.number.int({ min: 10, max: 180 }),
       coverImage: faker.image.url(),
       usageCount: faker.number.int({ min: 0, max: 1000 }),
@@ -299,18 +299,20 @@ async function seedContent() {
   const contents = [];
   for (let i = 0; i < SEED_COUNTS.content; i++) {
     contents.push({
-      creator: faker.helpers.arrayElement(generatedIds.users),
+      userId: faker.helpers.arrayElement(generatedIds.users),
       type: faker.helpers.arrayElement(['video', 'image', 'text']),
       caption: faker.lorem.paragraph(),
       videoUrl: `https://example.com/videos/${faker.string.uuid()}.mp4`,
       thumbnailUrl: faker.image.url(),
       duration: faker.number.int({ min: 5, max: 60 }),
-      likes: faker.number.int({ min: 0, max: 10000 }),
-      views: faker.number.int({ min: 0, max: 100000 }),
-      shares: faker.number.int({ min: 0, max: 1000 }),
-      comments: faker.number.int({ min: 0, max: 500 }),
-      tags: faker.helpers.arrayElements(generatedIds.tags, faker.number.int({ min: 1, max: 5 })),
-      sound: faker.helpers.arrayElement(generatedIds.sounds),
+      metrics: {
+        views: faker.number.int({ min: 0, max: 100000 }),
+        likes: faker.number.int({ min: 0, max: 10000 }),
+        comments: faker.number.int({ min: 0, max: 500 }),
+        shares: faker.number.int({ min: 0, max: 1000 })
+      },
+      hashtags: faker.helpers.arrayElements(['viral', 'trending', 'fun', 'music', 'dance'], faker.number.int({ min: 1, max: 3 })),
+      soundId: faker.helpers.arrayElement(generatedIds.sounds),
       status: faker.helpers.arrayElement(['published', 'pending', 'rejected', 'draft']),
       visibility: faker.helpers.arrayElement(['public', 'private', 'followers']),
       allowComments: true,

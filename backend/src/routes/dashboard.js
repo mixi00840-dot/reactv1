@@ -8,10 +8,10 @@ const Transaction = require('../models/Transaction');
 const Store = require('../models/Store');
 const LiveStream = require('../models/LiveStream');
 const Report = require('../models/Report');
-const { adminAuth } = require('../middleware/auth');
+const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
 
 // Get dashboard stats
-router.get('/stats', adminAuth, async (req, res) => {
+router.get('/stats', verifyJWT, requireAdmin, async (req, res) => {
   try {
     const now = new Date();
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
