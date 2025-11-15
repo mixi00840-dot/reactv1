@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('admin@mixillo.com');
-  const [password, setPassword] = useState('Test@123');
+  const [password, setPassword] = useState('Admin@123456');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
