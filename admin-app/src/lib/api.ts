@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://mixillo-backend-754055697187.europe-west1.run.app',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://mixillo-backend-52242135857.europe-west1.run.app',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

@@ -4,6 +4,6 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://mixillo-backend-754055697187.europe-west1.run.app"
+    "NEXT_PUBLIC_API_URL": "https://mixillo-backend-52242135857.europe-west1.run.app"
   }
 }
