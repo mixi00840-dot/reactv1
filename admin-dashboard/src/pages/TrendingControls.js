@@ -63,8 +63,26 @@ const TrendingControls = () => {
     try {
       const response = await api.get('/api/trending/admin/config');
       const configData = response?.data?.data?.config || response?.data?.config || response?.config;
-      setConfig(configData);
-      setOriginalConfig(configData);
+      
+      // Ensure thresholds exist with defaults
+      const safeConfig = {
+        weights: configData?.weights || {
+          watchTime: 0.35,
+          likes: 0.20,
+          shares: 0.20,
+          comments: 0.10,
+          completionRate: 0.10,
+          recency: 0.05
+        },
+        thresholds: configData?.thresholds || {
+          minViews: 100,
+          minEngagement: 10,
+          decayHalfLife: 48
+        }
+      };
+      
+      setConfig(safeConfig);
+      setOriginalConfig(safeConfig);
     } catch (error) {
       console.error('Error fetching config:', error);
       toast.error('Failed to fetch trending configuration');
@@ -290,7 +308,7 @@ const TrendingControls = () => {
                 <TextField
                   fullWidth
                   type="number"
-                  value={config.thresholds.minViews}
+                  value={config.thresholds?.minViews || 100}
                   onChange={(e) => handleThresholdChange('minViews', parseInt(e.target.value) || 0)}
                   helperText="Minimum views required"
                 />
@@ -306,7 +324,7 @@ const TrendingControls = () => {
                 <TextField
                   fullWidth
                   type="number"
-                  value={config.thresholds.minEngagement}
+                  value={config.thresholds?.minEngagement || 10}
                   onChange={(e) => handleThresholdChange('minEngagement', parseInt(e.target.value) || 0)}
                   helperText="Minimum total engagement (likes + comments + shares)"
                 />
@@ -322,8 +340,8 @@ const TrendingControls = () => {
                 <TextField
                   fullWidth
                   type="number"
-                  value={config.thresholds.decayHalfLife}
-                  onChange={(e) => handleThresholdChange('decayHalfLife', parseInt(e.target.value) || 1)}
+                  value={config.thresholds?.decayHalfLife || 48}
+                  onChange={(e) => handleThresholdChange('decayHalfLife', parseInt(e.target.value) || 0)}
                   helperText="Time for recency score to decay by 50%"
                 />
               </CardContent>
