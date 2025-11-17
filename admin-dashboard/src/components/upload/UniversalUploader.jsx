@@ -155,20 +155,19 @@ const UniversalUploader = ({
       console.log('Signature response:', signatureResponse); // Debug log
       console.log('Signature response.data:', signatureResponse.data); // Debug log
 
-      // apiMongoDB returns response directly, not nested in .data
-      // Check if response has success field directly or in data
-      const responseData = signatureResponse.success ? signatureResponse : signatureResponse.data;
+      // axios returns response.data, which contains our backend response
+      const backendResponse = signatureResponse.data;
       
-      if (!responseData || !responseData.success) {
-        throw new Error(responseData?.message || 'Failed to get upload signature');
+      if (!backendResponse || !backendResponse.success) {
+        console.error('Backend error:', backendResponse);
+        throw new Error(backendResponse?.message || 'Failed to get upload signature');
       }
 
-      // Extract signature data - could be in responseData.data or directly in responseData
-      const signatureData = responseData.data || responseData;
-      const { signature, timestamp, cloudName, apiKey, folder } = signatureData;
+      // Backend returns { success: true, data: { signature, timestamp, ... } }
+      const { signature, timestamp, cloudName, apiKey, folder } = backendResponse.data;
 
       if (!signature || !timestamp || !cloudName || !apiKey) {
-        console.error('Missing signature data:', { responseData, signatureData });
+        console.error('Missing signature fields:', backendResponse.data);
         throw new Error('Incomplete signature data received from server');
       }
 
