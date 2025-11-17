@@ -1523,6 +1523,100 @@ router.get('/content', verifyJWT, requireAdmin, async (req, res) => {
 });
 
 /**
+ * @route   POST /api/admin/content
+ * @desc    Create content on behalf of user (Admin bulk upload)
+ * @access  Admin
+ */
+router.post('/content', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const {
+      userId,
+      type = 'feed', // 'feed' or 'post'
+      mediaType = 'video', // 'video' or 'image'
+      mediaUrl,
+      caption,
+      tags = [],
+      hashtags = [],
+      location,
+      status = 'active',
+      scheduledDate,
+      settings = {},
+      cloudinaryData = {}
+    } = req.body;
+
+    // Validation
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+    }
+
+    if (!mediaUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'mediaUrl is required'
+      });
+    }
+
+    // Verify user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Create content
+    const content = new Content({
+      userId: userId,
+      creator: userId,
+      type: type,
+      mediaType: mediaType,
+      mediaUrl: mediaUrl,
+      videoUrl: mediaUrl, // Legacy field
+      caption: caption || '',
+      description: caption || '', // Legacy field
+      tags: tags || [],
+      hashtags: hashtags || [],
+      location: location || undefined,
+      status: status,
+      scheduledDate: status === 'scheduled' ? scheduledDate : undefined,
+      visibility: 'public',
+      allowComments: settings.allowComments !== false,
+      allowSharing: settings.allowSharing !== false,
+      // Cloudinary metadata
+      thumbnailUrl: cloudinaryData.thumbnailUrl || mediaUrl,
+      width: cloudinaryData.width,
+      height: cloudinaryData.height,
+      duration: cloudinaryData.duration,
+      format: cloudinaryData.format,
+      resourceType: cloudinaryData.resourceType
+    });
+
+    await content.save();
+
+    // Populate creator info for response
+    await content.populate('creator', 'username fullName avatar isVerified');
+
+    res.status(201).json({
+      success: true,
+      data: content,
+      message: 'Content created successfully'
+    });
+
+  } catch (error) {
+    console.error('Admin create content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create content',
+      error: error.message
+    });
+  }
+});
+
+/**
  * @route   PUT /api/admin/content/:id/status
  * @desc    Update content status
  * @access  Admin
@@ -2535,6 +2629,511 @@ router.delete('/translations/:id', verifyJWT, requireAdmin, async (req, res) => 
     res.json({ success: true, message: 'Translation deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error deleting translation', error: error.message });
+  }
+});
+// ==========================================
+// MISSING CRITICAL ENDPOINTS - PHASE 3 ADDITIONS
+// ==========================================
+
+/**
+ * @route   PUT /api/admin/users/:id/feature
+ * @desc    Feature a user (show in featured section)
+ * @access  Admin
+ */
+router.put('/users/:id/feature', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { featured = true, featuredUntil = null } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        isFeatured: featured,
+        featuredAt: featured ? new Date() : null,
+        featuredUntil: featuredUntil ? new Date(featuredUntil) : null
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `User ${featured ? 'featured' : 'unfeatured'} successfully`,
+      data: { user }
+    });
+  } catch (error) {
+    console.error('Feature user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error featuring user'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/users/:id/unfeature
+ * @desc    Unfeature a user
+ * @access  Admin
+ */
+router.put('/users/:id/unfeature', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        isFeatured: false,
+        featuredAt: null,
+        featuredUntil: null
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'User unfeatured successfully',
+      data: { user }
+    });
+  } catch (error) {
+    console.error('Unfeature user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error unfeaturing user'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/config/ai
+ * @desc    Get FULL AI configuration (admin only, includes credentials info)
+ * @access  Admin
+ */
+router.get('/config/ai', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const aiConfig = {
+      vertexAI: {
+        enabled: !!process.env.GOOGLE_CLOUD_PROJECT,
+        projectId: process.env.GOOGLE_CLOUD_PROJECT || 'Not configured',
+        location: process.env.VERTEX_AI_LOCATION || 'us-central1',
+        credentialsConfigured: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        features: {
+          autoCaptions: true,
+          hashtagSuggestions: true,
+          contentModeration: true,
+          objectDetection: false
+        }
+      },
+      speechToText: {
+        enabled: true,
+        languages: ['en-US', 'es-ES', 'fr-FR', 'de-DE', 'ja-JP'],
+        defaultLanguage: 'en-US'
+      },
+      moderation: {
+        visionAPI: !!process.env.GOOGLE_CLOUD_PROJECT,
+        perspectiveAPI: !!process.env.PERSPECTIVE_API_KEY,
+        enabled: true
+      }
+    };
+
+    res.json({
+      success: true,
+      data: aiConfig,
+      message: 'Admin AI configuration retrieved'
+    });
+  } catch (error) {
+    console.error('Get admin AI config error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching AI configuration'
+    });
+  }
+});
+
+// ============================================
+// NEW UPLOAD SYSTEM ENDPOINTS
+// ============================================
+
+/**
+ * @route   POST /api/admin/products
+ * @desc    Create product (admin upload)
+ * @access  Admin
+ */
+router.post('/products', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const productData = req.body;
+    const product = new Product(productData);
+    await product.save();
+    
+    res.status(201).json({
+      success: true,
+      data: product,
+      message: 'Product created successfully'
+    });
+  } catch (error) {
+    console.error('Create product error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create product',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/sounds
+ * @desc    Create sound/audio (admin upload)
+ * @access  Admin
+ */
+router.post('/sounds', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Sound = require('../models/Sound');
+    const soundData = req.body;
+    const sound = new Sound(soundData);
+    await sound.save();
+    
+    res.status(201).json({
+      success: true,
+      data: sound,
+      message: 'Sound added to library'
+    });
+  } catch (error) {
+    console.error('Create sound error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create sound',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/gifts
+ * @desc    Create virtual gift (admin upload)
+ * @access  Admin
+ */
+router.post('/gifts', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Gift = require('../models/Gift');
+    const giftData = req.body;
+    const gift = new Gift(giftData);
+    await gift.save();
+    
+    res.status(201).json({
+      success: true,
+      data: gift,
+      message: 'Gift created successfully'
+    });
+  } catch (error) {
+    console.error('Create gift error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create gift',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/levels
+ * @desc    Create user level (admin upload)
+ * @access  Admin
+ */
+router.post('/levels', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Level = require('../models/Level');
+    const levelData = req.body;
+    const level = new Level(levelData);
+    await level.save();
+    
+    res.status(201).json({
+      success: true,
+      data: level,
+      message: 'Level created successfully'
+    });
+  } catch (error) {
+    console.error('Create level error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create level',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/badges
+ * @desc    Create badge/achievement (admin upload)
+ * @access  Admin
+ */
+router.post('/badges', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Badge = require('../models/Badge');
+    const badgeData = req.body;
+    const badge = new Badge(badgeData);
+    await badge.save();
+    
+    res.status(201).json({
+      success: true,
+      data: badge,
+      message: 'Badge created successfully'
+    });
+  } catch (error) {
+    console.error('Create badge error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create badge',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/banners
+ * @desc    Create banner (admin upload)
+ * @access  Admin
+ */
+router.post('/banners', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const Banner = require('../models/Banner');
+    const bannerData = req.body;
+    const banner = new Banner(bannerData);
+    await banner.save();
+    
+    res.status(201).json({
+      success: true,
+      data: banner,
+      message: 'Banner created successfully'
+    });
+  } catch (error) {
+    console.error('Create banner error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create banner',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/coin-packages
+ * @desc    Create coin package (admin upload)
+ * @access  Admin
+ */
+router.post('/coin-packages', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const CoinPackage = require('../models/CoinPackage');
+    const packageData = req.body;
+    const coinPackage = new CoinPackage(packageData);
+    await coinPackage.save();
+    
+    res.status(201).json({
+      success: true,
+      data: coinPackage,
+      message: 'Coin package created successfully'
+    });
+  } catch (error) {
+    console.error('Create coin package error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create coin package',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/translations
+ * @desc    Get translations for a language
+ * @access  Admin
+ */
+router.get('/translations', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { language = 'en' } = req.query;
+    
+    const translations = await Translation.find({ language }).sort({ key: 1 });
+    
+    res.json({
+      success: true,
+      data: { translations },
+      message: `Translations for ${language} retrieved`
+    });
+  } catch (error) {
+    console.error('Get translations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get translations',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/translations
+ * @desc    Create translation
+ * @access  Admin
+ */
+router.post('/translations', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const translationData = req.body;
+    const translation = new Translation(translationData);
+    await translation.save();
+    
+    res.status(201).json({
+      success: true,
+      data: translation,
+      message: 'Translation added successfully'
+    });
+  } catch (error) {
+    console.error('Create translation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create translation',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/translations/bulk
+ * @desc    Bulk import translations
+ * @access  Admin
+ */
+router.post('/translations/bulk', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { translations } = req.body;
+    
+    const results = await Translation.insertMany(translations, { ordered: false });
+    
+    res.status(201).json({
+      success: true,
+      data: { count: results.length },
+      message: `${results.length} translations imported`
+    });
+  } catch (error) {
+    console.error('Bulk import translations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to import translations',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/translations/:id
+ * @desc    Update translation
+ * @access  Admin
+ */
+router.put('/translations/:id', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const translation = await Translation.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    
+    if (!translation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Translation not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: translation,
+      message: 'Translation updated successfully'
+    });
+  } catch (error) {
+    console.error('Update translation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update translation',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/translations/:id
+ * @desc    Delete translation
+ * @access  Admin
+ */
+router.delete('/translations/:id', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const translation = await Translation.findByIdAndDelete(req.params.id);
+    
+    if (!translation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Translation not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Translation deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete translation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete translation',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/stores
+ * @desc    Get all stores for product assignment
+ * @access  Admin
+ */
+router.get('/stores', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 100 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const [stores, total] = await Promise.all([
+      Store.find()
+        .select('name status isVerified owner')
+        .populate('owner', 'username')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      Store.countDocuments()
+    ]);
+    
+    res.json({
+      success: true,
+      data: { stores },
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get stores error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get stores',
+      error: error.message
+    });
   }
 });
 

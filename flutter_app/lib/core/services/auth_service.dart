@@ -46,7 +46,7 @@ class AuthService {
   Future<bool> isTokenExpired() async {
     final prefs = await SharedPreferences.getInstance();
     final expiryTimestamp = prefs.getInt(_tokenExpiryKey);
-    
+
     if (expiryTimestamp == null) {
       // If no expiry stored, assume token might be expired
       return true;
@@ -54,7 +54,7 @@ class AuthService {
 
     final expiryDate = DateTime.fromMillisecondsSinceEpoch(expiryTimestamp);
     final now = DateTime.now();
-    
+
     // Consider token expired 5 minutes before actual expiry
     final bufferTime = const Duration(minutes: 5);
     return now.isAfter(expiryDate.subtract(bufferTime));
@@ -64,7 +64,7 @@ class AuthService {
   Future<void> saveToken(String token, {DateTime? expiresAt}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
-    
+
     // ✅ NEW: Store token expiry (default 24 hours if not provided)
     final expiry = expiresAt ?? DateTime.now().add(const Duration(hours: 24));
     await prefs.setInt(_tokenExpiryKey, expiry.millisecondsSinceEpoch);
@@ -98,7 +98,7 @@ class AuthService {
   Future<bool> isAuthenticated() async {
     final token = await getToken();
     if (token == null || token.isEmpty) return false;
-    
+
     // ✅ NEW: Also check if token is still valid
     final isExpired = await isTokenExpired();
     return !isExpired;
@@ -129,22 +129,22 @@ class AuthService {
       if (response['success'] == true) {
         final newToken = response['data']['token'];
         final newRefreshToken = response['data']['refreshToken'];
-        
+
         // ✅ IMPROVED: Parse token expiry if provided by backend
         DateTime? expiresAt;
         if (response['data']['expiresAt'] != null) {
           expiresAt = DateTime.parse(response['data']['expiresAt']);
         }
-        
+
         await saveToken(newToken, expiresAt: expiresAt);
         if (newRefreshToken != null) {
           await saveRefreshToken(newRefreshToken);
         }
-        
+
         debugPrint('✅ Token refreshed successfully');
         return true;
       }
-      
+
       debugPrint('❌ Token refresh failed: ${response['message']}');
       return false;
     } catch (e) {

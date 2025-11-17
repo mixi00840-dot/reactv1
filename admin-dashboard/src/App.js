@@ -48,6 +48,14 @@ import Notifications from './pages/Notifications';
 // Videos, Posts, Stories, ContentManager, UploadManager, MediaBrowser removed - now in UserDetails tabs
 import Gifts from './pages/Gifts';
 import APISettings from './pages/APISettings';
+
+// Upload Management Pages
+import ContentUpload from './pages/ContentUpload';
+import ProductUpload from './pages/ProductUpload';
+import SoundUpload from './pages/SoundUpload';
+import GiftUpload from './pages/GiftUpload';
+import SystemAssets from './pages/SystemAssets';
+import TranslationManager from './pages/TranslationManager';
 import Coins from './pages/Coins';
 import Levels from './pages/Levels';
 import Banners from './pages/Banners';
@@ -179,6 +187,14 @@ function App() {
                 <Route path="/coins" element={<Coins />} />
                 <Route path="/levels" element={<Levels />} />
                 
+                {/* Upload Management */}
+                <Route path="/upload/content" element={<ContentUpload />} />
+                <Route path="/upload/products" element={<ProductUpload />} />
+                <Route path="/upload/sounds" element={<SoundUpload />} />
+                <Route path="/upload/gifts" element={<GiftUpload />} />
+                <Route path="/system-assets" element={<SystemAssets />} />
+                <Route path="/translations" element={<TranslationManager />} />
+                
                 {/* Discovery & Marketing */}
                 <Route path="/tags" element={<Tags />} />
                 <Route path="/explorer" element={<Explorer />} />
@@ -195,7 +211,7 @@ function App() {
                 
                 {/* System Management */}
                 <Route path="/comments-management" element={<CommentsManagement />} />
-                <Route path="/translations" element={<TranslationsManagement />} />
+                                <Route path="/translation-manager" element={<TranslationManager />} />
                 {/* Upload Manager removed - now in UserDetails tabs */}
                 <Route path="/currencies" element={<CurrenciesManagement />} />
                 

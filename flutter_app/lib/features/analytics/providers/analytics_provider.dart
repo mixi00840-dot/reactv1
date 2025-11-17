@@ -1,0 +1,143 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/models/analytics.dart';
+import '../data/services/analytics_service.dart';
+
+// Analytics service provider
+final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
+  return AnalyticsService();
+});
+
+// Analytics data provider
+final analyticsProvider =
+    StateNotifierProvider<AnalyticsNotifier, AsyncValue<Analytics>>((ref) {
+  final service = ref.watch(analyticsServiceProvider);
+  return AnalyticsNotifier(service);
+});
+
+class AnalyticsNotifier extends StateNotifier<AsyncValue<Analytics>> {
+  final AnalyticsService _service;
+  String _currentPeriod = '7days';
+
+  AnalyticsNotifier(this._service) : super(const AsyncValue.loading()) {
+    loadAnalytics();
+  }
+
+  Future<void> loadAnalytics({String period = '7days'}) async {
+    state = const AsyncValue.loading();
+    _currentPeriod = period;
+
+    try {
+      final analytics = await _service.getAnalytics(period: period);
+      state = AsyncValue.data(analytics);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> refresh() async {
+    await loadAnalytics(period: _currentPeriod);
+  }
+}
+
+// Video analytics provider
+final videoAnalyticsProvider =
+    FutureProvider.family<VideoAnalytics, String>((ref, contentId) async {
+  final service = ref.watch(analyticsServiceProvider);
+  return await service.getVideoAnalytics(contentId);
+});
+
+class VideoAnalytics {
+  final int views;
+  final int uniqueViews;
+  final int likes;
+  final int comments;
+  final int shares;
+  final double averageWatchTime;
+  final double completionRate;
+  final Map<String, int> viewsByCountry;
+  final Map<String, int> viewsByAge;
+  final Map<String, int> viewsByGender;
+  final List<Map<String, dynamic>> hourlyViews;
+
+  VideoAnalytics({
+    required this.views,
+    required this.uniqueViews,
+    required this.likes,
+    required this.comments,
+    required this.shares,
+    required this.averageWatchTime,
+    required this.completionRate,
+    required this.viewsByCountry,
+    required this.viewsByAge,
+    required this.viewsByGender,
+    required this.hourlyViews,
+  });
+}
+
+// Earnings analytics provider
+final earningsAnalyticsProvider = StateNotifierProvider<
+    EarningsAnalyticsNotifier, AsyncValue<EarningsAnalytics>>((ref) {
+  final service = ref.watch(analyticsServiceProvider);
+  return EarningsAnalyticsNotifier(service);
+});
+
+class EarningsAnalyticsNotifier
+    extends StateNotifier<AsyncValue<EarningsAnalytics>> {
+  final AnalyticsService _service;
+  String _currentPeriod = '30days';
+
+  EarningsAnalyticsNotifier(this._service) : super(const AsyncValue.loading()) {
+    loadEarnings();
+  }
+
+  Future<void> loadEarnings({String period = '30days'}) async {
+    state = const AsyncValue.loading();
+    _currentPeriod = period;
+
+    try {
+      final earnings = await _service.getEarningsAnalytics(period: period);
+      state = AsyncValue.data(earnings);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> refresh() async {
+    await loadEarnings(period: _currentPeriod);
+  }
+}
+
+class EarningsAnalytics {
+  final double totalEarnings;
+  final double videoEarnings;
+  final double liveEarnings;
+  final double giftEarnings;
+  final double affiliateEarnings;
+  final List<Map<String, dynamic>> dailyEarnings;
+  final Map<String, double> earningsBySource;
+
+  EarningsAnalytics({
+    required this.totalEarnings,
+    required this.videoEarnings,
+    required this.liveEarnings,
+    required this.giftEarnings,
+    required this.affiliateEarnings,
+    required this.dailyEarnings,
+    required this.earningsBySource,
+  });
+}
+
+// Follower growth analytics
+final followerGrowthProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>(
+        (ref, period) async {
+  final service = ref.watch(analyticsServiceProvider);
+  return await service.getFollowerGrowth(period: period);
+});
+
+// Content performance comparison
+final contentPerformanceProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final service = ref.watch(analyticsServiceProvider);
+  return await service.getTopPerformingContent(limit: 10);
+});

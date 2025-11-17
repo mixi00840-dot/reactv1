@@ -45,8 +45,8 @@ class VideoModel {
       shares: json['sharesCount'] ?? json['shares'] ?? 0,
       views: json['viewsCount'] ?? json['views'] ?? 0,
       isLiked: json['isLiked'] ?? false,
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
       soundName: json['soundName'] ?? json['sound']?['name'],
     );

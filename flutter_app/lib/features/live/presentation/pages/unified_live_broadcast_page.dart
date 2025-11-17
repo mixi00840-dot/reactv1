@@ -21,7 +21,8 @@ class UnifiedLiveBroadcastPage extends StatefulWidget {
   });
 
   @override
-  State<UnifiedLiveBroadcastPage> createState() => _UnifiedLiveBroadcastPageState();
+  State<UnifiedLiveBroadcastPage> createState() =>
+      _UnifiedLiveBroadcastPageState();
 }
 
 class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
@@ -72,7 +73,8 @@ class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
 
       // ✅ IMPROVED: Load saved provider preference first
       await _providerManager.initializeWithPreference();
-      debugPrint('🎯 Initial provider: ${_providerManager.currentProvider.name}');
+      debugPrint(
+          '🎯 Initial provider: ${_providerManager.currentProvider.name}');
 
       // ✅ IMPROVED: Get providers with graceful fallback
       try {
@@ -90,14 +92,16 @@ class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
       } catch (e) {
         // ✅ IMPROVED: Continue with saved preference if API fails
         debugPrint('⚠️ Could not fetch providers from API: $e');
-        debugPrint('📱 Continuing with saved preference: ${_providerManager.currentProvider.name}');
+        debugPrint(
+            '📱 Continuing with saved preference: ${_providerManager.currentProvider.name}');
       }
 
       // Create stream with selected provider
-      final providerName = _providerManager.currentProvider == StreamProvider.agora 
-          ? 'agora' 
-          : 'zegocloud';
-      
+      final providerName =
+          _providerManager.currentProvider == StreamProvider.agora
+              ? 'agora'
+              : 'zegocloud';
+
       _streamConfig = await _streamingService.createLiveStream(
         title: widget.title,
         description: widget.description,
@@ -105,7 +109,8 @@ class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
       );
 
       // Initialize provider with config
-      final initialized = await _providerManager.initialize(_streamConfig!.config);
+      final initialized =
+          await _providerManager.initialize(_streamConfig!.config);
 
       if (!initialized) {
         throw Exception('Failed to initialize streaming provider');
@@ -219,7 +224,8 @@ class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('End Stream', style: TextStyle(color: Colors.red)),
+            child:
+                const Text('End Stream', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -271,7 +277,7 @@ class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
             return ListTile(
               title: Text(q.toUpperCase()),
               subtitle: Text(_providerManager.getQualityDescription(q)),
-              trailing: _currentQuality == q 
+              trailing: _currentQuality == q
                   ? const Icon(Icons.check, color: AppColors.primary)
                   : null,
               onTap: () => Navigator.pop(context, q),
@@ -358,7 +364,7 @@ class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
         );
       }
     }
-    
+
     // For ZegoCloud
     else if (_providerManager.currentProvider == StreamProvider.zegocloud) {
       if (_zegoPreviewWidget != null) {
@@ -473,7 +479,8 @@ class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: GlassContainer(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 borderRadius: BorderRadius.circular(16),
                 child: RichText(
                   text: TextSpan(
@@ -526,7 +533,9 @@ class _UnifiedLiveBroadcastPageState extends State<UnifiedLiveBroadcastPage> {
 
           // Microphone
           _buildControlButton(
-            icon: _providerManager.isMuted ? Iconsax.microphone_slash : Iconsax.microphone,
+            icon: _providerManager.isMuted
+                ? Iconsax.microphone_slash
+                : Iconsax.microphone,
             isActive: !_providerManager.isMuted,
             onTap: _toggleMute,
           ),

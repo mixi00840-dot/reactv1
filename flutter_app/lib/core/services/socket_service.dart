@@ -13,7 +13,7 @@ class SocketService {
   io.Socket? _socket;
   final AuthService _authService = AuthService();
   String? _currentVideoRoom;
-  
+
   // Auto-reconnect management
   Timer? _reconnectTimer;
   int _reconnectAttempts = 0;
@@ -21,33 +21,52 @@ class SocketService {
   bool _isManualDisconnect = false;
 
   // Event streams
-  final _videoLikeController = StreamController<Map<String, dynamic>>.broadcast();
-  final _videoCommentController = StreamController<Map<String, dynamic>>.broadcast();
-  final _videoViewController = StreamController<Map<String, dynamic>>.broadcast();
-  final _videoShareController = StreamController<Map<String, dynamic>>.broadcast();
-  
-  // Post event streams
-  final _postLikeController = StreamController<Map<String, dynamic>>.broadcast();
-  final _postCommentController = StreamController<Map<String, dynamic>>.broadcast();
-  final _postUpdateController = StreamController<Map<String, dynamic>>.broadcast();
-  
-  // Story event streams
-  final _storyAddedController = StreamController<Map<String, dynamic>>.broadcast();
-  final _storyDeletedController = StreamController<Map<String, dynamic>>.broadcast();
-  final _storyViewedController = StreamController<Map<String, dynamic>>.broadcast();
+  final _videoLikeController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _videoCommentController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _videoViewController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _videoShareController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
-  Stream<Map<String, dynamic>> get videoLikeStream => _videoLikeController.stream;
-  Stream<Map<String, dynamic>> get videoCommentStream => _videoCommentController.stream;
-  Stream<Map<String, dynamic>> get videoViewStream => _videoViewController.stream;
-  Stream<Map<String, dynamic>> get videoShareStream => _videoShareController.stream;
-  
+  // Post event streams
+  final _postLikeController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _postCommentController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _postUpdateController =
+      StreamController<Map<String, dynamic>>.broadcast();
+
+  // Story event streams
+  final _storyAddedController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _storyDeletedController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _storyViewedController =
+      StreamController<Map<String, dynamic>>.broadcast();
+
+  Stream<Map<String, dynamic>> get videoLikeStream =>
+      _videoLikeController.stream;
+  Stream<Map<String, dynamic>> get videoCommentStream =>
+      _videoCommentController.stream;
+  Stream<Map<String, dynamic>> get videoViewStream =>
+      _videoViewController.stream;
+  Stream<Map<String, dynamic>> get videoShareStream =>
+      _videoShareController.stream;
+
   Stream<Map<String, dynamic>> get postLikeStream => _postLikeController.stream;
-  Stream<Map<String, dynamic>> get postCommentStream => _postCommentController.stream;
-  Stream<Map<String, dynamic>> get postUpdateStream => _postUpdateController.stream;
-  
-  Stream<Map<String, dynamic>> get storyAddedStream => _storyAddedController.stream;
-  Stream<Map<String, dynamic>> get storyDeletedStream => _storyDeletedController.stream;
-  Stream<Map<String, dynamic>> get storyViewedStream => _storyViewedController.stream;
+  Stream<Map<String, dynamic>> get postCommentStream =>
+      _postCommentController.stream;
+  Stream<Map<String, dynamic>> get postUpdateStream =>
+      _postUpdateController.stream;
+
+  Stream<Map<String, dynamic>> get storyAddedStream =>
+      _storyAddedController.stream;
+  Stream<Map<String, dynamic>> get storyDeletedStream =>
+      _storyDeletedController.stream;
+  Stream<Map<String, dynamic>> get storyViewedStream =>
+      _storyViewedController.stream;
 
   bool get isConnected => _socket?.connected ?? false;
 
@@ -59,7 +78,8 @@ class SocketService {
 
     _isManualDisconnect = false;
     final socketUrl = dotenv.env['SOCKET_URL'] ?? 'http://localhost:5000';
-    final token = await _authService.getValidToken(); // Use valid token with auto-refresh
+    final token =
+        await _authService.getValidToken(); // Use valid token with auto-refresh
 
     // Dispose old socket if exists
     if (_socket != null) {
@@ -87,7 +107,7 @@ class SocketService {
 
     _socket!.onDisconnect((reason) {
       debugPrint('❌ Socket.IO disconnected: $reason');
-      
+
       // Auto-reconnect unless manually disconnected
       if (!_isManualDisconnect && reason != 'io client disconnect') {
         _scheduleReconnect();
@@ -123,7 +143,8 @@ class SocketService {
     );
 
     _reconnectAttempts++;
-    debugPrint('🔄 Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts/$_maxReconnectAttempts)');
+    debugPrint(
+        '🔄 Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts/$_maxReconnectAttempts)');
 
     _reconnectTimer = Timer(delay, () {
       if (!_isManualDisconnect) {
@@ -167,39 +188,39 @@ class SocketService {
     _socket!.on('video:left', (data) {
       debugPrint('👋 Left video room: ${data['contentId']}');
     });
-    
+
     // Post events
     _socket!.on('post_liked', (data) {
       debugPrint('📥 Received post_liked event: $data');
       _postLikeController.add(Map<String, dynamic>.from(data));
     });
-    
+
     _socket!.on('post_unliked', (data) {
       debugPrint('📥 Received post_unliked event: $data');
       _postLikeController.add(Map<String, dynamic>.from(data));
     });
-    
+
     _socket!.on('comment_added', (data) {
       debugPrint('📥 Received comment_added event: $data');
       _postCommentController.add(Map<String, dynamic>.from(data));
     });
-    
+
     _socket!.on('post_updated', (data) {
       debugPrint('📥 Received post_updated event: $data');
       _postUpdateController.add(Map<String, dynamic>.from(data));
     });
-    
+
     // Story events
     _socket!.on('story_added', (data) {
       debugPrint('📥 Received story_added event: $data');
       _storyAddedController.add(Map<String, dynamic>.from(data));
     });
-    
+
     _socket!.on('story_deleted', (data) {
       debugPrint('📥 Received story_deleted event: $data');
       _storyDeletedController.add(Map<String, dynamic>.from(data));
     });
-    
+
     _socket!.on('story_viewed', (data) {
       debugPrint('📥 Received story_viewed event: $data');
       _storyViewedController.add(Map<String, dynamic>.from(data));
@@ -216,7 +237,7 @@ class SocketService {
 
       _socket!.emit('video:join', {'contentId': videoId});
       _currentVideoRoom = videoId;
-  debugPrint('🚪 Joining video room: $videoId');
+      debugPrint('🚪 Joining video room: $videoId');
     }
   }
 
@@ -227,7 +248,7 @@ class SocketService {
       if (_currentVideoRoom == videoId) {
         _currentVideoRoom = null;
       }
-  debugPrint('👋 Leaving video room: $videoId');
+      debugPrint('👋 Leaving video room: $videoId');
     }
   }
 
@@ -245,7 +266,7 @@ class SocketService {
   void disconnect() {
     _isManualDisconnect = true;
     _reconnectTimer?.cancel();
-    
+
     if (_currentVideoRoom != null) {
       leaveVideoRoom(_currentVideoRoom!);
     }

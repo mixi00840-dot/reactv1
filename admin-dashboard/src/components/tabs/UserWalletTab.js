@@ -71,18 +71,17 @@ function UserWalletTab({ userId }) {
       }
 
       // Fetch transactions - use admin route for better access
-      const transResponse = await mongoAPI.get(`/admin/users/${userId}/wallet/transactions`);
+      const transResponse = await mongoAPI.get(`/api/admin/wallets/${userId}/transactions`);
       if (transResponse.success) {
         setTransactions(transResponse.data.transactions || []);
-      }
-
-      // If API fails, use mock data
-      if (!walletResponse.success || !transResponse.success) {
-        generateMockData();
+      } else {
+        setTransactions([]);
       }
     } catch (error) {
       console.error('Error fetching wallet data:', error);
-      generateMockData();
+      setWallet(null);
+      setTransactions([]);
+      toast.error('Failed to load wallet data');
     } finally {
       setLoading(false);
     }

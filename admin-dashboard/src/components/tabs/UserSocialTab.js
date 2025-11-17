@@ -56,24 +56,24 @@ function UserSocialTab({ userId }) {
     setLoading(true);
     try {
       if (subTab === 0) {
-        const response = await mongoAPI.get(`/admin/users/${userId}/followers`, {
+        const response = await mongoAPI.get(`/api/admin/users/${userId}/followers`, {
           params: { page, limit: 20 }
         });
         if (response.success) {
           setFollowers(response.data.followers || []);
           setTotalPages(response.data.totalPages || 1);
         } else {
-          generateMockFollowers();
+          setFollowers([]);
         }
       } else if (subTab === 1) {
-        const response = await mongoAPI.get(`/admin/users/${userId}/following`, {
+        const response = await mongoAPI.get(`/api/admin/users/${userId}/following`, {
           params: { page, limit: 20 }
         });
         if (response.success) {
           setFollowing(response.data.following || []);
           setTotalPages(response.data.totalPages || 1);
         } else {
-          generateMockFollowing();
+          setFollowing([]);
         }
       } else if (subTab === 2) {
         const response = await mongoAPI.get(`/api/users/mongodb/${userId}/blocked`);
@@ -85,8 +85,7 @@ function UserSocialTab({ userId }) {
       }
     } catch (error) {
       console.error('Error fetching social data:', error);
-      if (subTab === 0) generateMockFollowers();
-      else if (subTab === 1) generateMockFollowing();
+      toast.error('Failed to load social data');
     } finally {
       setLoading(false);
     }

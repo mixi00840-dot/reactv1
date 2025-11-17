@@ -53,7 +53,7 @@ function UserVideosTab({ userId }) {
   const fetchVideos = async () => {
     setLoading(true);
     try {
-      const response = await mongoAPI.get(`/api/content/mongodb`, {
+      const response = await mongoAPI.get(`/api/content`, {
         params: {
           userId,
           type: 'video',
@@ -67,60 +67,16 @@ function UserVideosTab({ userId }) {
         setVideos(response.data.content || response.data.videos || []);
         setTotalPages(response.data.totalPages || 1);
       } else {
-        // Mock data for demo if API fails
-        generateMockVideos();
+        setVideos([]);
+        toast.error('No videos found');
       }
     } catch (error) {
       console.error('Error fetching videos:', error);
-      generateMockVideos();
+      setVideos([]);
+      toast.error('Failed to load videos');
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateMockVideos = () => {
-    const mockVideos = [
-      {
-        _id: '1',
-        title: 'Amazing Dance Performance 💃',
-        thumbnail: 'https://via.placeholder.com/120x67?text=Video+1',
-        videoUrl: null,
-        views: 15420,
-        likes: 892,
-        comments: 156,
-        shares: 45,
-        duration: '0:30',
-        uploadDate: '2025-10-25',
-        status: 'published'
-      },
-      {
-        _id: '2',
-        title: 'Cooking Tutorial: Perfect Pasta 🍝',
-        thumbnail: 'https://via.placeholder.com/120x67?text=Video+2',
-        videoUrl: null,
-        views: 8945,
-        likes: 567,
-        comments: 89,
-        shares: 34,
-        duration: '2:15',
-        uploadDate: '2025-10-20',
-        status: 'published'
-      },
-      {
-        _id: '3',
-        title: 'Travel Vlog: Beach Day 🏖️',
-        thumbnail: 'https://via.placeholder.com/120x67?text=Video+3',
-        videoUrl: null,
-        views: 12305,
-        likes: 734,
-        comments: 123,
-        shares: 56,
-        duration: '5:32',
-        uploadDate: '2025-10-18',
-        status: 'published'
-      }
-    ];
-    setVideos(mockVideos);
   };
 
   const handlePlayVideo = (video) => {
@@ -137,7 +93,7 @@ function UserVideosTab({ userId }) {
     if (!window.confirm('Are you sure you want to delete this video?')) return;
 
     try {
-      await mongoAPI.delete(`/api/content/mongodb/${videoId}`);
+      await mongoAPI.delete(`/api/content/${videoId}`);
       setVideos(videos.filter(v => v._id !== videoId));
       toast.success('Video deleted successfully');
     } catch (error) {

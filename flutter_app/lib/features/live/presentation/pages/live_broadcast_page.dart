@@ -187,7 +187,8 @@ class _LiveBroadcastPageState extends State<LiveBroadcastPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('End Stream', style: TextStyle(color: Colors.red)),
+            child:
+                const Text('End Stream', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -239,7 +240,7 @@ class _LiveBroadcastPageState extends State<LiveBroadcastPage> {
             return ListTile(
               title: Text(q.name.toUpperCase()),
               subtitle: Text(_getQualityDescription(q)),
-              trailing: _currentQuality == q 
+              trailing: _currentQuality == q
                   ? const Icon(Icons.check, color: AppColors.primary)
                   : null,
               onTap: () => Navigator.pop(context, q),
@@ -422,7 +423,8 @@ class _LiveBroadcastPageState extends State<LiveBroadcastPage> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: GlassContainer(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 borderRadius: BorderRadius.circular(16),
                 child: RichText(
                   text: TextSpan(
@@ -475,7 +477,9 @@ class _LiveBroadcastPageState extends State<LiveBroadcastPage> {
 
           // Microphone
           _buildControlButton(
-            icon: _agoraManager.isMuted ? Iconsax.microphone_slash : Iconsax.microphone,
+            icon: _agoraManager.isMuted
+                ? Iconsax.microphone_slash
+                : Iconsax.microphone,
             isActive: !_agoraManager.isMuted,
             onTap: _toggleMute,
           ),

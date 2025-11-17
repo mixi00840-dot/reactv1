@@ -14,7 +14,8 @@ class VideoService {
   static final List<VideoModel> _mockVideos = [
     VideoModel(
       id: 'mock-1',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      videoUrl:
+          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
       thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg',
       userId: 'user-1',
       username: 'mixillo_team',
@@ -29,7 +30,8 @@ class VideoService {
     ),
     VideoModel(
       id: 'mock-2',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+      videoUrl:
+          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg',
       userId: 'user-2',
       username: 'creator_pro',
@@ -44,7 +46,8 @@ class VideoService {
     ),
     VideoModel(
       id: 'mock-3',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      videoUrl:
+          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg',
       userId: 'user-3',
       username: 'shop_master',
@@ -72,7 +75,8 @@ class VideoService {
         if (lastVideoId != null) 'lastVideoId': lastVideoId,
       };
 
-      final response = await _apiService.get('/feed', queryParameters: queryParams);
+      final response =
+          await _apiService.get('/feed', queryParameters: queryParams);
 
       if (response['success'] == true) {
         final List<dynamic> videosData = response['data']['videos'] ?? [];
@@ -83,7 +87,7 @@ class VideoService {
         }
         return await compute(_parseVideoList, videosData);
       }
-      
+
       // Fallback to mock data if API returns empty
       debugPrint('Feed API returned empty, using mock data');
       return _mockVideos;
@@ -106,7 +110,8 @@ class VideoService {
         'following': 'true',
       };
 
-      final response = await _apiService.get('/feed', queryParameters: queryParams);
+      final response =
+          await _apiService.get('/feed', queryParameters: queryParams);
 
       if (response['success'] == true) {
         final List<dynamic> videosData = response['data']['videos'] ?? [];
@@ -117,7 +122,7 @@ class VideoService {
         }
         return await compute(_parseVideoList, videosData);
       }
-      
+
       // Fallback to mock data
       debugPrint('Following feed API returned empty, using mock data');
       return _mockVideos;

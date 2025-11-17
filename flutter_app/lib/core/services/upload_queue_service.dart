@@ -74,13 +74,15 @@ class UploadQueueService {
   static const Duration _retryDelay = Duration(seconds: 5);
 
   final List<UploadQueueItem> _queue = [];
-  final NetworkConnectivityService _networkService = NetworkConnectivityService();
-  
+  final NetworkConnectivityService _networkService =
+      NetworkConnectivityService();
+
   bool _isProcessing = false;
   UploadQueueItem? _currentItem;
-  
+
   // Callback for actual upload processing - set this from the app
-  Future<void> Function(PostData postData, Function(double) onProgress)? uploadHandler;
+  Future<void> Function(PostData postData, Function(double) onProgress)?
+      uploadHandler;
 
   List<UploadQueueItem> get queue => List.unmodifiable(_queue);
   UploadQueueItem? get currentItem => _currentItem;
@@ -90,16 +92,19 @@ class UploadQueueService {
   Future<void> initialize() async {
     await _loadQueue();
     _networkService.initialize();
-    
+
     // Listen for connectivity changes to resume uploads
     _networkService.connectivityStream.listen((connected) {
-      if (connected && !_isProcessing && _queue.any((item) => item.status == UploadStatus.pending)) {
+      if (connected &&
+          !_isProcessing &&
+          _queue.any((item) => item.status == UploadStatus.pending)) {
         debugPrint('📡 Network connected, resuming uploads...');
         processQueue();
       }
     });
 
-    debugPrint('✅ Upload queue service initialized with ${_queue.length} items');
+    debugPrint(
+        '✅ Upload queue service initialized with ${_queue.length} items');
   }
 
   /// Add item to upload queue
@@ -118,7 +123,7 @@ class UploadQueueService {
     await _saveQueue();
 
     debugPrint('📤 Added to upload queue: ${item.id}');
-    
+
     // Start processing if not already processing
     if (!_isProcessing) {
       processQueue();
@@ -135,10 +140,9 @@ class UploadQueueService {
     _isProcessing = true;
 
     try {
-      while (_queue.any((item) => 
-        item.status == UploadStatus.pending || 
-        item.status == UploadStatus.retrying
-      )) {
+      while (_queue.any((item) =>
+          item.status == UploadStatus.pending ||
+          item.status == UploadStatus.retrying)) {
         // Check network connectivity
         if (!await _networkService.checkConnectivity()) {
           debugPrint('📡 No network connection, pausing queue');
@@ -147,7 +151,9 @@ class UploadQueueService {
 
         // Get next pending item
         final item = _queue.firstWhere(
-          (item) => item.status == UploadStatus.pending || item.status == UploadStatus.retrying,
+          (item) =>
+              item.status == UploadStatus.pending ||
+              item.status == UploadStatus.retrying,
         );
 
         await _processItem(item);
@@ -171,7 +177,8 @@ class UploadQueueService {
 
     try {
       if (uploadHandler == null) {
-        throw Exception('Upload handler not set. Call UploadQueueService().uploadHandler = yourFunction');
+        throw Exception(
+            'Upload handler not set. Call UploadQueueService().uploadHandler = yourFunction');
       }
 
       // Upload with progress tracking
@@ -187,7 +194,6 @@ class UploadQueueService {
       item.status = UploadStatus.completed;
       item.progress = 1.0;
       debugPrint('✅ Upload completed: ${item.id}');
-
     } catch (e) {
       debugPrint('❌ Upload failed: ${item.id}, error: $e');
       item.error = e.toString();
@@ -196,7 +202,8 @@ class UploadQueueService {
       if (item.retryCount < _maxRetries) {
         item.retryCount++;
         item.status = UploadStatus.retrying;
-        debugPrint('🔄 Retrying upload (${item.retryCount}/$_maxRetries): ${item.id}');
+        debugPrint(
+            '🔄 Retrying upload (${item.retryCount}/$_maxRetries): ${item.id}');
 
         // Wait before retry
         await Future.delayed(_retryDelay);
@@ -230,9 +237,9 @@ class UploadQueueService {
     item.retryCount = 0;
     item.error = null;
     item.progress = 0.0;
-    
+
     await _saveQueue();
-    
+
     if (!_isProcessing) {
       processQueue();
     }
@@ -254,12 +261,12 @@ class UploadQueueService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final queueString = prefs.getString(_queueKey);
-      
+
       if (queueString != null) {
         final queueJson = jsonDecode(queueString) as List;
         _queue.clear();
         _queue.addAll(queueJson.map((json) => UploadQueueItem.fromJson(json)));
-        
+
         // Reset uploading items to pending
         for (var item in _queue) {
           if (item.status == UploadStatus.uploading) {
@@ -267,7 +274,7 @@ class UploadQueueService {
             item.progress = 0.0;
           }
         }
-        
+
         await _saveQueue();
       }
     } catch (e) {
@@ -279,11 +286,16 @@ class UploadQueueService {
   Map<String, int> getStatistics() {
     return {
       'total': _queue.length,
-      'pending': _queue.where((item) => item.status == UploadStatus.pending).length,
-      'uploading': _queue.where((item) => item.status == UploadStatus.uploading).length,
-      'completed': _queue.where((item) => item.status == UploadStatus.completed).length,
-      'failed': _queue.where((item) => item.status == UploadStatus.failed).length,
-      'retrying': _queue.where((item) => item.status == UploadStatus.retrying).length,
+      'pending':
+          _queue.where((item) => item.status == UploadStatus.pending).length,
+      'uploading':
+          _queue.where((item) => item.status == UploadStatus.uploading).length,
+      'completed':
+          _queue.where((item) => item.status == UploadStatus.completed).length,
+      'failed':
+          _queue.where((item) => item.status == UploadStatus.failed).length,
+      'retrying':
+          _queue.where((item) => item.status == UploadStatus.retrying).length,
     };
   }
 }

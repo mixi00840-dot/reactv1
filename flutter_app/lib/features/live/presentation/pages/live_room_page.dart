@@ -243,8 +243,11 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        gradient: _isFollowing ? null : AppTheme.primaryGradient,
-                        color: _isFollowing ? Colors.white.withValues(alpha: 0.2) : null,
+                        gradient:
+                            _isFollowing ? null : AppTheme.primaryGradient,
+                        color: _isFollowing
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : null,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

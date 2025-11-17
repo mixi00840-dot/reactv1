@@ -11,7 +11,7 @@ class ApiService {
 
   ApiService() {
     final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://localhost:5000/api';
-    
+
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
@@ -83,7 +83,7 @@ class ApiService {
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
           final message = error.response?.data?['message'];
-          
+
           if (statusCode == 400) {
             return message ?? 'Invalid request. Please check your input.';
           } else if (statusCode == 401) {
@@ -111,7 +111,7 @@ class ApiService {
           return 'An unexpected error occurred. Please try again.';
       }
     }
-    
+
     // Handle custom exceptions
     if (error is NetworkException) {
       return error.message;
@@ -126,7 +126,7 @@ class ApiService {
     } else if (error is ParseException) {
       return error.message;
     }
-    
+
     return error.toString();
   }
 
@@ -134,7 +134,8 @@ class ApiService {
   Future<void> _checkNetwork() async {
     final hasConnection = await NetworkUtils.hasInternetConnection();
     if (!hasConnection) {
-      throw NetworkException('No internet connection. Please check your network.');
+      throw NetworkException(
+          'No internet connection. Please check your network.');
     }
   }
 

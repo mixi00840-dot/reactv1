@@ -5,13 +5,14 @@ import 'package:flutter/foundation.dart';
 /// Network connectivity service
 /// Monitors network status and provides connectivity checks
 class NetworkConnectivityService {
-  static final NetworkConnectivityService _instance = NetworkConnectivityService._internal();
+  static final NetworkConnectivityService _instance =
+      NetworkConnectivityService._internal();
   factory NetworkConnectivityService() => _instance;
   NetworkConnectivityService._internal();
 
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _subscription;
-  
+
   final _connectivityController = StreamController<bool>.broadcast();
   Stream<bool> get connectivityStream => _connectivityController.stream;
 
@@ -36,11 +37,13 @@ class NetworkConnectivityService {
     try {
       final result = await _connectivity.checkConnectivity();
       final wasConnected = _isConnected;
-      
-      _isConnected = !result.contains(ConnectivityResult.none) && result.isNotEmpty;
+
+      _isConnected =
+          !result.contains(ConnectivityResult.none) && result.isNotEmpty;
 
       if (wasConnected != _isConnected) {
-        debugPrint('📡 Network status changed: ${_isConnected ? "Connected" : "Disconnected"}');
+        debugPrint(
+            '📡 Network status changed: ${_isConnected ? "Connected" : "Disconnected"}');
         _connectivityController.add(_isConnected);
       }
     } catch (e) {
@@ -83,7 +86,8 @@ class NetworkConnectivityService {
 
   /// Wait for connectivity to be restored
   /// Returns true if connected within timeout, false otherwise
-  Future<bool> waitForConnectivity({Duration timeout = const Duration(seconds: 30)}) async {
+  Future<bool> waitForConnectivity(
+      {Duration timeout = const Duration(seconds: 30)}) async {
     if (await checkConnectivity()) {
       return true;
     }

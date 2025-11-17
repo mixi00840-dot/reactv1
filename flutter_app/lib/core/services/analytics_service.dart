@@ -8,40 +8,40 @@ enum AnalyticsEvent {
   videoCompressionStart,
   videoCompressionComplete,
   videoCompressionFailed,
-  
+
   // Upload
   videoUploadStart,
   videoUploadProgress,
   videoUploadSuccess,
   videoUploadFailed,
   videoUploadRetry,
-  
+
   // Effects
   videoEffectApplied,
   videoEffectFailed,
-  
+
   // Audio
   audioMixingStart,
   audioMixingComplete,
   audioMixingFailed,
   voiceoverRecorded,
-  
+
   // Captions
   captionGenerationStart,
   captionGenerationComplete,
   captionGenerationFailed,
-  
+
   // Hashtags
   hashtagGenerationStart,
   hashtagGenerationComplete,
   hashtagGenerationFailed,
-  
+
   // Performance
   appLaunched,
   appBackground,
   appForeground,
   memoryWarning,
-  
+
   // User Actions
   videoRecorded,
   videoImported,
@@ -97,7 +97,7 @@ class AnalyticsService {
 
   static const String _storageKey = 'analytics_metrics';
   static const int _maxStoredMetrics = 1000;
-  
+
   final List<AnalyticsMetric> _metrics = [];
   DateTime? _sessionStart;
 
@@ -150,7 +150,7 @@ class AnalyticsService {
       duration: duration,
       success: success,
     );
-    
+
     debugPrint('⏱️  Completed: ${event.name} in ${duration}ms');
   }
 
@@ -177,10 +177,9 @@ class AnalyticsService {
 
   /// Calculate average duration for an event
   double getAverageDuration(AnalyticsEvent event) {
-    final eventMetrics = getMetricsForEvent(event)
-        .where((m) => m.duration != null)
-        .toList();
-    
+    final eventMetrics =
+        getMetricsForEvent(event).where((m) => m.duration != null).toList();
+
     if (eventMetrics.isEmpty) return 0.0;
 
     final totalDuration = eventMetrics.fold<int>(
@@ -204,7 +203,8 @@ class AnalyticsService {
     final uploadSuccesses = recentMetrics
         .where((m) => m.event == AnalyticsEvent.videoUploadSuccess)
         .length;
-    final uploadRate = uploadAttempts > 0 ? uploadSuccesses / uploadAttempts : 0.0;
+    final uploadRate =
+        uploadAttempts > 0 ? uploadSuccesses / uploadAttempts : 0.0;
 
     // Compression stats
     final compressionMetrics = recentMetrics
@@ -285,7 +285,7 @@ class AnalyticsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null) {
         final jsonList = jsonDecode(jsonString) as List;
         _metrics.clear();
@@ -324,7 +324,8 @@ class AnalyticsService {
     debugPrint('📊 Upload:');
     debugPrint('📊   Attempts: ${summary['upload']['attempts']}');
     debugPrint('📊   Successes: ${summary['upload']['successes']}');
-    debugPrint('📊   Success Rate: ${(summary['upload']['successRate'] * 100).toStringAsFixed(1)}%');
+    debugPrint(
+        '📊   Success Rate: ${(summary['upload']['successRate'] * 100).toStringAsFixed(1)}%');
     debugPrint('📊 ');
     debugPrint('📊 Compression:');
     debugPrint('📊   Count: ${summary['compression']['count']}');

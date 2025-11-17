@@ -117,7 +117,8 @@ class CaptionLanguage {
 class CaptionService {
   static final Dio _dio = Dio(BaseOptions(
     baseUrl: dotenv.env['API_BASE_URL'] ?? 'http://localhost:5000/api',
-    connectTimeout: const Duration(minutes: 5), // Long timeout for AI processing
+    connectTimeout:
+        const Duration(minutes: 5), // Long timeout for AI processing
     receiveTimeout: const Duration(minutes: 5),
   ));
 
@@ -158,7 +159,7 @@ class CaptionService {
 
       if (response.data['success'] == true) {
         debugPrint('✅ Generated ${response.data['captions'].length} captions');
-        
+
         final captions = (response.data['captions'] as List)
             .map((json) => Caption.fromJson(json))
             .toList();
@@ -226,7 +227,8 @@ class CaptionService {
   }
 
   /// Merge overlapping or close captions
-  static List<Caption> mergeCaptions(List<Caption> captions, {double maxGap = 0.5}) {
+  static List<Caption> mergeCaptions(List<Caption> captions,
+      {double maxGap = 0.5}) {
     if (captions.isEmpty) return [];
 
     final merged = <Caption>[];
@@ -265,7 +267,7 @@ class CaptionService {
 
     for (final caption in captions) {
       final words = caption.text.split(' ');
-      
+
       if (words.length <= maxWordsPerLine) {
         result.add(caption.copyWith(id: newId++));
       } else {
@@ -274,7 +276,9 @@ class CaptionService {
         for (int i = 0; i < words.length; i += maxWordsPerLine) {
           chunks.add(words.sublist(
             i,
-            i + maxWordsPerLine > words.length ? words.length : i + maxWordsPerLine,
+            i + maxWordsPerLine > words.length
+                ? words.length
+                : i + maxWordsPerLine,
           ));
         }
 
@@ -282,7 +286,7 @@ class CaptionService {
         for (int i = 0; i < chunks.length; i++) {
           final chunkStartTime = caption.startTime + (i * durationPerChunk);
           final chunkEndTime = chunkStartTime + durationPerChunk;
-          
+
           result.add(Caption(
             id: newId++,
             text: chunks[i].join(' '),

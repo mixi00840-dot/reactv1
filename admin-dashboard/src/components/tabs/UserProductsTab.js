@@ -85,12 +85,12 @@ function UserProductsTab({ userId }) {
         setProducts(response.data.products || []);
         setTotalPages(response.data.totalPages || 1);
       } else {
-        // Mock data for demo
-        generateMockProducts();
+        setProducts([]);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
-      generateMockProducts();
+      setProducts([]);
+      toast.error('Failed to load products');
     } finally {
       setLoading(false);
     }
@@ -102,22 +102,11 @@ function UserProductsTab({ userId }) {
       if (response.success) {
         setStats(response.data);
       } else {
-        // Mock stats
-        setStats({
-          total: 23,
-          active: 20,
-          totalRevenue: 12450.75,
-          totalSales: 1245
-        });
+        setStats({ total: 0, active: 0, totalRevenue: 0, totalSales: 0 });
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
-      setStats({
-        total: 23,
-        active: 20,
-        totalRevenue: 12450.75,
-        totalSales: 1245
-      });
+      setStats({ total: 0, active: 0, totalRevenue: 0, totalSales: 0 });
     }
   };
 

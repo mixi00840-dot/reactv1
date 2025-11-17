@@ -73,22 +73,25 @@ class _LiveStreamsPageState extends State<LiveStreamsPage> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-              gradient: isSelected
-                ? AppTheme.primaryGradient
-                : null,
-              color: isSelected ? null : Colors.white.withValues(alpha: 0.05),
+                          gradient:
+                              isSelected ? AppTheme.primaryGradient : null,
+                          color: isSelected
+                              ? null
+                              : Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(25),
                           border: Border.all(
-              color: isSelected
-                ? Colors.transparent
-                : Colors.white.withValues(alpha: 0.1),
+                            color: isSelected
+                                ? Colors.transparent
+                                : Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Text(
                           category,
                           style: AppTheme.bodyStyle.copyWith(
                             color: Colors.white,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -159,7 +162,7 @@ class _LiveStreamsPageState extends State<LiveStreamsPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                      colors: [
+                    colors: [
                       Colors.transparent,
                       Colors.black.withValues(alpha: 0.8),
                     ],

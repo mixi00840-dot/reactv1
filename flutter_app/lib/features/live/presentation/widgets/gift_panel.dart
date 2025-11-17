@@ -200,7 +200,7 @@ class _GiftPanelState extends State<GiftPanel> {
         rarityColor = const Color(0xFFFFD700);
         break;
       default:
-  rarityColor = Colors.white.withValues(alpha: 0.5);
+        rarityColor = Colors.white.withValues(alpha: 0.5);
     }
 
     return GestureDetector(

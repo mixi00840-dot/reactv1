@@ -1,0 +1,1707 @@
+{
+  "info": {
+    "name": "Mixillo API - Complete Collection",
+    "description": "Complete Postman collection for Mixillo TikTok-style social commerce platform.\n\n## Features\n- 98+ API endpoints organized by domain\n- Environment variables for easy switching (production/local)\n- Pre-request scripts for automatic authentication\n- Test scripts for response validation\n- Example requests with realistic data\n\n## Quick Start\n1. Import this collection into Postman\n2. Import the environment (Mixillo - Production or Mixillo - Local)\n3. Run \"Authentication > Register\" to create a test user\n4. Run \"Authentication > Login\" - tokens will be saved automatically\n5. Explore other endpoints with authentication already configured\n\n## Authentication\nAll authenticated endpoints automatically use {{ACCESS_TOKEN}} variable.\nTokens are automatically refreshed using pre-request scripts.\n\n## Environments\n- **Mixillo - Production**: https://mixillo-backend-52242135857.europe-west1.run.app\n- **Mixillo - Local**: http://localhost:5000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "mixillo-api"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{ACCESS_TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script - runs before every request",
+          "",
+          "// Check if access token is expired and refresh if needed",
+          "const accessToken = pm.environment.get('ACCESS_TOKEN');",
+          "const refreshToken = pm.environment.get('REFRESH_TOKEN');",
+          "",
+          "if (accessToken && refreshToken) {",
+          "    // Decode JWT to check expiry (basic check)",
+          "    try {",
+          "        const tokenParts = accessToken.split('.');",
+          "        if (tokenParts.length === 3) {",
+          "            const payload = JSON.parse(atob(tokenParts[1]));",
+          "            const expiryTime = payload.exp * 1000; // Convert to milliseconds",
+          "            const currentTime = Date.now();",
+          "            ",
+          "            // If token expires in less than 5 minutes, refresh it",
+          "            if (expiryTime - currentTime < 5 * 60 * 1000) {",
+          "                console.log('Access token expiring soon, refreshing...');",
+          "                ",
+          "                // Refresh token request",
+          "                const refreshRequest = {",
+          "                    url: pm.environment.get('API_BASE_URL') + '/api/auth/refresh',",
+          "                    method: 'POST',",
+          "                    header: {",
+          "                        'Content-Type': 'application/json'",
+          "                    },",
+          "                    body: {",
+          "                        mode: 'raw',",
+          "                        raw: JSON.stringify({ refreshToken: refreshToken })",
+          "                    }",
+          "                };",
+          "                ",
+          "                pm.sendRequest(refreshRequest, function (err, response) {",
+          "                    if (!err && response.code === 200) {",
+          "                        const newAccessToken = response.json().data.accessToken;",
+          "                        pm.environment.set('ACCESS_TOKEN', newAccessToken);",
+          "                        console.log('Access token refreshed successfully');",
+          "                    } else {",
+          "                        console.log('Failed to refresh token:', err || response.json());",
+          "                    }",
+          "                });",
+          "            }",
+          "        }",
+          "    } catch (e) {",
+          "        console.log('Token validation error:', e);",
+          "    }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script - runs after every request",
+          "",
+          "// Log response time",
+          "console.log('Response time:', pm.response.responseTime + 'ms');",
+          "",
+          "// Log status code",
+          "console.log('Status code:', pm.response.code);",
+          "",
+          "// Basic validation - check that response is valid JSON",
+          "try {",
+          "    const jsonData = pm.response.json();",
+          "    ",
+          "    // Check for success field if present",
+          "    if (jsonData.hasOwnProperty('success')) {",
+          "        if (jsonData.success) {",
+          "            console.log('✅ Request successful');",
+          "        } else {",
+          "            console.log('❌ Request failed:', jsonData.message);",
+          "        }",
+          "    }",
+          "} catch (e) {",
+          "    console.log('Response is not JSON or empty');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "API_BASE_URL",
+      "value": "{{API_BASE_URL}}",
+      "type": "string"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "{{ACCESS_TOKEN}}",
+      "type": "string"
+    },
+    {
+      "key": "REFRESH_TOKEN",
+      "value": "{{REFRESH_TOKEN}}",
+      "type": "string"
+    },
+    {
+      "key": "USER_ID",
+      "value": "{{USER_ID}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and session management endpoints",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/auth/health",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "auth", "health"]
+            },
+            "description": "Check if authentication API is operational"
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    // Save tokens to environment",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.environment.set('ACCESS_TOKEN', jsonData.data.accessToken);",
+                  "        pm.environment.set('REFRESH_TOKEN', jsonData.data.refreshToken);",
+                  "        pm.environment.set('USER_ID', jsonData.data.user._id);",
+                  "        ",
+                  "        console.log('✅ User registered and tokens saved');",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has access token', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser_{{$timestamp}}\",\n  \"email\": \"test_{{$timestamp}}@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"fullName\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/auth/register",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user account. Returns JWT access and refresh tokens."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    // Save tokens to environment",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.environment.set('ACCESS_TOKEN', jsonData.data.accessToken);",
+                  "        pm.environment.set('REFRESH_TOKEN', jsonData.data.refreshToken);",
+                  "        pm.environment.set('USER_ID', jsonData.data.user._id);",
+                  "        ",
+                  "        console.log('✅ Login successful, tokens saved');",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has user data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"admin@mixillo.com\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/auth/login",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email/username and password. Returns JWT tokens (access: 1h, refresh: 7d)."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.environment.set('ACCESS_TOKEN', jsonData.data.accessToken);",
+                  "        console.log('✅ Access token refreshed');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/auth/refresh",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Refresh expired access token using refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/auth/me",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get currently authenticated user details"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('ACCESS_TOKEN');",
+                  "    pm.environment.unset('REFRESH_TOKEN');",
+                  "    pm.environment.unset('USER_ID');",
+                  "    console.log('✅ Logged out, tokens cleared');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/auth/logout",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Logout current user and invalidate tokens"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User profile and account management",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/users/profile",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "users", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Name\",\n  \"bio\": \"Content creator and entrepreneur 🚀\",\n  \"website\": \"https://example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/users/profile",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "users", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/users/:userId",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{USER_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Follow User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/users/:userId/follow",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "users", ":userId", "follow"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Followers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/users/:userId/followers?page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "users", ":userId", "followers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{USER_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Following",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/users/:userId/following?page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "users", ":userId", "following"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{USER_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Content",
+      "description": "Video posts and social content management",
+      "item": [
+        {
+          "name": "Get All Content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/content?page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "content"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "creatorId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "hashtag",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Content by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/content/:contentId",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "content", ":contentId"],
+              "variable": [
+                {
+                  "key": "contentId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Like Content",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/content/:contentId/like",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "content", ":contentId", "like"],
+              "variable": [
+                {
+                  "key": "contentId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Share Content",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/content/:contentId/share",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "content", ":contentId", "share"],
+              "variable": [
+                {
+                  "key": "contentId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record View",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/content/:contentId/view",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "content", ":contentId", "view"],
+              "variable": [
+                {
+                  "key": "contentId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "description": "Product catalog and e-commerce management",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/products?page=1&limit=20&sortBy=-createdAt",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "storeId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "-createdAt"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Products",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/products/featured",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "products", "featured"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/products/:productId",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "products", ":productId"],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product (Seller)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Wireless Headphones\",\n  \"description\": \"High-quality wireless headphones with noise cancellation\",\n  \"price\": 99.99,\n  \"storeId\": \"<store_id>\",\n  \"category\": \"<category_id>\",\n  \"stock\": 50,\n  \"images\": [\n    \"https://cloudinary.com/image1.jpg\"\n  ],\n  \"variants\": [\n    {\n      \"name\": \"Color\",\n      \"options\": [\"Black\", \"White\", \"Blue\"]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/products",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product (Seller)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Product Name\",\n  \"price\": 89.99,\n  \"stock\": 75\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/products/:productId",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "products", ":productId"],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product (Seller)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/products/:productId",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "products", ":productId"],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "description": "Shopping cart operations",
+      "item": [
+        {
+          "name": "Get My Cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/cart",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "cart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"<product_id>\",\n  \"quantity\": 1,\n  \"variantId\": \"<variant_id>\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/cart/items",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "cart", "items"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cart Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/cart/items/:itemId",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "cart", "items", ":itemId"],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Cart Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/cart/items/:itemId",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "cart", "items", ":itemId"],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shippingAddress\": {\n    \"fullName\": \"John Doe\",\n    \"phone\": \"+1234567890\",\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"paymentMethod\": \"card\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/cart/checkout",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "cart", "checkout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "description": "Order management and fulfillment",
+      "item": [
+        {
+          "name": "Get My Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/orders?page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/orders/:orderId",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "orders", ":orderId"],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shippingAddress\": {\n    \"fullName\": \"John Doe\",\n    \"phone\": \"+1234567890\",\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"paymentMethod\": \"card\",\n  \"couponCode\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/orders",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "orders"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Changed my mind\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/orders/:orderId/cancel",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "orders", ":orderId", "cancel"],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Wallets",
+      "description": "Digital wallet and transaction management",
+      "item": [
+        {
+          "name": "Get Wallet Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/wallets/balance",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "wallets", "balance"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/wallets/transactions?page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "wallets", "transactions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Top Up Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"paymentMethod\": \"card\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/wallets/topup",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "wallets", "topup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"toUserId\": \"<recipient_user_id>\",\n  \"amount\": 50.00,\n  \"description\": \"Payment for services\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/wallets/transfer",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "wallets", "transfer"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Live Streaming",
+      "description": "Live video broadcast and gifting features",
+      "item": [
+        {
+          "name": "Start Live Stream",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.stream) {",
+                  "        pm.environment.set('STREAM_ID', jsonData.data.stream._id);",
+                  "        pm.environment.set('AGORA_TOKEN', jsonData.data.agoraToken);",
+                  "        pm.environment.set('CHANNEL_NAME', jsonData.data.channelName);",
+                  "        console.log('✅ Stream started, Agora token saved');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Live Gaming Session 🎮\",\n  \"description\": \"Playing Fortnite with subscribers\",\n  \"thumbnailUrl\": \"https://cloudinary.com/thumb.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/live/start",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "live", "start"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Join Live Stream",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/live/:streamId/join",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "live", ":streamId", "join"],
+              "variable": [
+                {
+                  "key": "streamId",
+                  "value": "{{STREAM_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Gift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"giftId\": \"<gift_id>\",\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/live/:streamId/gift",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "live", ":streamId", "gift"],
+              "variable": [
+                {
+                  "key": "streamId",
+                  "value": "{{STREAM_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "End Live Stream",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/live/:streamId/end",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "live", ":streamId", "end"],
+              "variable": [
+                {
+                  "key": "streamId",
+                  "value": "{{STREAM_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Admin panel operations (admin role required)",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/admin/users?page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "verified",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ban User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Violation of community guidelines\",\n  \"duration\": 0\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/admin/users/:userId/ban",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "admin", "users", ":userId", "ban"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Seller",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/admin/users/:userId/verify",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "admin", "users", ":userId", "verify"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/admin/analytics",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "admin", "analytics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/admin/dashboard",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "admin", "dashboard"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "description": "System health and monitoring",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/health",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Database Health",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/health/db",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "health", "db"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics & Metrics",
+      "description": "Platform analytics and trending data",
+      "item": [
+        {
+          "name": "Analytics Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/analytics/overview",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "analytics", "overview"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Trending Content",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/trending?page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "trending"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Platform Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/metrics/overview",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "metrics", "overview"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Feed & Discovery",
+      "description": "Personalized content feeds and search",
+      "item": [
+        {
+          "name": "Get Feed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/feed?page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "feed"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/search?q=&type=all&page=1&limit=20",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": ""
+                },
+                {
+                  "key": "type",
+                  "value": "all",
+                  "description": "all, users, content, products, hashtags"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Featured Content",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/featured",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "featured"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/recommendations?type=content&limit=10",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "recommendations"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "content"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications & Messaging",
+      "description": "Push notifications and direct messaging",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/notifications?page=1&limit=20&unread=false",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "unread",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/notifications/:notificationId/read",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "notifications", ":notificationId", "read"],
+              "variable": [
+                {
+                  "key": "notificationId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/messaging/conversations",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "messaging", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/messaging/conversations/:conversationId/messages?page=1&limit=50",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "messaging", "conversations", ":conversationId", "messages"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "conversationId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientId\": \"<user_id>\",\n  \"message\": \"Hello! How are you?\"\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/messaging/send",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "messaging", "send"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settings & Configuration",
+      "description": "Platform settings and configuration",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/settings/mongodb",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "settings", "mongodb"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"general\": {\n    \"siteName\": \"Mixillo\",\n    \"maintenanceMode\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/settings/mongodb/general",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "settings", "mongodb", "general"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/categories",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Currencies",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/currencies",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "currencies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Languages",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/api/languages",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["api", "languages"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

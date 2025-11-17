@@ -60,6 +60,7 @@ import {
   Comment as CommentIcon,
   Translate as TranslateIcon,
   CloudUpload as UploadIcon,
+  CloudUpload as CloudUploadIcon,
   AttachMoney as CurrencyIcon,
   MonitorHeart as MonitorHeartIcon,
   Cloud as CloudIcon,
@@ -91,6 +92,32 @@ const menuItems = [
     text: 'Create User',
     icon: <PersonAddIcon />,
     path: '/create-user',
+  },
+  // Upload Management
+  {
+    text: 'Content Upload',
+    icon: <CloudUploadIcon />,
+    path: '/upload/content',
+  },
+  {
+    text: 'Product Upload',
+    icon: <InventoryIcon />,
+    path: '/upload/products',
+  },
+  {
+    text: 'Sound Upload',
+    icon: <MusicNoteIcon />,
+    path: '/upload/sounds',
+  },
+  {
+    text: 'Gift Upload',
+    icon: <GiftIcon />,
+    path: '/upload/gifts',
+  },
+  {
+    text: 'System Assets',
+    icon: <SettingsIcon />,
+    path: '/system-assets',
   },
   // Content Management (Videos, Posts, Stories, Uploads now in UserDetails)
   {
@@ -214,9 +241,9 @@ const menuItems = [
     path: '/streaming-providers',
   },
   {
-    text: 'Translations',
+    text: 'Translation Manager',
     icon: <TranslateIcon />,
-    path: '/translations',
+    path: '/translation-manager',
   },
   {
     text: 'Currencies',

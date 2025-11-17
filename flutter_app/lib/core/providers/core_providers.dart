@@ -15,4 +15,3 @@ final apiServiceProvider = Provider<ApiService>((ref) {
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService();
 });
-

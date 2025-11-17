@@ -5,8 +5,9 @@ const axios = require('axios');
 const io = require('socket.io-client');
 const fs = require('fs');
 
-const API_BASE = 'https://mixillo-backend-52242135857.europe-west1.run.app/api';
-const ADMIN_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MDdlMzA1YmQ5ODYzODdlOTM3YTY3YSIsImVtYWlsIjoiYWRtaW5AbWl4aWxsby5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjMxMjQ2MDksImV4cCI6MTc2MzcyOTQwOX0.OX6ABhv7nG-OgqueVwQ6T9Qw56DjN_EmW3VoBLxp-2Q';
+const API_BASE = (process.env.API_BASE_URL || 'https://mixillo-backend-t4isogdgqa-ew.a.run.app') + '/api';
+let ADMIN_JWT = null; // Will be set after login
+let ADMIN_REFRESH = null; // Refresh token storage
 
 const report = {
   summary: { status: 'IN_PROGRESS', timestamp: new Date().toISOString() },
@@ -25,7 +26,7 @@ const report = {
 const endpoints = [
   // Authentication
   { path: '/auth/me', method: 'GET', requiresAuth: true },
-  { path: '/auth/refresh', method: 'POST', requiresAuth: true },
+  { path: '/auth/refresh', method: 'POST', requiresAuth: true, needsRefreshToken: true },
   
   // Users
   { path: '/users', method: 'GET', requiresAuth: true },
@@ -38,7 +39,7 @@ const endpoints = [
   // Products
   { path: '/products', method: 'GET', requiresAuth: false },
   { path: '/products/featured', method: 'GET', requiresAuth: false },
-  { path: '/products/search', method: 'GET', requiresAuth: false },
+  { path: '/products/search?q=test', method: 'GET', requiresAuth: false },
   
   // Cart
   { path: '/cart', method: 'GET', requiresAuth: true },
@@ -53,7 +54,7 @@ const endpoints = [
   { path: '/coins/packages', method: 'GET', requiresAuth: false },
   
   // Stories
-  { path: '/stories', method: 'GET', requiresAuth: false },
+  { path: '/stories', method: 'GET', requiresAuth: true },
   
   // Notifications
   { path: '/notifications', method: 'GET', requiresAuth: true },
@@ -86,6 +87,10 @@ async function testEndpoint(endpoint) {
       validateStatus: () => true // Don't throw on any status
     };
 
+    if (endpoint.needsRefreshToken && ADMIN_REFRESH) {
+      config.data = { refreshToken: ADMIN_REFRESH };
+    }
+
     const response = await axios(config);
     test.status_code = response.status;
     test.latency_ms = Date.now() - startTime;
@@ -114,6 +119,25 @@ async function testEndpoint(endpoint) {
 
 async function runAllTests() {
   console.log('🚀 Starting Comprehensive API Tests...\n');
+
+  // Dynamic admin login
+  try {
+    process.stdout.write('Authenticating admin... ');
+    const loginRes = await axios.post(`${API_BASE}/auth/login`, {
+      identifier: process.env.ADMIN_IDENTIFIER || 'admin@mixillo.com',
+      password: process.env.ADMIN_PASSWORD || 'Admin@123456'
+    }, { validateStatus: () => true });
+    if (loginRes.status === 200 && loginRes.data?.data?.token) {
+      ADMIN_JWT = loginRes.data.data.token;
+      ADMIN_REFRESH = loginRes.data.data.refreshToken;
+      console.log('✅');
+    } else {
+      console.log(`❌ (${loginRes.status})`);
+      console.error('Admin login failed, aborting auth-required endpoint tests.');
+    }
+  } catch (e) {
+    console.error('❌ Admin authentication error:', e.message);
+  }
 
   for (const endpoint of endpoints) {
     process.stdout.write(`Testing ${endpoint.method} ${endpoint.path}... `);

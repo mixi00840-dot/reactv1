@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
+const cloudinary = require('cloudinary').v2;
 
-// Note: Cloudinary Admin API integration would require cloudinary npm package
-// This is a placeholder structure for the routes
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // ===========================
 // ADMIN ROUTES
@@ -52,40 +57,61 @@ router.post('/admin/cloudinary/config', verifyJWT, requireAdmin, async (req, res
 // Get Cloudinary usage statistics
 router.get('/admin/cloudinary/stats', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    // This would integrate with Cloudinary Admin API
-    // Placeholder data for now
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+      return res.json({
+        success: true,
+        data: {
+          configured: false,
+          message: 'Cloudinary not configured',
+          storage: { used: 0, limit: 0, percentage: 0 },
+          bandwidth: { used: 0, limit: 0 },
+          transformations: { used: 0, limit: 0 },
+          uploads: { total: 0, thisMonth: 0 }
+        }
+      });
+    }
+
+    // Fetch real usage data from Cloudinary Admin API
+    const usage = await cloudinary.api.usage();
+    
+    const storageUsedGB = (usage.storage?.usage || 0) / (1024 * 1024 * 1024);
+    const storageLimitGB = (usage.storage?.limit || 0) / (1024 * 1024 * 1024);
+    const bandwidthUsedGB = (usage.bandwidth?.usage || 0) / (1024 * 1024 * 1024);
+    const bandwidthLimitGB = (usage.bandwidth?.limit || 0) / (1024 * 1024 * 1024);
+    const transformationsUsed = usage.transformations?.usage || 0;
+    const transformationsLimit = usage.transformations?.limit || 0;
+    
     const stats = {
+      configured: true,
       storage: {
-        used: 0, // GB
-        limit: 25, // GB
-        percentage: 0
+        used: parseFloat(storageUsedGB.toFixed(2)),
+        limit: parseFloat(storageLimitGB.toFixed(2)),
+        percentage: storageLimitGB > 0 ? parseFloat(((storageUsedGB / storageLimitGB) * 100).toFixed(2)) : 0
       },
       bandwidth: {
-        used: 0, // GB this month
-        limit: 25, // GB
-        percentage: 0
+        used: parseFloat(bandwidthUsedGB.toFixed(2)),
+        limit: parseFloat(bandwidthLimitGB.toFixed(2)),
+        percentage: bandwidthLimitGB > 0 ? parseFloat(((bandwidthUsedGB / bandwidthLimitGB) * 100).toFixed(2)) : 0
       },
       transformations: {
-        count: 0,
-        limit: 25000,
-        percentage: 0
+        count: transformationsUsed,
+        limit: transformationsLimit,
+        percentage: transformationsLimit > 0 ? parseFloat(((transformationsUsed / transformationsLimit) * 100).toFixed(2)) : 0
       },
       resources: {
-        images: 0,
-        videos: 0,
-        raw: 0,
-        total: 0
+        images: usage.resources?.image || 0,
+        videos: usage.resources?.video || 0,
+        raw: usage.resources?.raw || 0,
+        total: (usage.resources?.image || 0) + (usage.resources?.video || 0) + (usage.resources?.raw || 0)
       },
-      costs: {
-        current: 0,
-        estimated: 0,
-        currency: 'USD'
-      }
+      plan: usage.plan || 'Free',
+      lastUpdated: new Date().toISOString()
     };
     
     res.json({
       success: true,
-      stats
+      data: stats
     });
   } catch (error) {
     console.error('Error fetching Cloudinary stats:', error);
@@ -96,20 +122,39 @@ router.get('/admin/cloudinary/stats', verifyJWT, requireAdmin, async (req, res) 
 // Get recent uploads
 router.get('/admin/cloudinary/uploads', verifyJWT, requireAdmin, async (req, res) => {
   try {
-    const { limit = 50, page = 1 } = req.query;
+    const { limit = 50, type = 'image' } = req.query;
     
-    // This would fetch from Cloudinary API or local database records
-    // Placeholder data
-    const uploads = [];
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+      return res.json({
+        success: true,
+        data: { uploads: [], total: 0 }
+      });
+    }
+    
+    // Fetch real resources from Cloudinary
+    const result = await cloudinary.api.resources({
+      type: 'upload',
+      resource_type: type,
+      max_results: parseInt(limit),
+      direction: 'desc'
+    });
+    
+    const uploads = result.resources.map(resource => ({
+      publicId: resource.public_id,
+      url: resource.secure_url,
+      format: resource.format,
+      width: resource.width,
+      height: resource.height,
+      bytes: resource.bytes,
+      createdAt: resource.created_at,
+      resourceType: resource.resource_type
+    }));
     
     res.json({
       success: true,
-      uploads,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: 1,
-        totalItems: 0,
-        itemsPerPage: parseInt(limit)
+      data: {
+        uploads,
+        total: result.total_count || uploads.length
       }
     });
   } catch (error) {

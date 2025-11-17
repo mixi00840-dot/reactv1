@@ -174,6 +174,87 @@ router.post('/', verifyJWT, async (req, res) => {
 });
 
 /**
+ * @route   PUT /api/sounds/:id/approve
+ * @desc    Approve a sound (admin moderation)
+ * @access  Admin
+ */
+router.put('/:id/approve', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const sound = await Sound.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'active',
+        moderatedAt: new Date(),
+        moderatedBy: req.user._id,
+        moderationNotes: req.body.notes || 'Approved'
+      },
+      { new: true }
+    ).populate('uploadedBy', 'username fullName avatar');
+
+    if (!sound) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sound not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { sound },
+      message: 'Sound approved successfully'
+    });
+  } catch (error) {
+    console.error('Approve sound error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error approving sound'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/sounds/:id/reject
+ * @desc    Reject a sound (admin moderation)
+ * @access  Admin
+ */
+router.put('/:id/reject', verifyJWT, requireAdmin, async (req, res) => {
+  try {
+    const { reason = 'Violates community guidelines' } = req.body;
+
+    const sound = await Sound.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'rejected',
+        moderatedAt: new Date(),
+        moderatedBy: req.user._id,
+        moderationNotes: reason,
+        rejectionReason: reason
+      },
+      { new: true }
+    ).populate('uploadedBy', 'username fullName avatar');
+
+    if (!sound) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sound not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { sound },
+      message: 'Sound rejected successfully'
+    });
+  } catch (error) {
+    console.error('Reject sound error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error rejecting sound'
+    });
+  }
+});
+
+/**
  * @route   POST /api/sounds/:id/use
  * @desc    Increment sound usage count
  * @access  Public

@@ -44,9 +44,10 @@ class MemoryMonitor {
     try {
       // Simplified memory tracking for production
       // In a real app, you'd use platform channels for accurate memory tracking
-      final estimatedMemoryMB = (_memoryHistory.isEmpty ? 100 : _lastMemoryUsage) + 
-                                 (DateTime.now().millisecond % 50);
-      
+      final estimatedMemoryMB =
+          (_memoryHistory.isEmpty ? 100 : _lastMemoryUsage) +
+              (DateTime.now().millisecond % 50);
+
       _lastMemoryUsage = estimatedMemoryMB;
 
       // Add to history
@@ -68,8 +69,9 @@ class MemoryMonitor {
 
   /// Handle memory warning
   void _handleMemoryWarning(int memoryMB) {
-    debugPrint('⚠️ Memory warning: ${memoryMB}MB (threshold: $_warningThresholdMB MB)');
-    
+    debugPrint(
+        '⚠️ Memory warning: ${memoryMB}MB (threshold: $_warningThresholdMB MB)');
+
     // Track analytics
     AnalyticsService().trackEvent(
       AnalyticsEvent.memoryWarning,
@@ -123,12 +125,12 @@ class MemoryMonitor {
       // Clear image cache
       PaintingBinding.instance.imageCache.clear();
       PaintingBinding.instance.imageCache.clearLiveImages();
-      
+
       debugPrint('🗑️ Caches cleared');
-      
+
       // Wait for GC
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       // Check memory after cleanup
       await _checkMemory();
     } catch (e) {

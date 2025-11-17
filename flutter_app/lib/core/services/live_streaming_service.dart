@@ -70,7 +70,7 @@ class LiveStreamInfo {
   factory LiveStreamInfo.fromJson(Map<String, dynamic> json) {
     final host = json['host'] ?? json['hostId'];
     final hostData = host is Map ? host : {};
-    
+
     return LiveStreamInfo(
       id: json['_id'] ?? json['id'] ?? '',
       streamId: json['streamId'] ?? '',
@@ -85,9 +85,8 @@ class LiveStreamInfo {
       totalViews: json['totalViews'] ?? 0,
       likes: json['likes'] ?? 0,
       comments: json['comments'] ?? 0,
-      startedAt: json['startedAt'] != null 
-          ? DateTime.parse(json['startedAt']) 
-          : null,
+      startedAt:
+          json['startedAt'] != null ? DateTime.parse(json['startedAt']) : null,
       provider: json['provider'] ?? 'agora',
     );
   }
@@ -118,8 +117,8 @@ class LiveComment {
       username: json['username'] ?? 'Anonymous',
       avatar: json['avatar'],
       message: json['message'] ?? '',
-      timestamp: json['timestamp'] != null 
-          ? DateTime.parse(json['timestamp']) 
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'])
           : DateTime.now(),
     );
   }
@@ -127,7 +126,8 @@ class LiveComment {
 
 /// Live streaming service for managing live streams
 class LiveStreamingService {
-  static final LiveStreamingService _instance = LiveStreamingService._internal();
+  static final LiveStreamingService _instance =
+      LiveStreamingService._internal();
   factory LiveStreamingService() => _instance;
   LiveStreamingService._internal();
 
@@ -135,7 +135,8 @@ class LiveStreamingService {
   final AuthService _authService = AuthService();
 
   // ✅ FIXED: Changed from /api to /api/livestreaming for correct backend routing
-  String get _baseUrl => '${dotenv.env['API_BASE_URL'] ?? 'http://localhost:5000'}/api/livestreaming';
+  String get _baseUrl =>
+      '${dotenv.env['API_BASE_URL'] ?? 'http://localhost:5000'}/api/livestreaming';
 
   /// Get authorization headers with automatic token refresh
   Future<Map<String, String>> _getHeaders() async {
@@ -158,13 +159,14 @@ class LiveStreamingService {
       // Handle 401 Unauthorized
       if (e.response?.statusCode == 401 && maxRetries > 0) {
         debugPrint('⚠️ Received 401, attempting token refresh...');
-        
+
         // Try to refresh token
         final refreshed = await _authService.refreshToken();
         if (refreshed) {
           debugPrint('✅ Token refreshed, retrying request...');
           // Retry the request with new token
-          return await _makeAuthenticatedRequest(request, maxRetries: maxRetries - 1);
+          return await _makeAuthenticatedRequest(request,
+              maxRetries: maxRetries - 1);
         } else {
           debugPrint('❌ Token refresh failed, user needs to re-login');
           throw Exception('Authentication failed. Please login again.');
@@ -178,10 +180,10 @@ class LiveStreamingService {
   Future<List<Map<String, dynamic>>> getProviders() async {
     try {
       final headers = await _getHeaders();
-      
+
       // ✅ IMPROVED: Use authenticated request wrapper
-      final response = await _makeAuthenticatedRequest(() => 
-        _dio.get(
+      final response = await _makeAuthenticatedRequest(
+        () => _dio.get(
           '$_baseUrl/providers',
           options: Options(
             headers: headers,
@@ -223,10 +225,10 @@ class LiveStreamingService {
   }) async {
     try {
       final headers = await _getHeaders();
-      
+
       // ✅ IMPROVED: Use authenticated request wrapper
-      final response = await _makeAuthenticatedRequest(() =>
-        _dio.post(
+      final response = await _makeAuthenticatedRequest(
+        () => _dio.post(
           _baseUrl, // POST /api/livestreaming
           options: Options(
             headers: headers,
@@ -238,13 +240,14 @@ class LiveStreamingService {
             'thumbnailUrl': thumbnailUrl,
             'provider': provider,
             'type': 'standard',
-            'config': config ?? {
-              'resolution': '720p',
-              'frameRate': 30,
-              'orientation': 'portrait',
-              'enableChat': true,
-              'enableGifts': true,
-            },
+            'config': config ??
+                {
+                  'resolution': '720p',
+                  'frameRate': 30,
+                  'orientation': 'portrait',
+                  'enableChat': true,
+                  'enableGifts': true,
+                },
           },
         ),
       );
@@ -265,7 +268,7 @@ class LiveStreamingService {
   Future<bool> startLiveStream(String streamId) async {
     try {
       final headers = await _getHeaders();
-      
+
       // ✅ FIXED: Correct path /:id/start
       final response = await _dio.post(
         '$_baseUrl/$streamId/start',
@@ -286,7 +289,7 @@ class LiveStreamingService {
   Future<bool> endLiveStream(String streamId) async {
     try {
       final headers = await _getHeaders();
-      
+
       // ✅ FIXED: Correct path /:id/end
       final response = await _dio.post(
         '$_baseUrl/$streamId/end',
@@ -307,7 +310,7 @@ class LiveStreamingService {
   Future<LiveStreamConfig> joinLiveStream(String streamId) async {
     try {
       final headers = await _getHeaders();
-      
+
       // ✅ FIXED: Correct path /:id/join
       final response = await _dio.post(
         '$_baseUrl/$streamId/join',
@@ -333,7 +336,7 @@ class LiveStreamingService {
   Future<bool> leaveLiveStream(String streamId) async {
     try {
       final headers = await _getHeaders();
-      
+
       // ✅ FIXED: Correct path /:id/leave
       final response = await _dio.post(
         '$_baseUrl/$streamId/leave',
@@ -357,7 +360,7 @@ class LiveStreamingService {
   }) async {
     try {
       final headers = await _getHeaders();
-      
+
       final response = await _dio.get(
         '$_baseUrl/streaming/livestreams',
         options: Options(headers: headers),
@@ -383,7 +386,7 @@ class LiveStreamingService {
   Future<LiveStreamInfo?> getStreamDetails(String streamId) async {
     try {
       final headers = await _getHeaders();
-      
+
       final response = await _dio.get(
         '$_baseUrl/streaming/$streamId',
         options: Options(headers: headers),
@@ -404,7 +407,7 @@ class LiveStreamingService {
   Future<bool> sendComment(String streamId, String message) async {
     try {
       final headers = await _getHeaders();
-      
+
       final response = await _dio.post(
         '$_baseUrl/streaming/$streamId/comment',
         options: Options(headers: headers),
@@ -422,7 +425,7 @@ class LiveStreamingService {
   Future<bool> likeLiveStream(String streamId) async {
     try {
       final headers = await _getHeaders();
-      
+
       final response = await _dio.post(
         '$_baseUrl/streaming/$streamId/like',
         options: Options(headers: headers),
@@ -439,7 +442,7 @@ class LiveStreamingService {
   Future<bool> shareLiveStream(String streamId) async {
     try {
       final headers = await _getHeaders();
-      
+
       final response = await _dio.post(
         '$_baseUrl/streaming/$streamId/share',
         options: Options(headers: headers),
@@ -456,7 +459,7 @@ class LiveStreamingService {
   Future<bool> sendGift(String streamId, String giftId, int quantity) async {
     try {
       final headers = await _getHeaders();
-      
+
       final response = await _dio.post(
         '$_baseUrl/streaming/$streamId/gift',
         options: Options(headers: headers),

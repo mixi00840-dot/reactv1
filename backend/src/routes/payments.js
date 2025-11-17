@@ -8,6 +8,15 @@ const Payment = require('../models/Payment');
 const Order = require('../models/Order');
 const Wallet = require('../models/Wallet');
 
+// Initialize Stripe only if credentials are configured
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  console.log('✅ Stripe initialized');
+} else {
+  console.warn('⚠️  STRIPE_SECRET_KEY not configured - payment intents will use mock mode');
+}
+
 /**
  * Payments Routes - MongoDB Implementation
  * IDEMPOTENT & SECURE payment processing
@@ -64,15 +73,50 @@ router.post('/create-intent', verifyJWT, validationRules.walletTopUp(), handleVa
 
     await payment.save();
 
-    // TODO: Create actual payment intent with Stripe/PayPal
-    // For now, return mock intent
-    const paymentIntent = {
-      id: payment._id,
-      clientSecret: `pi_${crypto.randomBytes(16).toString('hex')}`,
-      amount,
-      currency,
-      status: 'requires_payment_method'
-    };
+    // Create real Stripe payment intent if configured, otherwise use mock
+    let paymentIntent;
+    
+    if (stripe) {
+      // REAL STRIPE INTEGRATION
+      try {
+        const stripeIntent = await stripe.paymentIntents.create({
+          amount: Math.round(amount * 100), // Convert to cents
+          currency: currency.toLowerCase(),
+          metadata: {
+            userId: userId.toString(),
+            orderId: orderId ? orderId.toString() : undefined,
+            paymentId: payment._id.toString()
+          },
+          automatic_payment_methods: {
+            enabled: true
+          }
+        });
+        
+        // Update payment record with Stripe intent ID
+        payment.stripePaymentIntentId = stripeIntent.id;
+        payment.stripeClientSecret = stripeIntent.client_secret;
+        await payment.save();
+        
+        paymentIntent = {
+          id: stripeIntent.id,
+          clientSecret: stripeIntent.client_secret,
+          amount: stripeIntent.amount,
+          currency: stripeIntent.currency,
+          status: stripeIntent.status,
+          paymentId: payment._id,
+          mode: 'production'
+        };
+        
+        console.log(`✅ Stripe payment intent created: ${stripeIntent.id}`);
+      } catch (stripeError) {
+        console.error('Stripe error:', stripeError);
+        // Fall back to mock if Stripe fails
+        paymentIntent = createMockIntent(payment, amount, currency);
+      }
+    } else {
+      // MOCK MODE (for development/testing without Stripe)
+      paymentIntent = createMockIntent(payment, amount, currency);
+    }
 
     res.json({
       success: true,
@@ -520,6 +564,158 @@ router.get('/admin/:id', verifyJWT, requireAdminMiddleware, async (req, res) => 
     });
   }
 });
+
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
+
+/**
+ * Create mock payment intent for development/testing
+ */
+function createMockIntent(payment, amount, currency) {
+  console.warn('⚠️  Using MOCK payment intent - configure STRIPE_SECRET_KEY for production');
+  return {
+    id: `mock_${payment._id}`,
+    clientSecret: `pi_mock_${crypto.randomBytes(16).toString('hex')}`,
+    amount: Math.round(amount * 100),
+    currency: currency.toLowerCase(),
+    status: 'requires_payment_method',
+    paymentId: payment._id,
+    mode: 'mock',
+    warning: 'This is a mock payment intent. Configure Stripe for real payments.'
+  };
+}
+
+/**
+ * @route   POST /api/payments/webhook/stripe
+ * @desc    Stripe webhook handler for payment events
+ * @access  Public (Stripe signed)
+ */
+router.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: 'Stripe not configured' });
+  }
+
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!webhookSecret) {
+    console.error('❌ STRIPE_WEBHOOK_SECRET not configured');
+    return res.status(500).json({ error: 'Webhook secret not configured' });
+  }
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    console.error('❌ Webhook signature verification failed:', err.message);
+    return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      await handlePaymentSuccess(paymentIntent);
+      break;
+
+    case 'payment_intent.payment_failed':
+      const failedIntent = event.data.object;
+      await handlePaymentFailure(failedIntent);
+      break;
+
+    case 'charge.refunded':
+      const refund = event.data.object;
+      await handleRefund(refund);
+      break;
+
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  res.json({ received: true });
+});
+
+/**
+ * Handle successful payment
+ */
+async function handlePaymentSuccess(paymentIntent) {
+  try {
+    const payment = await Payment.findOne({ stripePaymentIntentId: paymentIntent.id });
+    
+    if (!payment) {
+      console.error('Payment not found for intent:', paymentIntent.id);
+      return;
+    }
+
+    payment.status = 'completed';
+    payment.completedAt = new Date();
+    payment.stripeChargeId = paymentIntent.latest_charge;
+    await payment.save();
+
+    // If associated with an order, update order status
+    if (payment.orderId) {
+      const order = await Order.findById(payment.orderId);
+      if (order) {
+        order.paymentStatus = 'paid';
+        order.status = 'confirmed';
+        await order.save();
+      }
+    }
+
+    // If wallet top-up, credit the wallet
+    if (payment.type === 'wallet_topup') {
+      await Wallet.findOneAndUpdate(
+        { user: payment.userId },
+        { $inc: { balance: payment.amount } }
+      );
+    }
+
+    console.log(`✅ Payment successful: ${payment._id}`);
+  } catch (error) {
+    console.error('Error handling payment success:', error);
+  }
+}
+
+/**
+ * Handle failed payment
+ */
+async function handlePaymentFailure(paymentIntent) {
+  try {
+    const payment = await Payment.findOne({ stripePaymentIntentId: paymentIntent.id });
+    
+    if (!payment) return;
+
+    payment.status = 'failed';
+    payment.failureReason = paymentIntent.last_payment_error?.message || 'Unknown error';
+    await payment.save();
+
+    console.log(`❌ Payment failed: ${payment._id} - ${payment.failureReason}`);
+  } catch (error) {
+    console.error('Error handling payment failure:', error);
+  }
+}
+
+/**
+ * Handle refund
+ */
+async function handleRefund(charge) {
+  try {
+    const payment = await Payment.findOne({ stripeChargeId: charge.id });
+    
+    if (!payment) return;
+
+    payment.status = 'refunded';
+    payment.refundedAt = new Date();
+    payment.refundAmount = charge.amount_refunded / 100;
+    await payment.save();
+
+    console.log(`🔄 Payment refunded: ${payment._id}`);
+  } catch (error) {
+    console.error('Error handling refund:', error);
+  }
+}
 
 module.exports = router;
 

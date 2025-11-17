@@ -11,51 +11,51 @@ enum VideoEffect {
   glitchRGB,
   glitchStatic,
   glitchDistort,
-  
+
   // VHS/Retro Effects
   vhsClassic,
   vhsScanlines,
-  
+
   // Neon/Glow Effects
   neonGlow,
   neonEdges,
-  
+
   // Vintage/Film Effects
   vintageSepia,
   vintageGrain,
   vintage8mm,
-  
+
   // Cinematic Effects
   cinematicLetterbox,
   cinematicBlue,
   cinematicOrange,
-  
+
   // Color Grading
   colorWarm,
   colorCool,
   colorVibrant,
   colorDesaturate,
-  
+
   // Blur Effects
   blurGaussian,
   blurMotion,
   blurRadial,
-  
+
   // Sharpen/Enhance
   sharpenSubtle,
   sharpenStrong,
   enhanceContrast,
-  
+
   // Artistic Effects
   artisticOilPaint,
   artisticCartoon,
   artisticPencilSketch,
-  
+
   // Fun Effects
   funMirror,
   funNegative,
   funPixelate,
-  
+
   none,
 }
 
@@ -66,7 +66,7 @@ class VideoEffectInfo {
   final String description;
   final String category;
   final String icon;
-  
+
   const VideoEffectInfo({
     required this.effect,
     required this.displayName,
@@ -103,7 +103,7 @@ class VideoEffectsService {
         category: 'Glitch',
         icon: '〰️',
       ),
-      
+
       // VHS Effects
       VideoEffectInfo(
         effect: VideoEffect.vhsClassic,
@@ -119,7 +119,7 @@ class VideoEffectsService {
         category: 'VHS/Retro',
         icon: '📟',
       ),
-      
+
       // Neon Effects
       VideoEffectInfo(
         effect: VideoEffect.neonGlow,
@@ -135,7 +135,7 @@ class VideoEffectsService {
         category: 'Neon',
         icon: '💫',
       ),
-      
+
       // Vintage Effects
       VideoEffectInfo(
         effect: VideoEffect.vintageSepia,
@@ -158,7 +158,7 @@ class VideoEffectsService {
         category: 'Vintage',
         icon: '🎥',
       ),
-      
+
       // Cinematic Effects
       VideoEffectInfo(
         effect: VideoEffect.cinematicLetterbox,
@@ -181,7 +181,7 @@ class VideoEffectsService {
         category: 'Cinematic',
         icon: '🔥',
       ),
-      
+
       // Color Grading
       VideoEffectInfo(
         effect: VideoEffect.colorWarm,
@@ -211,7 +211,7 @@ class VideoEffectsService {
         category: 'Color',
         icon: '⚫',
       ),
-      
+
       // Blur Effects
       VideoEffectInfo(
         effect: VideoEffect.blurGaussian,
@@ -234,7 +234,7 @@ class VideoEffectsService {
         category: 'Blur',
         icon: '🎯',
       ),
-      
+
       // Sharpen
       VideoEffectInfo(
         effect: VideoEffect.sharpenSubtle,
@@ -257,7 +257,7 @@ class VideoEffectsService {
         category: 'Enhance',
         icon: '◼️',
       ),
-      
+
       // Artistic
       VideoEffectInfo(
         effect: VideoEffect.artisticOilPaint,
@@ -280,7 +280,7 @@ class VideoEffectsService {
         category: 'Artistic',
         icon: '✏️',
       ),
-      
+
       // Fun Effects
       VideoEffectInfo(
         effect: VideoEffect.funMirror,
@@ -313,11 +313,7 @@ class VideoEffectsService {
 
   /// Get all categories
   static List<String> getCategories() {
-    return getAllEffects()
-        .map((e) => e.category)
-        .toSet()
-        .toList()
-      ..sort();
+    return getAllEffects().map((e) => e.category).toSet().toList()..sort();
   }
 
   /// Apply effect to video
@@ -339,9 +335,10 @@ class VideoEffectsService {
       );
 
       final filterComplex = _getFilterComplexForEffect(effect);
-      
-      final command = '-i "$inputPath" $filterComplex -c:a copy -y "$outputPath"';
-      
+
+      final command =
+          '-i "$inputPath" $filterComplex -c:a copy -y "$outputPath"';
+
       debugPrint('🎨 Applying effect: ${effect.name}');
       debugPrint('Command: $command');
 
@@ -369,11 +366,11 @@ class VideoEffectsService {
     Function(double)? onProgress,
   }) async {
     String currentPath = inputPath;
-    
+
     for (int i = 0; i < effects.length; i++) {
       final effect = effects[i];
       if (effect == VideoEffect.none) continue;
-      
+
       final resultPath = await applyEffect(
         inputPath: currentPath,
         effect: effect,
@@ -409,100 +406,100 @@ class VideoEffectsService {
       // Glitch Effects
       case VideoEffect.glitchRGB:
         return '-vf "split[a][b];[a]rgbashift=rh=5:bh=-5[rgb];[b][rgb]overlay"';
-      
+
       case VideoEffect.glitchStatic:
         return '-vf "noise=alls=20:allf=t+u"';
-      
+
       case VideoEffect.glitchDistort:
         return '-vf "hqdn3d,waves"';
-      
+
       // VHS Effects
       case VideoEffect.vhsClassic:
         return '-vf "noise=alls=10:allf=t,eq=saturation=0.7:brightness=-0.1,hue=s=0.8,curves=all=\'0/0 0.5/0.4 1/1\'"';
-      
+
       case VideoEffect.vhsScanlines:
         return '-vf "split[a][b];[b]format=gray,geq=lum=\'p(X,Y)-10*sin(Y*0.5)\':cr=128:cb=128[scanlines];[a][scanlines]overlay"';
-      
+
       // Neon Effects
       case VideoEffect.neonGlow:
         return '-vf "eq=saturation=2,gblur=sigma=3,eq=contrast=1.5"';
-      
+
       case VideoEffect.neonEdges:
         return '-vf "edgedetect=mode=colormix:high=0.1,eq=saturation=3"';
-      
+
       // Vintage Effects
       case VideoEffect.vintageSepia:
         return '-vf "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131"';
-      
+
       case VideoEffect.vintageGrain:
         return '-vf "noise=alls=15:allf=t,eq=saturation=0.8"';
-      
+
       case VideoEffect.vintage8mm:
         return '-vf "noise=alls=20:allf=t,eq=saturation=0.7:contrast=1.2,vignette=angle=PI/4"';
-      
+
       // Cinematic Effects
       case VideoEffect.cinematicLetterbox:
         return '-vf "crop=iw:ih*0.75:0:ih*0.125,pad=iw:iw/2.39:0:(oh-ih)/2:black"';
-      
+
       case VideoEffect.cinematicBlue:
         return '-vf "curves=all=\'0/0.1 0.5/0.4 1/0.9\',colorbalance=bs=0.3:gs=0.1"';
-      
+
       case VideoEffect.cinematicOrange:
         return '-vf "curves=r=\'0/0 0.5/0.6 1/1\':b=\'0/0 0.5/0.4 1/1\',colorbalance=rs=-0.2:gs=0.1:bs=0.3"';
-      
+
       // Color Grading
       case VideoEffect.colorWarm:
         return '-vf "eq=saturation=1.1,colortemperature=5500"';
-      
+
       case VideoEffect.colorCool:
         return '-vf "eq=saturation=1.1,colortemperature=7500"';
-      
+
       case VideoEffect.colorVibrant:
         return '-vf "eq=saturation=1.8:contrast=1.2"';
-      
+
       case VideoEffect.colorDesaturate:
         return '-vf "hue=s=0"';
-      
+
       // Blur Effects
       case VideoEffect.blurGaussian:
         return '-vf "gblur=sigma=5"';
-      
+
       case VideoEffect.blurMotion:
         return '-vf "dblur=angle=45:radius=5"';
-      
+
       case VideoEffect.blurRadial:
         return '-vf "zoompan=z=\'zoom+0.002\':d=1:s=1920x1080,gblur=sigma=3"';
-      
+
       // Sharpen/Enhance
       case VideoEffect.sharpenSubtle:
         return '-vf "unsharp=5:5:0.5:5:5:0.0"';
-      
+
       case VideoEffect.sharpenStrong:
         return '-vf "unsharp=5:5:1.5:5:5:0.0"';
-      
+
       case VideoEffect.enhanceContrast:
         return '-vf "eq=contrast=1.5:brightness=0.05"';
-      
+
       // Artistic Effects
       case VideoEffect.artisticOilPaint:
         return '-vf "gblur=sigma=2,eq=saturation=1.3"';
-      
+
       case VideoEffect.artisticCartoon:
         return '-vf "edgedetect=mode=colormix:high=0,negate,hue=s=0,eq=contrast=5,negate"';
-      
+
       case VideoEffect.artisticPencilSketch:
         return '-vf "format=gray,edgedetect,negate"';
-      
+
       // Fun Effects
       case VideoEffect.funMirror:
         return '-vf "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"';
-      
+
       case VideoEffect.funNegative:
         return '-vf "negate"';
-      
+
       case VideoEffect.funPixelate:
         return '-vf "scale=iw/10:-1:flags=neighbor,scale=iw*10:-1:flags=neighbor"';
-      
+
       case VideoEffect.none:
         return '';
     }

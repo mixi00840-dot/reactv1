@@ -8,6 +8,29 @@ const { verifyJWT, requireAdmin } = require('../middleware/jwtAuth');
  * Wallets Routes - MongoDB Implementation
  */
 
+/**
+ * @route   GET /api/wallets (alias /api/wallet)
+ * @desc    Get current authenticated user's wallet (auto-create if missing)
+ * @access  Private
+ */
+router.get('/', verifyJWT, async (req, res) => {
+  try {
+    const userId = req.userId;
+    let wallet = await Wallet.findOne({ userId });
+    if (!wallet) {
+      wallet = new Wallet({ userId });
+      await wallet.save();
+    }
+    return res.json({
+      success: true,
+      data: { wallet }
+    });
+  } catch (error) {
+    console.error('Get self wallet error:', error);
+    return res.status(500).json({ success: false, message: 'Error fetching wallet' });
+  }
+});
+
 // Health check
 router.get('/health', (req, res) => {
   res.json({

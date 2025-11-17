@@ -13,9 +13,9 @@ class ApiService {
 
   void initialize() {
     if (_isInitialized) return; // Prevent re-initialization
-    
+
     final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://localhost:5000/api';
-    
+
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 30),
@@ -57,14 +57,15 @@ class ApiService {
       responseBody: true,
       error: true,
     ));
-    
+
     _isInitialized = true; // Mark as initialized
   }
 
   Dio get dio => _dio;
 
   // Generic GET request
-  Future<Map<String, dynamic>> get(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<Map<String, dynamic>> get(String path,
+      {Map<String, dynamic>? queryParameters}) async {
     try {
       final response = await _dio.get(path, queryParameters: queryParameters);
       return response.data as Map<String, dynamic>;
@@ -74,9 +75,11 @@ class ApiService {
   }
 
   // Generic POST request
-  Future<Map<String, dynamic>> post(String path, {dynamic data, Map<String, dynamic>? queryParameters}) async {
+  Future<Map<String, dynamic>> post(String path,
+      {dynamic data, Map<String, dynamic>? queryParameters}) async {
     try {
-      final response = await _dio.post(path, data: data, queryParameters: queryParameters);
+      final response =
+          await _dio.post(path, data: data, queryParameters: queryParameters);
       return response.data as Map<String, dynamic>;
     } catch (e) {
       rethrow;

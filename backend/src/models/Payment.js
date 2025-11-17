@@ -48,6 +48,14 @@ const paymentSchema = new mongoose.Schema({
   failedAt: Date,
   refundedAt: Date,
   refundAmount: Number,
+  failureReason: String,
+  stripePaymentIntentId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  stripeClientSecret: String,
+  stripeChargeId: String,
   metadata: {
     type: mongoose.Schema.Types.Mixed,
     default: {}

@@ -5,13 +5,16 @@ const api = axios.create({
   baseURL:
     process.env.REACT_APP_API_URL ||
     (typeof window !== 'undefined' && window.__API_BASE_URL__) ||
-    'https://mixillo-backend-52242135857.europe-west1.run.app',
+    'https://mixillo-backend-52242135857.europe-west1.run.app/api',
   withCredentials: false
 });
 
 // Attach Authorization header from localStorage if present
 api.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  // Try MongoDB token first, then fallback to regular token
+  const token = typeof window !== 'undefined' 
+    ? (localStorage.getItem('mongodb_jwt_token') || localStorage.getItem('token'))
+    : null;
   if (token) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;

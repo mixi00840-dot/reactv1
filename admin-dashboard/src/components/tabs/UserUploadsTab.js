@@ -74,11 +74,12 @@ function UserUploadsTab({ userId }) {
         setUploads(response.data.uploads || []);
         setTotalPages(response.data.totalPages || 1);
       } else {
-        generateMockUploads();
+        setUploads([]);
       }
     } catch (error) {
       console.error('Error fetching uploads:', error);
-      generateMockUploads();
+      setUploads([]);
+      toast.error('Failed to load uploads');
     } finally {
       setLoading(false);
     }
@@ -90,19 +91,11 @@ function UserUploadsTab({ userId }) {
       if (response.success) {
         setStorageStats(response.data);
       } else {
-        setStorageStats({
-          used: 245.5,
-          total: 1000,
-          percentage: 24.55
-        });
+        setStorageStats({ used: 0, total: 0, percentage: 0 });
       }
     } catch (error) {
       console.error('Error fetching storage stats:', error);
-      setStorageStats({
-        used: 245.5,
-        total: 1000,
-        percentage: 24.55
-      });
+      setStorageStats({ used: 0, total: 0, percentage: 0 });
     }
   };
 

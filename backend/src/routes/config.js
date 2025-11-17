@@ -121,22 +121,18 @@ router.get('/camera', (req, res) => {
 
 /**
  * @route   GET /api/config/ai
- * @desc    Get AI services configuration (Vertex AI, etc)
- * @access  Private
+ * @desc    Get AI services configuration (Vertex AI, etc) - CLIENT-SAFE VERSION
+ * @access  Public (sanitized, no credentials)
  */
 router.get('/ai', (req, res) => {
   try {
+    // Return ONLY client-safe feature flags, NO credentials or project IDs
     const aiConfig = {
-      vertexAI: {
-        enabled: !!process.env.GOOGLE_CLOUD_PROJECT,
-        projectId: process.env.GOOGLE_CLOUD_PROJECT,
-        location: process.env.VERTEX_AI_LOCATION || 'us-central1',
-        features: {
-          autoCaptions: true,
-          hashtagSuggestions: true,
-              contentModeration: true,
-          objectDetection: false
-        }
+      features: {
+        autoCaptions: !!process.env.GOOGLE_CLOUD_PROJECT,
+        hashtagSuggestions: true,
+        contentModeration: true,
+        objectDetection: false
       },
       speechToText: {
         enabled: true,

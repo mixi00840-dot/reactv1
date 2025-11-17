@@ -92,7 +92,8 @@ class InteractionService {
   }
 
   // Report a video
-  Future<bool> reportVideo(String videoId, String reason, String description) async {
+  Future<bool> reportVideo(
+      String videoId, String reason, String description) async {
     try {
       final response = await _apiService.post(
         '/content/$videoId/report',

@@ -1,0 +1,1505 @@
+{
+  "metadata": {
+    "generated": "2025-11-16",
+    "totalModels": 19,
+    "purpose": "Comprehensive inventory of backend models for Flutter Dart model generation",
+    "note": "All ObjectId fields reference other models. Arrays denoted with []."
+  },
+  "models": {
+    "Wallet": {
+      "collection": "wallets",
+      "timestamps": true,
+      "fields": {
+        "userId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "unique": true,
+          "indexed": true
+        },
+        "balance": {
+          "type": "Number",
+          "default": 0,
+          "min": 0,
+          "getter": "parseFloat(v.toFixed(2))"
+        },
+        "currency": {
+          "type": "String",
+          "default": "USD",
+          "enum": ["USD", "EUR", "GBP", "coins"]
+        },
+        "totalEarnings": {
+          "type": "Number",
+          "default": 0,
+          "min": 0
+        },
+        "pendingEarnings": {
+          "type": "Number",
+          "default": 0,
+          "min": 0
+        },
+        "withdrawableBalance": {
+          "type": "Number",
+          "default": 0,
+          "min": 0
+        },
+        "lifetimeWithdrawals": {
+          "type": "Number",
+          "default": 0
+        },
+        "paymentMethods": {
+          "type": "Array",
+          "items": {
+            "type": {
+              "type": "String",
+              "enum": ["card", "paypal", "bank", "stripe"]
+            },
+            "details": "Mixed",
+            "isDefault": "Boolean",
+            "isVerified": "Boolean",
+            "addedAt": "Date"
+          }
+        },
+        "isLocked": {
+          "type": "Boolean",
+          "default": false
+        },
+        "lockReason": {
+          "type": "String",
+          "required": false
+        },
+        "lastTransactionAt": {
+          "type": "Date",
+          "required": false
+        },
+        "lastWithdrawalAt": {
+          "type": "Date",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      },
+      "methods": ["addFunds", "deductFunds", "transferTo"]
+    },
+    "Transaction": {
+      "collection": "transactions",
+      "timestamps": true,
+      "fields": {
+        "userId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "walletId": {
+          "type": "ObjectId",
+          "ref": "Wallet",
+          "required": true,
+          "indexed": true
+        },
+        "type": {
+          "type": "String",
+          "enum": ["purchase", "gift_sent", "gift_received", "withdrawal", "refund", "earning", "subscription", "tip", "transfer", "coin_purchase", "payout", "commission", "bonus"],
+          "required": true,
+          "indexed": true
+        },
+        "amount": {
+          "type": "Number",
+          "required": true,
+          "getter": "parseFloat(v.toFixed(2))"
+        },
+        "currency": {
+          "type": "String",
+          "default": "USD",
+          "enum": ["USD", "EUR", "GBP", "coins"]
+        },
+        "description": {
+          "type": "String",
+          "required": true
+        },
+        "referenceId": {
+          "type": "ObjectId",
+          "required": false,
+          "indexed": true
+        },
+        "referenceType": {
+          "type": "String",
+          "enum": ["order", "gift", "livestream", "content", "subscription", "withdrawal", "other"]
+        },
+        "relatedUserId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": false
+        },
+        "relatedContentId": {
+          "type": "ObjectId",
+          "ref": "Content",
+          "required": false
+        },
+        "relatedOrderId": {
+          "type": "ObjectId",
+          "ref": "Order",
+          "required": false
+        },
+        "paymentMethod": {
+          "type": "String",
+          "enum": ["card", "paypal", "bank_transfer", "wallet", "stripe", "in_app_purchase"]
+        },
+        "paymentProvider": {
+          "type": "String",
+          "required": false
+        },
+        "paymentId": {
+          "type": "String",
+          "required": false
+        },
+        "paymentMetadata": {
+          "type": "Mixed"
+        },
+        "status": {
+          "type": "String",
+          "enum": ["pending", "processing", "completed", "failed", "refunded", "cancelled"],
+          "default": "pending",
+          "indexed": true
+        },
+        "balanceBefore": {
+          "type": "Number",
+          "required": true
+        },
+        "balanceAfter": {
+          "type": "Number",
+          "required": true
+        },
+        "failureReason": {
+          "type": "String",
+          "required": false
+        },
+        "failureCode": {
+          "type": "String",
+          "required": false
+        },
+        "processedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "completedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "failedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "refundedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "metadata": {
+          "type": "Mixed"
+        },
+        "ipAddress": {
+          "type": "String",
+          "required": false
+        },
+        "userAgent": {
+          "type": "String",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      },
+      "virtuals": {
+        "isDebit": "amount < 0",
+        "isCredit": "amount > 0"
+      },
+      "staticMethods": ["getUserTransactions", "calculateEarnings"]
+    },
+    "Notification": {
+      "collection": "notifications",
+      "timestamps": false,
+      "fields": {
+        "userId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "type": {
+          "type": "String",
+          "enum": ["like", "comment", "follow", "mention", "gift", "order", "message", "live", "system", "promotion", "achievement", "payment", "review", "reply", "share"],
+          "required": true,
+          "indexed": true
+        },
+        "title": {
+          "type": "String",
+          "required": true,
+          "maxlength": 200
+        },
+        "body": {
+          "type": "String",
+          "required": true,
+          "maxlength": 500
+        },
+        "imageUrl": {
+          "type": "String",
+          "required": false
+        },
+        "senderId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": false
+        },
+        "relatedContentId": {
+          "type": "ObjectId",
+          "required": false
+        },
+        "relatedType": {
+          "type": "String",
+          "enum": ["content", "livestream", "order", "product", "comment", "message", "story"]
+        },
+        "actionUrl": {
+          "type": "String",
+          "required": false
+        },
+        "actionData": {
+          "type": "Mixed"
+        },
+        "isRead": {
+          "type": "Boolean",
+          "default": false,
+          "indexed": true
+        },
+        "readAt": {
+          "type": "Date",
+          "required": false
+        },
+        "sentViaFCM": {
+          "type": "Boolean",
+          "default": false
+        },
+        "fcmMessageId": {
+          "type": "String",
+          "required": false
+        },
+        "fcmSentAt": {
+          "type": "Date",
+          "required": false
+        },
+        "priority": {
+          "type": "String",
+          "enum": ["low", "normal", "high", "urgent"],
+          "default": "normal"
+        },
+        "expiresAt": {
+          "type": "Date",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "default": "Date.now",
+          "indexed": true
+        }
+      },
+      "methods": ["markAsRead"],
+      "staticMethods": ["getUnreadCount", "markAllAsRead", "getUserNotifications"],
+      "ttlIndex": {
+        "field": "createdAt",
+        "expireAfterSeconds": 7776000
+      }
+    },
+    "Message": {
+      "collection": "messages",
+      "timestamps": false,
+      "fields": {
+        "conversationId": {
+          "type": "ObjectId",
+          "ref": "Conversation",
+          "required": true,
+          "indexed": true
+        },
+        "senderId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "type": {
+          "type": "String",
+          "enum": ["text", "image", "video", "audio", "gif", "sticker", "gift", "product", "location"],
+          "default": "text"
+        },
+        "text": {
+          "type": "String",
+          "maxlength": 5000
+        },
+        "mediaUrl": {
+          "type": "String",
+          "required": false
+        },
+        "thumbnailUrl": {
+          "type": "String",
+          "required": false
+        },
+        "giftId": {
+          "type": "ObjectId",
+          "ref": "Gift",
+          "required": false
+        },
+        "productId": {
+          "type": "ObjectId",
+          "ref": "Product",
+          "required": false
+        },
+        "location": {
+          "type": "Object",
+          "fields": {
+            "latitude": "Number",
+            "longitude": "Number",
+            "name": "String"
+          }
+        },
+        "metadata": {
+          "type": "Mixed"
+        },
+        "replyTo": {
+          "type": "ObjectId",
+          "ref": "Message",
+          "required": false
+        },
+        "isRead": {
+          "type": "Boolean",
+          "default": false
+        },
+        "readAt": {
+          "type": "Date",
+          "required": false
+        },
+        "isDeleted": {
+          "type": "Boolean",
+          "default": false
+        },
+        "deletedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "deletedBy": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": false
+        },
+        "reactions": {
+          "type": "Array",
+          "items": {
+            "userId": {
+              "type": "ObjectId",
+              "ref": "User"
+            },
+            "emoji": "String",
+            "createdAt": {
+              "type": "Date",
+              "default": "Date.now"
+            }
+          }
+        },
+        "createdAt": {
+          "type": "Date",
+          "default": "Date.now",
+          "indexed": true
+        }
+      },
+      "methods": ["markAsRead", "addReaction", "removeReaction"]
+    },
+    "Conversation": {
+      "collection": "conversations",
+      "timestamps": true,
+      "fields": {
+        "participants": {
+          "type": "Array",
+          "items": {
+            "type": "ObjectId",
+            "ref": "User"
+          },
+          "required": true
+        },
+        "type": {
+          "type": "String",
+          "enum": ["private", "group"],
+          "default": "private"
+        },
+        "groupName": {
+          "type": "String",
+          "required": false
+        },
+        "groupAvatar": {
+          "type": "String",
+          "required": false
+        },
+        "groupDescription": {
+          "type": "String",
+          "required": false
+        },
+        "adminId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": false
+        },
+        "lastMessage": {
+          "type": "Object",
+          "fields": {
+            "text": "String",
+            "senderId": "ObjectId",
+            "type": "String",
+            "timestamp": "Date"
+          }
+        },
+        "participantStatus": {
+          "type": "Array",
+          "items": {
+            "userId": {
+              "type": "ObjectId",
+              "ref": "User"
+            },
+            "unreadCount": {
+              "type": "Number",
+              "default": 0
+            },
+            "lastReadAt": "Date",
+            "isMuted": {
+              "type": "Boolean",
+              "default": false
+            },
+            "isArchived": {
+              "type": "Boolean",
+              "default": false
+            },
+            "joinedAt": {
+              "type": "Date",
+              "default": "Date.now"
+            },
+            "leftAt": "Date"
+          }
+        },
+        "isEncrypted": {
+          "type": "Boolean",
+          "default": false
+        },
+        "messagesCount": {
+          "type": "Number",
+          "default": 0
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      },
+      "methods": ["addParticipant", "removeParticipant", "incrementUnread", "markAsRead"],
+      "staticMethods": ["findBetweenUsers", "getUserConversations"]
+    },
+    "Gift": {
+      "collection": "gifts",
+      "timestamps": true,
+      "fields": {
+        "name": {
+          "type": "String",
+          "required": true,
+          "trim": true
+        },
+        "description": {
+          "type": "String",
+          "maxlength": 500
+        },
+        "price": {
+          "type": "Number",
+          "required": true,
+          "min": 0
+        },
+        "currency": {
+          "type": "String",
+          "default": "coins",
+          "enum": ["coins", "USD", "EUR"]
+        },
+        "icon": {
+          "type": "String",
+          "required": true
+        },
+        "animationUrl": {
+          "type": "String",
+          "required": false
+        },
+        "animation": {
+          "type": "String",
+          "enum": ["none", "float", "pulse", "sparkle", "shine", "explode", "confetti", "fireworks"],
+          "default": "none"
+        },
+        "category": {
+          "type": "String",
+          "required": true,
+          "indexed": true
+        },
+        "rarity": {
+          "type": "String",
+          "enum": ["common", "rare", "epic", "legendary"],
+          "default": "common"
+        },
+        "isActive": {
+          "type": "Boolean",
+          "default": true,
+          "indexed": true
+        },
+        "isFeatured": {
+          "type": "Boolean",
+          "default": false
+        },
+        "isLimitedEdition": {
+          "type": "Boolean",
+          "default": false
+        },
+        "availableFrom": {
+          "type": "Date",
+          "required": false
+        },
+        "availableUntil": {
+          "type": "Date",
+          "required": false
+        },
+        "popularity": {
+          "type": "Number",
+          "default": 0,
+          "min": 0
+        },
+        "timesSent": {
+          "type": "Number",
+          "default": 0,
+          "min": 0
+        },
+        "totalRevenue": {
+          "type": "Number",
+          "default": 0,
+          "min": 0
+        },
+        "creatorEarningsPercent": {
+          "type": "Number",
+          "default": 50,
+          "min": 0,
+          "max": 100
+        },
+        "sortOrder": {
+          "type": "Number",
+          "default": 0
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      },
+      "virtuals": {
+        "effectivePrice": "this.price"
+      },
+      "methods": ["isAvailable"],
+      "staticMethods": ["getPopularGifts", "getByCategory"]
+    },
+    "GiftTransaction": {
+      "collection": "gifttransactions",
+      "timestamps": false,
+      "fields": {
+        "giftId": {
+          "type": "ObjectId",
+          "ref": "Gift",
+          "required": true,
+          "indexed": true
+        },
+        "senderId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "recipientId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "context": {
+          "type": "String",
+          "enum": ["livestream", "video", "profile", "message"],
+          "required": true
+        },
+        "livestreamId": {
+          "type": "ObjectId",
+          "ref": "Livestream",
+          "required": false
+        },
+        "contentId": {
+          "type": "ObjectId",
+          "ref": "Content",
+          "required": false
+        },
+        "messageId": {
+          "type": "ObjectId",
+          "ref": "Message",
+          "required": false
+        },
+        "quantity": {
+          "type": "Number",
+          "required": true,
+          "min": 1,
+          "default": 1
+        },
+        "unitPrice": {
+          "type": "Number",
+          "required": true
+        },
+        "totalCost": {
+          "type": "Number",
+          "required": true
+        },
+        "currency": {
+          "type": "String",
+          "default": "coins"
+        },
+        "creatorEarnings": {
+          "type": "Number",
+          "required": true
+        },
+        "platformFee": {
+          "type": "Number",
+          "required": true
+        },
+        "giftName": {
+          "type": "String",
+          "required": false
+        },
+        "giftIcon": {
+          "type": "String",
+          "required": false
+        },
+        "giftAnimation": {
+          "type": "String",
+          "required": false
+        },
+        "status": {
+          "type": "String",
+          "enum": ["pending", "completed", "failed", "refunded"],
+          "default": "completed",
+          "indexed": true
+        },
+        "message": {
+          "type": "String",
+          "maxlength": 200
+        },
+        "isAnonymous": {
+          "type": "Boolean",
+          "default": false
+        },
+        "isPublic": {
+          "type": "Boolean",
+          "default": true
+        },
+        "walletTransactionId": {
+          "type": "ObjectId",
+          "ref": "Transaction",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "default": "Date.now",
+          "indexed": true
+        }
+      },
+      "staticMethods": ["getLivestreamGifts", "calculateTotalReceived"],
+      "hooks": ["pre-save: calculate earnings split"]
+    },
+    "CoinPackage": {
+      "collection": "coinpackages",
+      "timestamps": true,
+      "fields": {
+        "name": {
+          "type": "String",
+          "required": true
+        },
+        "coins": {
+          "type": "Number",
+          "required": true,
+          "min": 1
+        },
+        "bonusCoins": {
+          "type": "Number",
+          "default": 0
+        },
+        "price": {
+          "type": "Number",
+          "required": true,
+          "min": 0
+        },
+        "currency": {
+          "type": "String",
+          "default": "USD"
+        },
+        "isPopular": {
+          "type": "Boolean",
+          "default": false
+        },
+        "isBestValue": {
+          "type": "Boolean",
+          "default": false
+        },
+        "isActive": {
+          "type": "Boolean",
+          "default": true,
+          "indexed": true
+        },
+        "sortOrder": {
+          "type": "Number",
+          "default": 0
+        },
+        "purchaseCount": {
+          "type": "Number",
+          "default": 0
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      },
+      "virtuals": {
+        "totalCoins": "coins + bonusCoins"
+      }
+    },
+    "Coupon": {
+      "collection": "coupons",
+      "timestamps": true,
+      "fields": {
+        "code": {
+          "type": "String",
+          "required": true,
+          "unique": true,
+          "uppercase": true,
+          "trim": true
+        },
+        "type": {
+          "type": "String",
+          "enum": ["percentage", "fixed"],
+          "required": true
+        },
+        "value": {
+          "type": "Number",
+          "required": true,
+          "min": 0
+        },
+        "minPurchase": {
+          "type": "Number",
+          "default": 0
+        },
+        "maxDiscount": {
+          "type": "Number",
+          "required": false
+        },
+        "usageLimit": {
+          "type": "Number",
+          "required": false
+        },
+        "usageCount": {
+          "type": "Number",
+          "default": 0
+        },
+        "validFrom": {
+          "type": "Date",
+          "required": false
+        },
+        "validUntil": {
+          "type": "Date",
+          "required": false
+        },
+        "isActive": {
+          "type": "Boolean",
+          "default": true
+        },
+        "applicableProducts": {
+          "type": "Array",
+          "items": {
+            "type": "ObjectId",
+            "ref": "Product"
+          }
+        },
+        "applicableCategories": {
+          "type": "Array",
+          "items": {
+            "type": "ObjectId",
+            "ref": "Category"
+          }
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "Level": {
+      "collection": "levels",
+      "timestamps": true,
+      "fields": {
+        "level": {
+          "type": "Number",
+          "required": true,
+          "unique": true,
+          "min": 1
+        },
+        "name": {
+          "type": "String",
+          "required": false
+        },
+        "minXP": {
+          "type": "Number",
+          "required": true,
+          "default": 0
+        },
+        "maxXP": {
+          "type": "Number",
+          "required": true
+        },
+        "rewards": {
+          "type": "Object",
+          "fields": {
+            "coins": {
+              "type": "Number",
+              "default": 0
+            },
+            "badges": {
+              "type": "Array",
+              "items": "String"
+            },
+            "features": {
+              "type": "Array",
+              "items": "String"
+            }
+          }
+        },
+        "icon": {
+          "type": "String",
+          "required": false
+        },
+        "color": {
+          "type": "String",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "SupporterBadge": {
+      "collection": "supporterbadges",
+      "timestamps": true,
+      "fields": {
+        "name": {
+          "type": "String",
+          "required": true,
+          "unique": true
+        },
+        "description": {
+          "type": "String",
+          "required": false
+        },
+        "icon": {
+          "type": "String",
+          "required": false
+        },
+        "color": {
+          "type": "String",
+          "required": false
+        },
+        "requirement": {
+          "type": "String",
+          "enum": ["subscription", "gifts", "duration", "engagement", "special"],
+          "required": true
+        },
+        "threshold": {
+          "type": "Number",
+          "required": false
+        },
+        "isActive": {
+          "type": "Boolean",
+          "default": true
+        },
+        "rarity": {
+          "type": "String",
+          "enum": ["common", "rare", "epic", "legendary"],
+          "default": "common"
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "Report": {
+      "collection": "reports",
+      "timestamps": true,
+      "fields": {
+        "reporterId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "reportedType": {
+          "type": "String",
+          "enum": ["content", "user", "comment", "livestream", "message", "product", "store"],
+          "required": true,
+          "indexed": true
+        },
+        "reportedId": {
+          "type": "ObjectId",
+          "required": true,
+          "indexed": true
+        },
+        "reportedUserId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "indexed": true
+        },
+        "reason": {
+          "type": "String",
+          "enum": ["spam", "harassment", "hate_speech", "violence", "nudity", "copyright", "false_info", "scam", "inappropriate", "other"],
+          "required": true
+        },
+        "description": {
+          "type": "String",
+          "maxlength": 1000
+        },
+        "screenshots": {
+          "type": "Array",
+          "items": "String"
+        },
+        "status": {
+          "type": "String",
+          "enum": ["pending", "under_review", "resolved", "dismissed"],
+          "default": "pending",
+          "indexed": true
+        },
+        "reviewedBy": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": false
+        },
+        "reviewedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "reviewNotes": {
+          "type": "String",
+          "required": false
+        },
+        "actionTaken": {
+          "type": "String",
+          "enum": ["none", "warning", "content_removed", "account_suspended", "account_banned"],
+          "default": "none"
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "CustomerService": {
+      "collection": "customerservices",
+      "timestamps": true,
+      "fields": {
+        "userId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "ticketNumber": {
+          "type": "String",
+          "required": true,
+          "unique": true
+        },
+        "subject": {
+          "type": "String",
+          "required": true
+        },
+        "category": {
+          "type": "String",
+          "enum": ["account", "payment", "technical", "content", "order", "other"],
+          "required": true
+        },
+        "description": {
+          "type": "String",
+          "required": true
+        },
+        "status": {
+          "type": "String",
+          "enum": ["open", "in_progress", "resolved", "closed"],
+          "default": "open",
+          "indexed": true
+        },
+        "priority": {
+          "type": "String",
+          "enum": ["low", "medium", "high", "urgent"],
+          "default": "medium"
+        },
+        "assignedTo": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": false
+        },
+        "messages": {
+          "type": "Array",
+          "items": {
+            "from": {
+              "type": "ObjectId",
+              "ref": "User"
+            },
+            "message": "String",
+            "timestamp": {
+              "type": "Date",
+              "default": "Date.now"
+            },
+            "isStaff": "Boolean"
+          }
+        },
+        "resolvedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "resolvedBy": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "ScheduledContent": {
+      "collection": "scheduledcontents",
+      "timestamps": true,
+      "fields": {
+        "userId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "contentId": {
+          "type": "ObjectId",
+          "ref": "Content",
+          "required": false
+        },
+        "scheduledFor": {
+          "type": "Date",
+          "required": true,
+          "indexed": true
+        },
+        "status": {
+          "type": "String",
+          "enum": ["scheduled", "published", "failed", "cancelled"],
+          "default": "scheduled",
+          "indexed": true
+        },
+        "contentData": {
+          "type": "Mixed"
+        },
+        "publishedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "error": {
+          "type": "String",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "StreamProvider": {
+      "collection": "streamproviders",
+      "timestamps": true,
+      "fields": {
+        "name": {
+          "type": "String",
+          "required": true,
+          "unique": true,
+          "enum": ["agora", "zegocloud", "webrtc"]
+        },
+        "displayName": {
+          "type": "String",
+          "required": false
+        },
+        "enabled": {
+          "type": "Boolean",
+          "default": true
+        },
+        "status": {
+          "type": "String",
+          "enum": ["active", "maintenance", "inactive"],
+          "default": "active"
+        },
+        "priority": {
+          "type": "Number",
+          "default": 0
+        },
+        "config": {
+          "type": "Mixed"
+        },
+        "features": {
+          "type": "Mixed"
+        },
+        "monthlyUsage": {
+          "type": "Number",
+          "default": 0
+        },
+        "usageLimit": {
+          "type": "Number",
+          "required": false
+        },
+        "lastHealthCheck": {
+          "type": "Date",
+          "required": false
+        },
+        "healthStatus": {
+          "type": "String",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "PKBattle": {
+      "collection": "pkbattles",
+      "timestamps": true,
+      "fields": {
+        "host1Id": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true
+        },
+        "host2Id": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true
+        },
+        "livestreamId": {
+          "type": "ObjectId",
+          "ref": "Livestream",
+          "required": false
+        },
+        "status": {
+          "type": "String",
+          "enum": ["pending", "active", "ended"],
+          "default": "pending"
+        },
+        "host1Score": {
+          "type": "Number",
+          "default": 0
+        },
+        "host2Score": {
+          "type": "Number",
+          "default": 0
+        },
+        "winnerId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": false
+        },
+        "startedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "endedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "duration": {
+          "type": "Number",
+          "required": false
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "LiveShoppingSession": {
+      "collection": "liveshoppingsessions",
+      "timestamps": true,
+      "fields": {
+        "livestreamId": {
+          "type": "ObjectId",
+          "ref": "Livestream",
+          "required": true
+        },
+        "hostId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true
+        },
+        "featuredProducts": {
+          "type": "Array",
+          "items": {
+            "productId": {
+              "type": "ObjectId",
+              "ref": "Product"
+            },
+            "displayOrder": "Number",
+            "featuredAt": "Date"
+          }
+        },
+        "orders": {
+          "type": "Array",
+          "items": {
+            "orderId": {
+              "type": "ObjectId",
+              "ref": "Order"
+            },
+            "placedAt": "Date",
+            "total": "Number"
+          }
+        },
+        "totalRevenue": {
+          "type": "Number",
+          "default": 0
+        },
+        "totalOrders": {
+          "type": "Number",
+          "default": 0
+        },
+        "conversionRate": {
+          "type": "Number",
+          "default": 0
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    },
+    "Currency": {
+      "collection": "currencies",
+      "timestamps": true,
+      "fields": {
+        "code": {
+          "type": "String",
+          "required": true,
+          "unique": true,
+          "uppercase": true,
+          "trim": true,
+          "minlength": 3,
+          "maxlength": 3
+        },
+        "name": {
+          "type": "String",
+          "required": true,
+          "trim": true
+        },
+        "symbol": {
+          "type": "String",
+          "required": true,
+          "trim": true
+        },
+        "exchangeRate": {
+          "type": "Number",
+          "required": true,
+          "default": 1,
+          "min": 0
+        },
+        "baseCurrency": {
+          "type": "String",
+          "default": "USD",
+          "uppercase": true
+        },
+        "isActive": {
+          "type": "Boolean",
+          "default": true
+        },
+        "isDefault": {
+          "type": "Boolean",
+          "default": false
+        },
+        "decimalPlaces": {
+          "type": "Number",
+          "default": 2,
+          "min": 0,
+          "max": 8
+        },
+        "country": {
+          "type": "String",
+          "required": false
+        },
+        "flag": {
+          "type": "String",
+          "required": false
+        },
+        "lastUpdated": {
+          "type": "Date",
+          "default": "Date.now"
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      },
+      "hooks": ["pre-save: ensure only one default"],
+      "staticMethods": ["getActive", "getDefault"],
+      "methods": ["updateRate"]
+    },
+    "Shipping": {
+      "collection": "shippings",
+      "timestamps": true,
+      "fields": {
+        "orderId": {
+          "type": "ObjectId",
+          "ref": "Order",
+          "required": true,
+          "unique": true,
+          "indexed": true
+        },
+        "userId": {
+          "type": "ObjectId",
+          "ref": "User",
+          "required": true,
+          "indexed": true
+        },
+        "carrier": {
+          "type": "String",
+          "enum": ["USPS", "FedEx", "UPS", "DHL", "Other"],
+          "required": true
+        },
+        "trackingNumber": {
+          "type": "String",
+          "required": false
+        },
+        "trackingUrl": {
+          "type": "String",
+          "required": false
+        },
+        "status": {
+          "type": "String",
+          "enum": ["pending", "in_transit", "out_for_delivery", "delivered", "failed", "returned"],
+          "default": "pending",
+          "indexed": true
+        },
+        "shippedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "estimatedDelivery": {
+          "type": "Date",
+          "required": false
+        },
+        "deliveredAt": {
+          "type": "Date",
+          "required": false
+        },
+        "currentLocation": {
+          "type": "String",
+          "required": false
+        },
+        "events": {
+          "type": "Array",
+          "items": {
+            "status": "String",
+            "location": "String",
+            "timestamp": "Date",
+            "description": "String"
+          }
+        },
+        "createdAt": {
+          "type": "Date",
+          "auto": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "auto": true
+        }
+      }
+    }
+  },
+  "dartIntegrationNotes": {
+    "objectIdHandling": "Convert MongoDB ObjectId to String in Dart models",
+    "dateHandling": "Use DateTime class for all Date fields",
+    "mixedTypeHandling": "Use Map<String, dynamic> for Mixed types",
+    "enumHandling": "Create Dart enums for all enum fields",
+    "arrayHandling": "Use List<T> for arrays",
+    "nestedObjectHandling": "Create separate Dart classes for nested objects",
+    "optionalFields": "Use nullable types (?) for optional fields",
+    "defaultValues": "Implement default values in constructors or factory methods",
+    "timestamps": "createdAt and updatedAt should be DateTime?",
+    "jsonSerialization": "Implement fromJson() and toJson() methods for all models",
+    "nullSafety": "Enable null safety for all Dart models"
+  }
+}

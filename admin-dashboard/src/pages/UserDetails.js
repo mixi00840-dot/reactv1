@@ -60,46 +60,15 @@ function UserDetails() {
 
   const fetchUserDetails = async () => {
     try {
-      // Fetch user with store populated
-      const payload = await api.get(`/api/admin/users/${id}?populate=storeId`);
-      const userData = payload?.user || payload;
+      // Fetch user details
+      const payload = await api.get(`/api/admin/users/${id}`);
+      const userData = payload?.data || payload?.user || payload;
       setUser(userData);
       setEditedUser(userData);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user:', error);
-      // For testing purposes, create dummy user data if API fails
-      const dummyUser = {
-        _id: id,
-        username: `testuser_${id.slice(-4)}`,
-        fullName: `Test User ${id.slice(-4)}`,
-        email: `testuser${id.slice(-4)}@example.com`,
-        role: Math.random() > 0.7 ? 'seller' : 'user',
-        status: 'active',
-        isVerified: Math.random() > 0.5,
-        isFeatured: Math.random() > 0.8,
-        isBanned: false,
-        bio: `This is a test user created for demonstration purposes. User ID: ${id}`,
-        avatar: `https://ui-avatars.com/api/?name=Test+User&background=random`,
-        createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
-        wallet: {
-          balance: Math.floor(Math.random() * 5000) + 100,
-          totalEarnings: Math.floor(Math.random() * 50000) + 1000,
-          pendingPayments: Math.floor(Math.random() * 1000)
-        },
-        contentStats: {
-          totalVideos: Math.floor(Math.random() * 50) + 5,
-          totalViews: Math.floor(Math.random() * 100000) + 1000,
-          totalLikes: Math.floor(Math.random() * 10000) + 500,
-          totalComments: Math.floor(Math.random() * 5000) + 200
-        },
-        socialStats: {
-          followersCount: Math.floor(Math.random() * 10000) + 100,
-          followingCount: Math.floor(Math.random() * 1000) + 50
-        }
-      };
-      setUser(dummyUser);
-      setEditedUser(dummyUser);
+      toast.error('Failed to load user details');
       setLoading(false);
     }
   };
@@ -107,55 +76,19 @@ function UserDetails() {
   const fetchUserStats = async () => {
     try {
       const payload = await api.get(`/api/admin/users/${id}`);
-      const userData = payload?.user || payload;
-      
-      // Use actual data where available, fallback to mock data for demo
+      const userData = payload?.data || payload?.user || payload || {};
+
+      // Only use real data; no mock content
       setUserStats({
-        videos: [
-          { id: 1, title: "Dancing Video", views: userData.contentStats?.totalViews || 15420, likes: userData.contentStats?.totalLikes || 892, comments: userData.contentStats?.totalComments || 156, duration: "0:30", uploadDate: "2025-10-25" },
-          { id: 2, title: "Cooking Tutorial", views: 8945, likes: 567, comments: 89, duration: "2:15", uploadDate: "2025-10-20" }
-        ],
-        posts: [
-          { id: 1, content: "Just had the best day ever! 🌟", likes: 234, comments: 45, shares: 12, date: "2025-10-28" },
-          { id: 2, content: "Check out my new recipe video!", likes: 189, comments: 67, shares: 23, date: "2025-10-25" }
-        ],
-        comments: [
-          { id: 1, content: "This is amazing!", video: "Dancing Video", date: "2025-10-27", likes: 12 },
-          { id: 2, content: "Love your content!", video: "Cooking Tutorial", date: "2025-10-26", likes: 8 }
-        ],
-        wallet: userData.wallet || {
-          balance: 1250.75,
-          totalEarnings: 5420.30,
-          pendingPayments: 320.50,
-          lastTransaction: "2025-10-28"
-        },
-        followers: Array.from({ length: userData.socialStats?.followersCount || 100 }, (_, i) => ({
-          id: i + 1,
-          username: `user${i + 1}`,
-          followDate: "2025-10-15",
-          verified: Math.random() > 0.7
-        })).slice(0, 10),
-        following: Array.from({ length: userData.socialStats?.followingCount || 50 }, (_, i) => ({
-          id: i + 1,
-          username: `creator${i + 1}`,
-          followDate: "2025-09-12",
-          verified: Math.random() > 0.5
-        })).slice(0, 10),
-        earnings: [
-          { date: "2025-10-28", amount: 45.50, source: "Video Views", status: "paid" },
-          { date: "2025-10-25", amount: 23.75, source: "Live Stream", status: "pending" },
-          { date: "2025-10-22", amount: 67.25, source: "Brand Partnership", status: "paid" }
-        ],
-        products: user.role === 'seller' ? [
-          { id: 1, name: "Custom Merchandise", price: 25.99, sales: 45, revenue: 1169.55, status: "active" },
-          { id: 2, name: "Digital Course", price: 49.99, sales: 23, revenue: 1149.77, status: "active" }
-        ] : [],
-        activities: userData.recentActivities || [
-          { action: "Posted a video", timestamp: "2025-10-28 14:30", details: "Dancing Video" },
-          { action: "Went live", timestamp: "2025-10-27 19:45", details: "Cooking Stream - 234 viewers" },
-          { action: "Updated profile", timestamp: "2025-10-26 10:15", details: "Changed bio and avatar" },
-          { action: "Followed new user", timestamp: "2025-10-25 16:20", details: "@brand_official" }
-        ]
+        videos: Array.isArray(userData.videos) ? userData.videos : [],
+        posts: Array.isArray(userData.posts) ? userData.posts : [],
+        comments: Array.isArray(userData.comments) ? userData.comments : [],
+        wallet: userData.wallet || { balance: 0, totalEarnings: 0, pendingPayments: 0, lastTransaction: 'N/A' },
+        followers: Array.isArray(userData.followers) ? userData.followers : [],
+        following: Array.isArray(userData.following) ? userData.following : [],
+        earnings: Array.isArray(userData.earnings) ? userData.earnings : [],
+        products: Array.isArray(userData.products) ? userData.products : [],
+        activities: Array.isArray(userData.recentActivities) ? userData.recentActivities : []
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -247,7 +180,7 @@ function UserDetails() {
                 {user?.isBanned && <Chip label="Banned" color="error" sx={{ ml: 1 }} />}
               </Typography>
               <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-                {user?.email} • Joined {new Date(user?.createdAt).toLocaleDateString()}
+                {user?.email} • Joined {user?.createdAt && !Number.isNaN(Date.parse(user.createdAt)) ? new Date(user.createdAt).toLocaleDateString() : '—'}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
                 {user?.bio || "No bio available"}

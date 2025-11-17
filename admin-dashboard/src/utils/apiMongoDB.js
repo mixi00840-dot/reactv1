@@ -368,7 +368,7 @@ const mongoAPI = {
   
   analytics: {
     getDashboard: async (params = {}) => {
-      const response = await apiClient.get('/admin/dashboard', { params });
+      const response = await apiClient.get('/api/admin/dashboard', { params });
       return response.data;
     },
 

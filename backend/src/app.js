@@ -32,6 +32,7 @@ const allowedOrigins = [
   'https://admin-app-mixillo.vercel.app',
   // Admin Dashboard - Legacy
   'https://admin-dashboard-mixillo.vercel.app',
+  'https://admin-dashboard-ljva3eivh-mixillo.vercel.app',
   'https://mixillo-admin.netlify.app',
   // Development
   'http://localhost:3000',
@@ -209,16 +210,53 @@ try {
   console.warn('⚠️  Dashboard routes skipped:', error.message);
 }
 
+// Admin Realtime Stats
+try {
+  const realtimeRoutes = require('./routes/admin/realtime');
+  app.use('/api/admin/realtime', realtimeRoutes);
+  console.log('✅ /api/admin/realtime (Real-time Statistics)');
+} catch (error) {
+  console.warn('⚠️  Realtime routes skipped:', error.message);
+}
+
+// Admin Cache Monitoring
+try {
+  const cacheRoutes = require('./routes/admin/cache');
+  app.use('/api/admin/cache', cacheRoutes);
+  console.log('✅ /api/admin/cache (Cache Statistics)');
+} catch (error) {
+  console.warn('⚠️  Cache routes skipped:', error.message);
+}
+
+// Admin AI Monitoring
+try {
+  const aiRoutes = require('./routes/admin/ai');
+  app.use('/api/admin/ai', aiRoutes);
+  console.log('✅ /api/admin/ai (AI Usage Monitoring)');
+} catch (error) {
+  console.warn('⚠️  AI monitoring routes skipped:', error.message);
+}
+
 // Admin User Management (separate routes)
 const adminUsersRoutes = require('./routes/admin/users');
 app.use('/api/admin/users', adminUsersRoutes);
 console.log('✅ /api/admin/users (Admin User Management)');
 
+// Admin Coin Packages (alias for /api/coins/admin/coin-packages)
+try {
+  const adminCoinPackagesRoutes = require('./routes/admin/coin-packages');
+  app.use('/api/admin/coin-packages', adminCoinPackagesRoutes);
+  console.log('✅ /api/admin/coin-packages (Coin Packages - Admin Alias)');
+} catch (error) {
+  console.warn('⚠️  Admin coin packages routes skipped:', error.message);
+}
+
 // Database Monitoring (Admin)
 try {
   const databaseRoutes = require('./routes/database');
   app.use('/api/admin/database', databaseRoutes);
-  console.log('✅ /api/database (Database Monitoring)');
+  app.use('/api/database/admin', databaseRoutes); // Alias for reversed path
+  console.log('✅ /api/admin/database + /api/database/admin (Database Monitoring)');
 } catch (error) {
   console.warn('⚠️  Database routes skipped:', error.message);
 }

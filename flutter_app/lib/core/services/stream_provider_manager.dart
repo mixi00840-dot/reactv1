@@ -12,7 +12,8 @@ enum StreamProvider {
 
 /// Unified stream manager that switches between Agora and ZegoCloud
 class StreamProviderManager {
-  static final StreamProviderManager _instance = StreamProviderManager._internal();
+  static final StreamProviderManager _instance =
+      StreamProviderManager._internal();
   factory StreamProviderManager() => _instance;
   StreamProviderManager._internal();
 
@@ -28,12 +29,12 @@ class StreamProviderManager {
 
   // Getters
   StreamProvider get currentProvider => _currentProvider;
-  
+
   // ✅ NEW: Get preferred provider from storage
   Future<StreamProvider> getPreferredProvider() async {
     final prefs = await SharedPreferences.getInstance();
     final providerName = prefs.getString(_providerPreferenceKey);
-    
+
     if (providerName == 'zegocloud') {
       return StreamProvider.zegocloud;
     }
@@ -43,7 +44,8 @@ class StreamProviderManager {
   // ✅ NEW: Save provider preference
   Future<void> saveProviderPreference(StreamProvider provider) async {
     final prefs = await SharedPreferences.getInstance();
-    final providerName = provider == StreamProvider.agora ? 'agora' : 'zegocloud';
+    final providerName =
+        provider == StreamProvider.agora ? 'agora' : 'zegocloud';
     await prefs.setString(_providerPreferenceKey, providerName);
     debugPrint('✅ Saved provider preference: $providerName');
   }
@@ -112,8 +114,8 @@ class StreamProviderManager {
 
   /// ✅ NEW: Set provider from string name
   Future<void> setProviderByName(String providerName) async {
-    final provider = providerName.toLowerCase() == 'zegocloud' 
-        ? StreamProvider.zegocloud 
+    final provider = providerName.toLowerCase() == 'zegocloud'
+        ? StreamProvider.zegocloud
         : StreamProvider.agora;
     await setProvider(provider);
   }
@@ -124,7 +126,7 @@ class StreamProviderManager {
       case StreamProvider.agora:
         final appId = config['appId'] as String? ?? '';
         return await _agoraManager.initialize(appId);
-        
+
       case StreamProvider.zegocloud:
         final appID = config['appID'] as int? ?? 0;
         final appSign = config['appSign'] as String? ?? '';
@@ -144,7 +146,7 @@ class StreamProviderManager {
           streamConfig: streamConfig,
           quality: agoraQuality,
         );
-        
+
       case StreamProvider.zegocloud:
         final zegoQuality = _mapToZegoQuality(quality);
         return await _zegoManager.startBroadcasting(
@@ -161,7 +163,7 @@ class StreamProviderManager {
     switch (_currentProvider) {
       case StreamProvider.agora:
         return await _agoraManager.joinAsViewer(streamConfig: streamConfig);
-        
+
       case StreamProvider.zegocloud:
         return await _zegoManager.joinAsViewer(streamConfig: streamConfig);
     }
@@ -210,7 +212,7 @@ class StreamProviderManager {
         final agoraQuality = _mapToAgoraQuality(quality);
         await _agoraManager.setStreamQuality(agoraQuality);
         break;
-        
+
       case StreamProvider.zegocloud:
         final zegoQuality = _mapToZegoQuality(quality);
         await _zegoManager.setStreamQuality(zegoQuality);
@@ -311,7 +313,7 @@ class StreamProviderManager {
           case AgoraStreamQuality.ultra:
             return '1080p, 30fps, 2500kbps';
         }
-        
+
       case StreamProvider.zegocloud:
         final zegoQuality = _mapToZegoQuality(quality);
         switch (zegoQuality) {

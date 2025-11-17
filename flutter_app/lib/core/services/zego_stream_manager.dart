@@ -7,16 +7,16 @@ import 'live_streaming_service.dart';
 
 /// ZegoCloud stream role
 enum ZegoStreamRole {
-  host,    // Publisher
-  viewer,  // Audience
+  host, // Publisher
+  viewer, // Audience
 }
 
 /// ZegoCloud stream quality preset
 enum ZegoStreamQuality {
-  low,     // 480p, 15fps
-  medium,  // 720p, 24fps
-  high,    // 720p, 30fps
-  ultra,   // 1080p, 30fps
+  low, // 480p, 15fps
+  medium, // 720p, 24fps
+  high, // 720p, 30fps
+  ultra, // 1080p, 30fps
 }
 
 /// ZegoCloud streaming manager for live broadcasts
@@ -117,16 +117,18 @@ class ZegoStreamManager {
 
   /// Register event handlers
   void _registerEventHandlers() {
-    ZegoExpressEngine.onRoomStateUpdate = (String roomID, ZegoRoomState state, int errorCode, Map<String, dynamic> extendedData) {
+    ZegoExpressEngine.onRoomStateUpdate = (String roomID, ZegoRoomState state,
+        int errorCode, Map<String, dynamic> extendedData) {
       debugPrint('Room state updated: $roomID - $state');
       _roomStateController.add(state);
-      
+
       if (errorCode != 0) {
         _errorController.add('Room error: $errorCode');
       }
     };
 
-    ZegoExpressEngine.onRoomUserUpdate = (String roomID, ZegoUpdateType updateType, List<ZegoUser> userList) {
+    ZegoExpressEngine.onRoomUserUpdate =
+        (String roomID, ZegoUpdateType updateType, List<ZegoUser> userList) {
       for (var user in userList) {
         if (updateType == ZegoUpdateType.Add) {
           debugPrint('User joined: ${user.userID}');
@@ -138,21 +140,30 @@ class ZegoStreamManager {
       }
     };
 
-    ZegoExpressEngine.onPublisherStateUpdate = (String streamID, ZegoPublisherState state, int errorCode, Map<String, dynamic> extendedData) {
+    ZegoExpressEngine.onPublisherStateUpdate = (String streamID,
+        ZegoPublisherState state,
+        int errorCode,
+        Map<String, dynamic> extendedData) {
       debugPrint('Publisher state: $streamID - $state');
       if (errorCode != 0) {
         _errorController.add('Publishing error: $errorCode');
       }
     };
 
-    ZegoExpressEngine.onPlayerStateUpdate = (String streamID, ZegoPlayerState state, int errorCode, Map<String, dynamic> extendedData) {
+    ZegoExpressEngine.onPlayerStateUpdate = (String streamID,
+        ZegoPlayerState state,
+        int errorCode,
+        Map<String, dynamic> extendedData) {
       debugPrint('Player state: $streamID - $state');
       if (errorCode != 0) {
         _errorController.add('Playing error: $errorCode');
       }
     };
 
-    ZegoExpressEngine.onRoomStreamUpdate = (String roomID, ZegoUpdateType updateType, List<ZegoStream> streamList, Map<String, dynamic> extendedData) {
+    ZegoExpressEngine.onRoomStreamUpdate = (String roomID,
+        ZegoUpdateType updateType,
+        List<ZegoStream> streamList,
+        Map<String, dynamic> extendedData) {
       debugPrint('Stream update in room: $roomID, type: $updateType');
     };
   }
@@ -177,7 +188,7 @@ class ZegoStreamManager {
       // Login to room
       final roomConfig = ZegoRoomConfig(0, true, '');
       final user = ZegoUser(streamConfig.streamId, streamConfig.streamId);
-      
+
       await ZegoExpressEngine.instance.loginRoom(
         streamConfig.channelId,
         user,
@@ -191,7 +202,8 @@ class ZegoStreamManager {
       await ZegoExpressEngine.instance.startPreview();
 
       // Start publishing
-      await ZegoExpressEngine.instance.startPublishingStream(streamConfig.streamId);
+      await ZegoExpressEngine.instance
+          .startPublishingStream(streamConfig.streamId);
 
       _isPublishing = true;
       debugPrint('Broadcasting started successfully');
@@ -218,8 +230,9 @@ class ZegoStreamManager {
 
       // Login to room
       final roomConfig = ZegoRoomConfig(0, true, '');
-      final user = ZegoUser('viewer_${DateTime.now().millisecondsSinceEpoch}', 'Viewer');
-      
+      final user =
+          ZegoUser('viewer_${DateTime.now().millisecondsSinceEpoch}', 'Viewer');
+
       await ZegoExpressEngine.instance.loginRoom(
         streamConfig.channelId,
         user,
@@ -308,7 +321,7 @@ class ZegoStreamManager {
     await ZegoExpressEngine.instance.enableBeautify(
       ZegoBeautifyFeature.SkinWhiten | ZegoBeautifyFeature.Sharpen,
     );
-    
+
     await ZegoExpressEngine.instance.setBeautifyOption(
       ZegoBeautifyOption(
         whitenIntensity.toDouble(),
@@ -316,7 +329,7 @@ class ZegoStreamManager {
         sharpenIntensity.toDouble(),
       ),
     );
-    
+
     debugPrint('Beauty effects enabled');
   }
 
@@ -368,10 +381,10 @@ class ZegoStreamManager {
       }
 
       await ZegoExpressEngine.instance.logoutRoom(_currentRoomID);
-      
+
       _currentRoomID = null;
       _currentStreamID = null;
-      
+
       debugPrint('Left room successfully');
     } catch (e) {
       debugPrint('Error leaving room: $e');

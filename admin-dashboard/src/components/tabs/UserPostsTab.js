@@ -56,7 +56,7 @@ function UserPostsTab({ userId }) {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const response = await mongoAPI.get(`/api/content/mongodb`, {
+      const response = await mongoAPI.get(`/api/content`, {
         params: {
           userId,
           type: 'post',
@@ -70,63 +70,16 @@ function UserPostsTab({ userId }) {
         setPosts(response.data.content || response.data.posts || []);
         setTotalPages(response.data.totalPages || 1);
       } else {
-        // Mock data for demo if API fails
-        generateMockPosts();
+        setPosts([]);
+        toast.error('No posts found');
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
-      generateMockPosts();
+      setPosts([]);
+      toast.error('Failed to load posts');
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateMockPosts = () => {
-    const mockPosts = [
-      {
-        _id: '1',
-        title: 'Just had the best day ever! 🌟',
-        content: 'Spent the day with friends and tried some amazing food. Life is good!',
-        type: 'text',
-        thumbnail: null,
-        views: 2340,
-        likes: 234,
-        comments: 45,
-        shares: 12,
-        duration: 'N/A',
-        uploadDate: '2025-10-28',
-        status: 'published'
-      },
-      {
-        _id: '2',
-        title: 'Check out my new recipe! 🍝',
-        content: 'Perfect pasta recipe you need to try...',
-        type: 'image',
-        thumbnail: 'https://via.placeholder.com/120x67?text=Post+Image',
-        views: 1890,
-        likes: 189,
-        comments: 67,
-        shares: 23,
-        duration: 'N/A',
-        uploadDate: '2025-10-25',
-        status: 'published'
-      },
-      {
-        _id: '3',
-        title: 'Quick cooking tip 🔥',
-        content: '30-second cooking hack',
-        type: 'video',
-        thumbnail: 'https://via.placeholder.com/120x67?text=Video+Post',
-        views: 5230,
-        likes: 456,
-        comments: 89,
-        shares: 34,
-        duration: '0:30',
-        uploadDate: '2025-10-22',
-        status: 'published'
-      }
-    ];
-    setPosts(mockPosts);
   };
 
   const handleViewPost = (post) => {
@@ -143,7 +96,7 @@ function UserPostsTab({ userId }) {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      await mongoAPI.delete(`/api/content/mongodb/${postId}`);
+      await mongoAPI.delete(`/api/content/${postId}`);
       setPosts(posts.filter(p => p._id !== postId));
       toast.success('Post deleted successfully');
     } catch (error) {

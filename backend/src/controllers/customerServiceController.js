@@ -1,12 +1,5 @@
-const {
-  SupportTicket,
-  TicketMessage,
-  LiveChat,
-  ChatMessage,
-  FAQ,
-  FAQCategory,
-  KnowledgeBase
-} = require('../models/CustomerService');
+const CustomerService = require('../models/CustomerService');
+const FAQ = require('../models/FAQ');
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
@@ -89,7 +82,7 @@ class CustomerServiceController {
       sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
       // Get tickets
-      const tickets = await SupportTicket.find(query)
+      const tickets = await CustomerService.find(query)
         .populate('customer', 'firstName lastName email avatar')
         .populate('assignedTo', 'firstName lastName email')
         .populate('relatedOrder', 'orderNumber status')
@@ -100,7 +93,7 @@ class CustomerServiceController {
         .limit(parseInt(limit));
 
       // Get total count
-      const total = await SupportTicket.countDocuments(query);
+      const total = await CustomerService.countDocuments(query);
       const totalPages = Math.ceil(total / parseInt(limit));
 
       res.json({
@@ -195,7 +188,7 @@ class CustomerServiceController {
       }
 
       // Create ticket
-      const ticket = new SupportTicket(ticketData);
+      const ticket = new CustomerService(ticketData);
       await ticket.save();
 
       // Populate references
@@ -245,7 +238,7 @@ class CustomerServiceController {
         }
       }
 
-      const ticket = await SupportTicket.findOne(query)
+      const ticket = await CustomerService.findOne(query)
         .populate('customer', 'firstName lastName email avatar')
         .populate('assignedTo', 'firstName lastName email avatar')
         .populate('relatedOrder', 'orderNumber status totalAmount')
@@ -307,7 +300,7 @@ class CustomerServiceController {
         }
       }
 
-      const ticket = await SupportTicket.findOne(query);
+      const ticket = await CustomerService.findOne(query);
 
       if (!ticket) {
         return res.status(404).json({
@@ -388,7 +381,7 @@ class CustomerServiceController {
       }
 
       // Find ticket
-      const ticket = await SupportTicket.findById(id);
+      const ticket = await CustomerService.findById(id);
 
       if (!ticket) {
         return res.status(404).json({
@@ -996,7 +989,7 @@ class CustomerServiceController {
       const end = endDate ? new Date(endDate) : new Date();
 
       // Ticket analytics
-      const ticketStats = await SupportTicket.aggregate([
+      const ticketStats = await CustomerService.aggregate([
         {
           $match: {
             createdAt: { $gte: start, $lte: end }

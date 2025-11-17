@@ -50,7 +50,7 @@ function UserActivitiesTab({ userId }) {
   const fetchActivities = async () => {
     setLoading(true);
     try {
-      const response = await mongoAPI.get(`/admin/users/${userId}/activities`, {
+      const response = await mongoAPI.get(`/api/admin/users/${userId}/activities`, {
         params: {
           type: filterType !== 'all' ? filterType : undefined,
           days: dateRange,
@@ -63,11 +63,12 @@ function UserActivitiesTab({ userId }) {
         setActivities(response.data.activities || []);
         setTotalPages(response.data.totalPages || 1);
       } else {
-        generateMockActivities();
+        setActivities([]);
       }
     } catch (error) {
       console.error('Error fetching activities:', error);
-      generateMockActivities();
+      setActivities([]);
+      toast.error('Failed to load activities');
     } finally {
       setLoading(false);
     }

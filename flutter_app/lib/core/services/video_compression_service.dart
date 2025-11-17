@@ -7,15 +7,15 @@ import 'package:path/path.dart' as path;
 
 /// Video compression quality presets
 enum CompressionQuality {
-  low,    // CRF 28, 720p, 1Mbps
+  low, // CRF 28, 720p, 1Mbps
   medium, // CRF 23, 1080p, 2.5Mbps
-  high,   // CRF 18, 1080p, 5Mbps
+  high, // CRF 18, 1080p, 5Mbps
 }
 
 /// Video compression service using FFmpeg
 class VideoCompressionService {
   /// Compress video for upload
-  /// 
+  ///
   /// This reduces file size while maintaining acceptable quality
   /// Uses H.264 codec for maximum compatibility
   static Future<VideoCompressionResult?> compressVideo({
@@ -36,7 +36,8 @@ class VideoCompressionService {
       }
 
       final inputSize = await inputFile.length();
-      debugPrint('   Input size: ${(inputSize / 1024 / 1024).toStringAsFixed(2)} MB');
+      debugPrint(
+          '   Input size: ${(inputSize / 1024 / 1024).toStringAsFixed(2)} MB');
 
       // Create output path
       final directory = await getTemporaryDirectory();
@@ -85,7 +86,8 @@ class VideoCompressionService {
           if (inputDuration != null) {
             final currentTime = statistics.getTime();
             if (currentTime > 0) {
-              progress = (currentTime / inputDuration.inMilliseconds).clamp(0.0, 1.0);
+              progress =
+                  (currentTime / inputDuration.inMilliseconds).clamp(0.0, 1.0);
               onProgress?.call(progress);
             }
           }
@@ -118,7 +120,8 @@ class VideoCompressionService {
 
       debugPrint('✅ Compression successful!');
       debugPrint('   Output: $outputPath');
-      debugPrint('   Output size: ${(outputSize / 1024 / 1024).toStringAsFixed(2)} MB');
+      debugPrint(
+          '   Output size: ${(outputSize / 1024 / 1024).toStringAsFixed(2)} MB');
       debugPrint('   Compression: ${compressionRatio.toStringAsFixed(1)}%');
 
       onProgress?.call(1.0);
@@ -129,7 +132,6 @@ class VideoCompressionService {
         compressedSize: outputSize,
         compressionRatio: compressionRatio,
       );
-
     } catch (e) {
       debugPrint('❌ Compression error: $e');
       return null;
@@ -177,13 +179,13 @@ class VideoCompressionService {
     try {
       final regex = RegExp(r'Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})');
       final match = regex.firstMatch(output);
-      
+
       if (match != null) {
         final hours = int.parse(match.group(1)!);
         final minutes = int.parse(match.group(2)!);
         final seconds = int.parse(match.group(3)!);
         final centiseconds = int.parse(match.group(4)!);
-        
+
         return Duration(
           hours: hours,
           minutes: minutes,
@@ -280,6 +282,7 @@ class VideoCompressionResult {
   });
 
   String get originalSizeMB => (originalSize / 1024 / 1024).toStringAsFixed(2);
-  String get compressedSizeMB => (compressedSize / 1024 / 1024).toStringAsFixed(2);
+  String get compressedSizeMB =>
+      (compressedSize / 1024 / 1024).toStringAsFixed(2);
   String get compressionPercentage => compressionRatio.toStringAsFixed(1);
 }

@@ -57,7 +57,7 @@ class AudioTrack {
 
 enum AudioTrackType {
   original, // Original video audio
-  music,    // Background music
+  music, // Background music
   voiceover, // Voice recording
 }
 
@@ -103,11 +103,11 @@ class AudioMixerService {
         while (await _recorder.isRecording()) {
           final elapsed = DateTime.now().difference(startTime);
           onProgress(elapsed);
-          
+
           if (elapsed >= duration) {
             break;
           }
-          
+
           await Future.delayed(const Duration(milliseconds: 100));
         }
       } else {
@@ -194,15 +194,17 @@ class AudioMixerService {
       );
 
       // Build FFmpeg filter complex for mixing
-      final filterComplex = _buildMixingFilterComplex(audioTracks, videoDuration);
-      
+      final filterComplex =
+          _buildMixingFilterComplex(audioTracks, videoDuration);
+
       // Build input files string
       final inputs = audioTracks
           .where((track) => !track.isMuted)
           .map((track) => '-i "${track.filePath}"')
           .join(' ');
 
-      final command = '-i "$videoPath" $inputs -filter_complex "$filterComplex" '
+      final command =
+          '-i "$videoPath" $inputs -filter_complex "$filterComplex" '
           '-map "[vout]" -map "[aout]" -c:v copy -c:a aac -b:a 192k -shortest -y "$outputPath"';
 
       debugPrint('🎵 Mixing audio tracks...');
@@ -347,45 +349,50 @@ class AudioMixerService {
     Duration videoDuration,
   ) {
     final audibleTracks = audioTracks.where((track) => !track.isMuted).toList();
-    
+
     if (audibleTracks.isEmpty) {
       return '[0:v]copy[vout];[0:a]anull[aout]';
     }
 
     // Build filter for each audio track
     final filters = <String>[];
-    
+
     for (int i = 0; i < audibleTracks.length; i++) {
       final track = audibleTracks[i];
       final inputIndex = i + 1; // 0 is video
-      
+
       // Volume adjustment
       var filter = '[$inputIndex:a]volume=${track.volume}';
-      
+
       // Fade in
       if (track.fadeIn != null) {
         filter += ',afade=t=in:d=${track.fadeIn!.inMilliseconds / 1000.0}';
       }
-      
+
       // Fade out
       if (track.fadeOut != null) {
-        final fadeOutStart = videoDuration.inMilliseconds - track.fadeOut!.inMilliseconds;
-        filter += ',afade=t=out:st=${fadeOutStart / 1000.0}:d=${track.fadeOut!.inMilliseconds / 1000.0}';
+        final fadeOutStart =
+            videoDuration.inMilliseconds - track.fadeOut!.inMilliseconds;
+        filter +=
+            ',afade=t=out:st=${fadeOutStart / 1000.0}:d=${track.fadeOut!.inMilliseconds / 1000.0}';
       }
-      
+
       // Delay for start time
       if (track.startTime > Duration.zero) {
-        filter += ',adelay=${track.startTime.inMilliseconds}|${track.startTime.inMilliseconds}';
+        filter +=
+            ',adelay=${track.startTime.inMilliseconds}|${track.startTime.inMilliseconds}';
       }
-      
+
       filter += '[a$i]';
       filters.add(filter);
     }
 
     // Mix all audio tracks
-    final trackLabels = List.generate(audibleTracks.length, (i) => '[a$i]').join('');
-    filters.add('$trackLabels${audibleTracks.length > 1 ? 'amix=inputs=${audibleTracks.length}:' : ''}normalize=1[aout]');
-    
+    final trackLabels =
+        List.generate(audibleTracks.length, (i) => '[a$i]').join('');
+    filters.add(
+        '$trackLabels${audibleTracks.length > 1 ? 'amix=inputs=${audibleTracks.length}:' : ''}normalize=1[aout]');
+
     // Video pass-through
     filters.insert(0, '[0:v]copy[vout]');
 
@@ -412,15 +419,17 @@ class AudioMixerService {
       );
 
       var filterString = '';
-      
+
       if (fadeIn != null) {
         filterString += 'afade=t=in:d=${fadeIn.inMilliseconds / 1000.0}';
       }
-      
+
       if (fadeOut != null) {
         if (filterString.isNotEmpty) filterString += ',';
-        final fadeOutStart = totalDuration.inMilliseconds - fadeOut.inMilliseconds;
-        filterString += 'afade=t=out:st=${fadeOutStart / 1000.0}:d=${fadeOut.inMilliseconds / 1000.0}';
+        final fadeOutStart =
+            totalDuration.inMilliseconds - fadeOut.inMilliseconds;
+        filterString +=
+            'afade=t=out:st=${fadeOutStart / 1000.0}:d=${fadeOut.inMilliseconds / 1000.0}';
       }
 
       final command = '-i "$inputPath" -filter:a "$filterString" '

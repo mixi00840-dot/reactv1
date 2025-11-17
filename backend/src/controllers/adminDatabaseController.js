@@ -81,19 +81,24 @@ exports.getCollections = async (req, res) => {
     const collectionsWithStats = await Promise.all(
       collections.map(async (col) => {
         try {
-          const stats = await db.collection(col.name).stats();
+          // Use countDocuments instead of stats() for Atlas compatibility
+          const count = await db.collection(col.name).countDocuments();
           const indexes = await db.collection(col.name).indexes();
+          
+          // Get sample document to estimate size
+          const sampleDoc = await db.collection(col.name).findOne();
+          const estimatedDocSize = sampleDoc ? JSON.stringify(sampleDoc).length : 0;
           
           return {
             name: col.name,
             type: col.type,
-            documents: stats.count,
-            size: stats.size,
-            storageSize: stats.storageSize,
-            avgDocSize: stats.avgObjSize || 0,
+            documents: count,
+            size: count * estimatedDocSize,
+            storageSize: count * estimatedDocSize,
+            avgDocSize: estimatedDocSize,
             indexes: indexes.length,
-            indexSizes: stats.totalIndexSize || 0,
-            capped: stats.capped || false
+            indexSizes: 0, // Not available without stats()
+            capped: false
           };
         } catch (err) {
           console.error(`Error getting stats for ${col.name}:`, err);

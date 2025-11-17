@@ -7,15 +7,15 @@ import 'live_streaming_service.dart';
 /// Agora stream role
 enum AgoraStreamRole {
   broadcaster, // Host
-  audience,    // Viewer
+  audience, // Viewer
 }
 
 /// Agora stream quality preset
 enum AgoraStreamQuality {
-  low,     // 480p, 15fps, 400kbps
-  medium,  // 720p, 24fps, 1000kbps
-  high,    // 720p, 30fps, 1500kbps
-  ultra,   // 1080p, 30fps, 2500kbps
+  low, // 480p, 15fps, 400kbps
+  medium, // 720p, 24fps, 1000kbps
+  high, // 720p, 30fps, 1500kbps
+  ultra, // 1080p, 30fps, 2500kbps
 }
 
 /// Agora streaming manager for live broadcasts
@@ -115,7 +115,8 @@ class AgoraStreamManager {
           _remoteUid = remoteUid;
           _userJoinedController.add(remoteUid);
         },
-        onUserOffline: (RtcConnection connection, int remoteUid, UserOfflineReasonType reason) {
+        onUserOffline: (RtcConnection connection, int remoteUid,
+            UserOfflineReasonType reason) {
           debugPrint('Remote user left: $remoteUid');
           _remoteUid = 0;
           _userLeftController.add(remoteUid);
@@ -305,7 +306,8 @@ class AgoraStreamManager {
     await _engine!.setBeautyEffectOptions(
       enabled: true,
       options: BeautyOptions(
-        lighteningContrastLevel: LighteningContrastLevel.lighteningContrastNormal,
+        lighteningContrastLevel:
+            LighteningContrastLevel.lighteningContrastNormal,
         lighteningLevel: lighteningLevel,
         smoothnessLevel: smoothnessLevel,
         rednessLevel: rednessLevel,

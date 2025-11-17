@@ -1,4 +1,4 @@
-const { Coupon } = require('../models/Coupon');
+const Coupon = require('../models/Coupon');
 const Product = require('../models/Product');
 const { Category } = require('../models/Category');
 const Store = require('../models/Store');

@@ -1,4 +1,4 @@
-const { ShippingZone, ShippingMethod } = require('../models/Shipping');
+const Shipping = require('../models/Shipping');
 const Product = require('../models/Product');
 const Store = require('../models/Store');
 const Order = require('../models/Order');

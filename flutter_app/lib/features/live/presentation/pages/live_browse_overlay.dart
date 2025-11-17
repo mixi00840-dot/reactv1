@@ -163,11 +163,12 @@ class _LiveBrowseOverlayState extends State<LiveBrowseOverlay> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Host info with LIVE badge
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(24),
@@ -189,7 +190,7 @@ class _LiveBrowseOverlayState extends State<LiveBrowseOverlay> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          
+
                           // Host name
                           Flexible(
                             child: Text(
@@ -203,10 +204,11 @@ class _LiveBrowseOverlayState extends State<LiveBrowseOverlay> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          
+
                           // LIVE badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: Colors.red,
                               borderRadius: BorderRadius.circular(4),
@@ -240,10 +242,11 @@ class _LiveBrowseOverlayState extends State<LiveBrowseOverlay> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Viewer count
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(24),
@@ -352,10 +355,11 @@ class _LiveBrowseOverlayState extends State<LiveBrowseOverlay> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Comment input
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(24),
@@ -397,7 +401,8 @@ class _LiveBrowseOverlayState extends State<LiveBrowseOverlay> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(16),
@@ -439,7 +444,8 @@ class _LiveBrowseOverlayState extends State<LiveBrowseOverlay> {
             size: 34,
             shadows: const [
               Shadow(color: Colors.black, blurRadius: 12, offset: Offset(0, 2)),
-              Shadow(color: Colors.black54, blurRadius: 20, offset: Offset(0, 3)),
+              Shadow(
+                  color: Colors.black54, blurRadius: 20, offset: Offset(0, 3)),
             ],
           ),
           const SizedBox(height: 4),
@@ -452,7 +458,8 @@ class _LiveBrowseOverlayState extends State<LiveBrowseOverlay> {
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.3,
                 shadows: [
-                  Shadow(color: Colors.black, blurRadius: 8, offset: Offset(0, 1)),
+                  Shadow(
+                      color: Colors.black, blurRadius: 8, offset: Offset(0, 1)),
                 ],
               ),
             ),

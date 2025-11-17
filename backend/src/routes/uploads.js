@@ -206,5 +206,80 @@ router.get('/', verifyJWT, async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/uploads/:id/confirm
+ * @desc    Alias for /complete - confirm upload completion
+ * @access  Private
+ */
+router.post('/:id/confirm', verifyJWT, async (req, res) => {
+  try {
+    const { fileUrl, thumbnail, duration, width, height } = req.body;
+    const sessionId = req.params.id;
+
+    if (!sessionId || !fileUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'SessionId and fileUrl are required'
+      });
+    }
+
+    // Find upload session
+    const session = await UploadSession.findById(sessionId);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: 'Upload session not found'
+      });
+    }
+
+    if (!session.userId.equals(req.user.id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to complete this upload'
+      });
+    }
+
+    // Create content record
+    const content = new Content({
+      userId: req.user.id,
+      type: session.contentType.startsWith('video') ? 'video' : 'image',
+      videoUrl: fileUrl,
+      thumbnailUrl: thumbnail,
+      duration: duration || 0,
+      width: width || 0,
+      height: height || 0,
+      status: 'pending', // Pending moderation
+      fileKey: session.fileKey,
+      fileSize: session.fileSize
+    });
+
+    await content.save();
+
+    // Update session
+    session.status = 'completed';
+    session.contentId = content._id;
+    session.completedAt = new Date();
+    await session.save();
+
+    res.json({
+      success: true,
+      data: {
+        content,
+        session
+      },
+      message: 'Upload completed successfully'
+    });
+
+  } catch (error) {
+    console.error('Confirm upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error confirming upload',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
 

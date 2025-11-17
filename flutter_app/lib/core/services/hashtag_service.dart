@@ -110,7 +110,8 @@ class HashtagService {
 
         return suggestions;
       } else {
-        throw Exception(response.data['error'] ?? 'Failed to generate hashtags');
+        throw Exception(
+            response.data['error'] ?? 'Failed to generate hashtags');
       }
     } on DioException catch (e) {
       debugPrint('❌ Hashtag generation error: ${e.message}');
@@ -230,16 +231,47 @@ class HashtagService {
   /// Get default trending hashtags (fallback)
   static List<HashtagSuggestion> _getDefaultTrendingHashtags() {
     return [
-      HashtagSuggestion(hashtag: '#fyp', source: 'trending', relevance: 1.0, count: 1000000),
-      HashtagSuggestion(hashtag: '#foryou', source: 'trending', relevance: 0.95, count: 900000),
-      HashtagSuggestion(hashtag: '#foryoupage', source: 'trending', relevance: 0.9, count: 800000),
-      HashtagSuggestion(hashtag: '#viral', source: 'trending', relevance: 0.85, count: 700000),
-      HashtagSuggestion(hashtag: '#trending', source: 'trending', relevance: 0.8, count: 600000),
-      HashtagSuggestion(hashtag: '#explore', source: 'trending', relevance: 0.75, count: 500000),
-      HashtagSuggestion(hashtag: '#video', source: 'trending', relevance: 0.7, count: 400000),
-      HashtagSuggestion(hashtag: '#dance', source: 'trending', relevance: 0.65, count: 300000),
-      HashtagSuggestion(hashtag: '#music', source: 'trending', relevance: 0.6, count: 250000),
-      HashtagSuggestion(hashtag: '#funny', source: 'trending', relevance: 0.55, count: 200000),
+      HashtagSuggestion(
+          hashtag: '#fyp', source: 'trending', relevance: 1.0, count: 1000000),
+      HashtagSuggestion(
+          hashtag: '#foryou',
+          source: 'trending',
+          relevance: 0.95,
+          count: 900000),
+      HashtagSuggestion(
+          hashtag: '#foryoupage',
+          source: 'trending',
+          relevance: 0.9,
+          count: 800000),
+      HashtagSuggestion(
+          hashtag: '#viral',
+          source: 'trending',
+          relevance: 0.85,
+          count: 700000),
+      HashtagSuggestion(
+          hashtag: '#trending',
+          source: 'trending',
+          relevance: 0.8,
+          count: 600000),
+      HashtagSuggestion(
+          hashtag: '#explore',
+          source: 'trending',
+          relevance: 0.75,
+          count: 500000),
+      HashtagSuggestion(
+          hashtag: '#video', source: 'trending', relevance: 0.7, count: 400000),
+      HashtagSuggestion(
+          hashtag: '#dance',
+          source: 'trending',
+          relevance: 0.65,
+          count: 300000),
+      HashtagSuggestion(
+          hashtag: '#music', source: 'trending', relevance: 0.6, count: 250000),
+      HashtagSuggestion(
+          hashtag: '#funny',
+          source: 'trending',
+          relevance: 0.55,
+          count: 200000),
     ];
   }
 
@@ -259,9 +291,7 @@ class HashtagService {
 
   /// Format hashtags for display
   static String formatHashtags(List<String> hashtags) {
-    return hashtags
-        .map((h) => h.startsWith('#') ? h : '#$h')
-        .join(' ');
+    return hashtags.map((h) => h.startsWith('#') ? h : '#$h').join(' ');
   }
 
   /// Extract hashtags from text
@@ -275,9 +305,9 @@ class HashtagService {
   static bool isValidHashtag(String hashtag) {
     final cleaned = hashtag.startsWith('#') ? hashtag.substring(1) : hashtag;
     final regex = RegExp(r'^[a-zA-Z0-9_]+$');
-    return cleaned.isNotEmpty && 
-           cleaned.length <= 50 && 
-           regex.hasMatch(cleaned);
+    return cleaned.isNotEmpty &&
+        cleaned.length <= 50 &&
+        regex.hasMatch(cleaned);
   }
 
   /// Clean hashtag (add # if missing)

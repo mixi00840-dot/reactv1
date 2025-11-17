@@ -1,0 +1,49 @@
+{
+  "id": "mixillo-production-env",
+  "name": "Mixillo - Production",
+  "values": [
+    {
+      "key": "API_BASE_URL",
+      "value": "https://mixillo-backend-52242135857.europe-west1.run.app",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "REFRESH_TOKEN",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "USER_ID",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "STREAM_ID",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "AGORA_TOKEN",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "CHANNEL_NAME",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

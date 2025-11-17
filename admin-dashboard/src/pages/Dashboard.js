@@ -120,24 +120,24 @@ function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       const response = await mongoAPI.analytics.getDashboard();
-      setStats(response?.data?.stats || response?.stats || response?.data || response);
+      console.log('Dashboard API Response:', response);
+      
+      // Extract data from various possible response structures
+      const data = response?.data || response;
+      
+      // Set stats with proper defaults
+      setStats({
+        overview: data?.overview || {},
+        topEarners: Array.isArray(data?.topEarners) ? data.topEarners : [],
+        recentUsers: Array.isArray(data?.recentUsers) ? data.recentUsers : [],
+        monthlyRegistrations: Array.isArray(data?.monthlyRegistrations) ? data.monthlyRegistrations : []
+      });
     } catch (error) {
       console.error('Dashboard data fetch error:', error);
       toast.error(error.response?.data?.message || 'Failed to load dashboard data');
       // Set default empty structure to prevent undefined errors
       setStats({
-        overview: {
-          totalUsers: 0,
-          activeUsers: 0,
-          bannedUsers: 0,
-          suspendedUsers: 0,
-          verifiedUsers: 0,
-          featuredUsers: 0,
-          pendingSellerApps: 0,
-          approvedSellers: 0,
-          totalStrikes: 0,
-          activeStrikes: 0
-        },
+        overview: {},
         topEarners: [],
         recentUsers: [],
         monthlyRegistrations: []
@@ -177,7 +177,7 @@ function Dashboard() {
     );
   }
 
-  const { overview = {}, topEarners = [], recentUsers = [], monthlyRegistrations = [] } = stats;
+  const { overview = {}, topEarners = [], recentUsers = [], monthlyRegistrations = [] } = stats || {};
 
   // Ensure overview has all required properties with defaults
   const safeOverview = {
@@ -194,18 +194,38 @@ function Dashboard() {
     ...overview
   };
 
+  // Safely process monthly registrations data - SIMPLIFIED
+  let chartLabels = [];
+  let chartData = [];
+  
+  try {
+    if (Array.isArray(monthlyRegistrations) && monthlyRegistrations.length > 0) {
+      monthlyRegistrations.forEach(item => {
+        if (item && item._id && item._id.year && item._id.month) {
+          // Simple string concatenation - no date parsing
+          const label = `${item._id.month}/${item._id.year}`;
+          chartLabels.push(label);
+          chartData.push(item.count || 0);
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error processing chart data:', err);
+  }
+  
+  // Use fallback if no data
+  if (chartLabels.length === 0) {
+    chartLabels = ['No Data'];
+    chartData = [0];
+  }
+
   // Chart data for user registrations
   const registrationChartData = {
-    labels: (monthlyRegistrations || []).map(item => 
-      new Date(item._id.year, item._id.month - 1).toLocaleDateString('en-US', { 
-        month: 'short', 
-        year: 'numeric' 
-      })
-    ),
+    labels: chartLabels,
     datasets: [
       {
         label: 'New Users',
-        data: (monthlyRegistrations || []).map(item => item.count || 0),
+        data: chartData,
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         tension: 0.4,
@@ -414,35 +434,40 @@ function Dashboard() {
                 Top Earners
               </Typography>
               <List>
-                {topEarners.slice(0, 5).map((earner, index) => (
-                  <React.Fragment key={earner.user._id}>
-                    <ListItem>
-                      <ListItemAvatar>
-                        <Avatar src={earner.user.avatar}>
-                          {earner.user.fullName.charAt(0)}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Box display="flex" alignItems="center" gap={1}>
-                            {earner.user.fullName}
-                            {earner.user.isVerified && (
-                              <VerifiedUser sx={{ fontSize: 16, color: 'primary.main' }} />
-                            )}
-                          </Box>
-                        }
-                        secondary={`$${earner.totalEarnings.toLocaleString()} • ${earner.supportLevel}`}
-                      />
-                      <Chip 
-                        label={`#${index + 1}`} 
-                        size="small" 
-                        color="primary" 
-                        variant="outlined" 
-                      />
-                    </ListItem>
-                    {index < 4 && <Divider variant="inset" component="li" />}
-                  </React.Fragment>
-                ))}
+                {(topEarners || []).slice(0, 5).map((earner, index) => {
+                  const user = earner?.user || {};
+                  const displayName = user.fullName || user.username || user.email || 'User';
+                  const initial = typeof displayName === 'string' && displayName.length > 0 ? displayName.charAt(0) : 'U';
+                  return (
+                    <React.Fragment key={user._id || index}>
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar src={user.avatar}>
+                            {initial}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Box display="flex" alignItems="center" gap={1}>
+                              {displayName}
+                              {user.isVerified && (
+                                <VerifiedUser sx={{ fontSize: 16, color: 'primary.main' }} />
+                              )}
+                            </Box>
+                          }
+                          secondary={`$${Number(earner?.totalEarnings || 0).toLocaleString()} • ${earner?.supportLevel || 'Supporter'}`}
+                        />
+                        <Chip 
+                          label={`#${index + 1}`} 
+                          size="small" 
+                          color="primary" 
+                          variant="outlined" 
+                        />
+                      </ListItem>
+                      {index < 4 && <Divider variant="inset" component="li" />}
+                    </React.Fragment>
+                  );
+                })}
               </List>
             </CardContent>
           </Card>
@@ -456,23 +481,30 @@ function Dashboard() {
                 Recent Users
               </Typography>
               <List>
-                {recentUsers.slice(0, 5).map((user, index) => (
-                  <React.Fragment key={user._id}>
-                    <ListItem>
-                      <ListItemAvatar>
-                        <Avatar src={user.avatar}>
-                          {user.fullName.charAt(0)}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={user.fullName}
-                        secondary={`@${user.username} • ${new Date(user.createdAt).toLocaleDateString()}`}
-                      />
-                      <UserStatusChip status={user.status} />
-                    </ListItem>
-                    {index < 4 && <Divider variant="inset" component="li" />}
-                  </React.Fragment>
-                ))}
+                {(recentUsers || []).slice(0, 5).map((user, index) => {
+                  const displayName = user?.fullName || user?.username || user?.email || 'User';
+                  const initial = typeof displayName === 'string' && displayName.length > 0 ? displayName.charAt(0) : 'U';
+                  const username = user?.username ? `@${user.username}` : (user?.email || '');
+                  let dateText = '';
+                  try { dateText = user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : ''; } catch {}
+                  return (
+                    <React.Fragment key={user?._id || index}>
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar src={user?.avatar}>
+                            {initial}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={displayName}
+                          secondary={[username, dateText].filter(Boolean).join(' • ')}
+                        />
+                        <UserStatusChip status={user?.status || 'active'} />
+                      </ListItem>
+                      {index < 4 && <Divider variant="inset" component="li" />}
+                    </React.Fragment>
+                  );
+                })}
               </List>
             </CardContent>
           </Card>
