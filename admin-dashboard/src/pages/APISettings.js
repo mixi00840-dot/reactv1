@@ -517,8 +517,8 @@ const APISettings = () => {
                       fullWidth 
                       label="Video Max Size" 
                       type="number"
-                      value={settings.cloudinary.maxFileSize.video} 
-                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...settings.cloudinary.maxFileSize, video: parseInt(e.target.value)})}
+                      value={settings.cloudinary.maxFileSize?.video || 100} 
+                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...(settings.cloudinary.maxFileSize || {}), video: parseInt(e.target.value)})}
                       InputProps={{ endAdornment: 'MB' }}
                     />
                   </Grid>
@@ -527,8 +527,8 @@ const APISettings = () => {
                       fullWidth 
                       label="Image Max Size" 
                       type="number"
-                      value={settings.cloudinary.maxFileSize.image} 
-                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...settings.cloudinary.maxFileSize, image: parseInt(e.target.value)})}
+                      value={settings.cloudinary.maxFileSize?.image || 10} 
+                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...(settings.cloudinary.maxFileSize || {}), image: parseInt(e.target.value)})}
                       InputProps={{ endAdornment: 'MB' }}
                     />
                   </Grid>
@@ -537,8 +537,8 @@ const APISettings = () => {
                       fullWidth 
                       label="Audio Max Size" 
                       type="number"
-                      value={settings.cloudinary.maxFileSize.audio} 
-                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...settings.cloudinary.maxFileSize, audio: parseInt(e.target.value)})}
+                      value={settings.cloudinary.maxFileSize?.audio || 50} 
+                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...(settings.cloudinary.maxFileSize || {}), audio: parseInt(e.target.value)})}
                       InputProps={{ endAdornment: 'MB' }}
                     />
                   </Grid>
@@ -547,8 +547,8 @@ const APISettings = () => {
                       fullWidth 
                       label="Document Max Size" 
                       type="number"
-                      value={settings.cloudinary.maxFileSize.document} 
-                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...settings.cloudinary.maxFileSize, document: parseInt(e.target.value)})}
+                      value={settings.cloudinary.maxFileSize?.document || 20} 
+                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...(settings.cloudinary.maxFileSize || {}), document: parseInt(e.target.value)})}
                       InputProps={{ endAdornment: 'MB' }}
                     />
                   </Grid>
@@ -564,8 +564,8 @@ const APISettings = () => {
                     <TextField 
                       fullWidth 
                       label="Video Formats" 
-                      value={settings.cloudinary.allowedFormats.video.join(', ')} 
-                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...settings.cloudinary.allowedFormats, video: e.target.value.split(',').map(f => f.trim())})}
+                      value={(settings.cloudinary.allowedFormats?.video || ['mp4', 'mov', 'avi', 'webm']).join(', ')} 
+                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...(settings.cloudinary.allowedFormats || {}), video: e.target.value.split(',').map(f => f.trim())})}
                       helperText="Comma-separated (e.g., mp4, mov, avi)"
                     />
                   </Grid>
@@ -573,8 +573,8 @@ const APISettings = () => {
                     <TextField 
                       fullWidth 
                       label="Image Formats" 
-                      value={settings.cloudinary.allowedFormats.image.join(', ')} 
-                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...settings.cloudinary.allowedFormats, image: e.target.value.split(',').map(f => f.trim())})}
+                      value={(settings.cloudinary.allowedFormats?.image || ['jpg', 'jpeg', 'png', 'gif', 'webp']).join(', ')} 
+                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...(settings.cloudinary.allowedFormats || {}), image: e.target.value.split(',').map(f => f.trim())})}
                       helperText="Comma-separated (e.g., jpg, png, gif)"
                     />
                   </Grid>
@@ -582,8 +582,8 @@ const APISettings = () => {
                     <TextField 
                       fullWidth 
                       label="Audio Formats" 
-                      value={settings.cloudinary.allowedFormats.audio.join(', ')} 
-                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...settings.cloudinary.allowedFormats, audio: e.target.value.split(',').map(f => f.trim())})}
+                      value={(settings.cloudinary.allowedFormats?.audio || ['mp3', 'wav', 'ogg']).join(', ')} 
+                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...(settings.cloudinary.allowedFormats || {}), audio: e.target.value.split(',').map(f => f.trim())})}
                       helperText="Comma-separated (e.g., mp3, wav)"
                     />
                   </Grid>
@@ -591,8 +591,8 @@ const APISettings = () => {
                     <TextField 
                       fullWidth 
                       label="Document Formats" 
-                      value={settings.cloudinary.allowedFormats.document.join(', ')} 
-                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...settings.cloudinary.allowedFormats, document: e.target.value.split(',').map(f => f.trim())})}
+                      value={(settings.cloudinary.allowedFormats?.document || ['pdf', 'doc', 'docx', 'txt']).join(', ')} 
+                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...(settings.cloudinary.allowedFormats || {}), document: e.target.value.split(',').map(f => f.trim())})}
                       helperText="Comma-separated (e.g., pdf, doc)"
                     />
                   </Grid>
