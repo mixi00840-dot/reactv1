@@ -495,7 +495,25 @@ router.put('/admin/chat/:sessionId/transfer',
       const { sessionId } = req.params;
       const { toAgentId, reason } = req.body;
 
-      const { LiveChat } = require('../models/CustomerService');
+      // Try to import LiveChat model
+      let LiveChat;
+      try {
+        const customerService = require('../models/CustomerService');
+        LiveChat = customerService.LiveChat || null;
+      } catch (error) {
+        return res.status(503).json({
+          success: false,
+          message: 'Live chat feature not available'
+        });
+      }
+
+      if (!LiveChat) {
+        return res.status(503).json({
+          success: false,
+          message: 'Live chat model not configured'
+        });
+      }
+
       const User = require('../models/User');
 
       // Verify target agent
@@ -581,7 +599,17 @@ router.get('/admin/agents/performance',
         matchQuery.assignedTo = mongoose.Types.ObjectId(agentId);
       }
 
-      const { SupportTicket, LiveChat } = require('../models/CustomerService');
+      // Try to import models
+      let SupportTicket, LiveChat;
+      try {
+        const customerService = require('../models/CustomerService');
+        SupportTicket = customerService.SupportTicket || customerService;
+        LiveChat = customerService.LiveChat || null;
+      } catch (error) {
+        console.warn('CustomerService models not available:', error.message);
+        SupportTicket = require('../models/CustomerService');
+        LiveChat = null;
+      }
 
       // Ticket performance
       const ticketPerformance = await SupportTicket.aggregate([
@@ -638,45 +666,48 @@ router.get('/admin/agents/performance',
         }
       ]);
 
-      // Chat performance
-      const chatPerformance = await LiveChat.aggregate([
-        {
-          $match: {
-            ...matchQuery,
-            agent: { $exists: true }
+      // Chat performance (only if LiveChat model available)
+      let chatPerformance = [];
+      if (LiveChat) {
+        chatPerformance = await LiveChat.aggregate([
+          {
+            $match: {
+              ...matchQuery,
+              agent: { $exists: true }
+            }
+          },
+          {
+            $group: {
+              _id: '$agent',
+              totalChats: { $sum: 1 },
+              avgDuration: { $avg: '$metrics.duration' },
+              avgWaitTime: { $avg: '$waitTime' },
+              avgSatisfaction: { $avg: '$feedback.rating' }
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'agent'
+            }
+          },
+          {
+            $unwind: '$agent'
+          },
+          {
+            $project: {
+              agentName: { $concat: ['$agent.firstName', ' ', '$agent.lastName'] },
+              agentEmail: '$agent.email',
+              totalChats: 1,
+              avgDuration: 1,
+              avgWaitTime: 1,
+              avgSatisfaction: 1
+            }
           }
-        },
-        {
-          $group: {
-            _id: '$agent',
-            totalChats: { $sum: 1 },
-            avgDuration: { $avg: '$metrics.duration' },
-            avgWaitTime: { $avg: '$waitTime' },
-            avgSatisfaction: { $avg: '$feedback.rating' }
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'agent'
-          }
-        },
-        {
-          $unwind: '$agent'
-        },
-        {
-          $project: {
-            agentName: { $concat: ['$agent.firstName', ' ', '$agent.lastName'] },
-            agentEmail: '$agent.email',
-            totalChats: 1,
-            avgDuration: 1,
-            avgWaitTime: 1,
-            avgSatisfaction: 1
-          }
-        }
-      ]);
+        ]);
+      }
 
       res.json({
         success: true,

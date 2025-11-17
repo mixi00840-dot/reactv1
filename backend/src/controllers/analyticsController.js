@@ -9,7 +9,18 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const Store = require('../models/Store');
-const { SupportTicket, LiveChat } = require('../models/CustomerService');
+
+// Try to import LiveChat, fallback if not available
+let SupportTicket, LiveChat;
+try {
+  const customerService = require('../models/CustomerService');
+  SupportTicket = customerService.SupportTicket || customerService;
+  LiveChat = customerService.LiveChat || null;
+} catch (error) {
+  console.warn('CustomerService models not fully available:', error.message);
+  SupportTicket = null;
+  LiveChat = null;
+}
 const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 
