@@ -170,23 +170,16 @@ const UniversalUploader = ({
       }
       console.log('=== SIGNATURE DEBUG END ===');
 
-      // axios returns response.data, which contains our backend response
-      const backendResponse = signatureResponse.data;
-      
-      if (!backendResponse || !backendResponse.success) {
-        console.error('Backend error:', backendResponse);
-        throw new Error(backendResponse?.message || 'Failed to get upload signature');
-      }
-
-      // Backend returns { success: true, data: { signature, timestamp, ... } }
-      const { signature, timestamp, cloudName, apiKey, folder } = backendResponse.data;
+      // Backend returns data directly in response.data (not nested in success/data)
+      // The apiMongoDB interceptor already extracts response.data
+      const { signature, timestamp, cloudName, apiKey, folder } = signatureResponse.data;
 
       if (!signature || !timestamp || !cloudName || !apiKey) {
-        console.error('Missing signature fields:', backendResponse.data);
+        console.error('Missing signature fields. Full response.data:', signatureResponse.data);
         throw new Error('Incomplete signature data received from server');
       }
 
-      console.log('✅ Successfully extracted signature data');
+      console.log('✅ Successfully extracted signature data:', { signature, timestamp, cloudName, apiKey, folder });
 
       // Step 2: Upload to Cloudinary with signature
       const formData = new FormData();
