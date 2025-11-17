@@ -1,15 +1,54 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 const { verifyJWT } = require('../middleware/jwtAuth');
 const { validationRules, handleValidationErrors } = require('../middleware/validation');
 const UploadSession = require('../models/UploadSession');
 const Content = require('../models/Content');
+const SystemSettings = require('../models/SystemSettings');
 
 /**
  * Uploads Routes - MongoDB Implementation
- * File upload with Cloudinary/GCS support
+ * File upload with Cloudinary signed upload support
  */
+
+// Configure Cloudinary (will be overridden by settings from DB)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'mixillo',
+  api_key: process.env.CLOUDINARY_API_KEY || '287216393992378',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'kflDVBjiq-Jkc-IgDWlggtdc6Yw',
+  secure: true
+});
+
+/**
+ * Get Cloudinary settings from database or environment
+ */
+async function getCloudinarySettings() {
+  try {
+    const settings = await SystemSettings.findOne({ category: 'storage', provider: 'cloudinary' });
+    if (settings && settings.config) {
+      return {
+        cloudName: settings.config.cloudName || process.env.CLOUDINARY_CLOUD_NAME,
+        apiKey: settings.config.apiKey || process.env.CLOUDINARY_API_KEY,
+        apiSecret: settings.config.apiSecret || process.env.CLOUDINARY_API_SECRET,
+        folder: settings.config.folder || 'mixillo/uploads',
+        enabled: settings.isActive !== false
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching Cloudinary settings:', error);
+  }
+  
+  // Fallback to environment variables
+  return {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'dlg6dnlj4',
+    apiKey: process.env.CLOUDINARY_API_KEY || '287216393992378',
+    apiSecret: process.env.CLOUDINARY_API_SECRET || 'kflDVBjiq-Jkc-IgDWlggtdc6Yw',
+    folder: 'mixillo/uploads',
+    enabled: true
+  };
+}
 
 // Configure multer for memory storage
 const upload = multer({
@@ -29,18 +68,95 @@ router.get('/health', (req, res) => {
 });
 
 /**
+ * @route   POST /api/uploads/signature
+ * @desc    Generate Cloudinary signature for signed upload
+ * @access  Private (Admin or authenticated user)
+ */
+router.post('/signature', verifyJWT, async (req, res) => {
+  try {
+    const { folder, resourceType = 'auto', publicId } = req.body;
+    
+    // Get Cloudinary settings from database
+    const cloudinarySettings = await getCloudinarySettings();
+    
+    if (!cloudinarySettings.enabled) {
+      return res.status(503).json({
+        success: false,
+        message: 'Cloudinary uploads are currently disabled'
+      });
+    }
+
+    // Update cloudinary config with DB settings
+    cloudinary.config({
+      cloud_name: cloudinarySettings.cloudName,
+      api_key: cloudinarySettings.apiKey,
+      api_secret: cloudinarySettings.apiSecret,
+      secure: true
+    });
+
+    const timestamp = Math.round(Date.now() / 1000);
+    const uploadFolder = folder || cloudinarySettings.folder || 'mixillo/uploads';
+    
+    // Parameters to sign
+    const params = {
+      timestamp,
+      folder: uploadFolder,
+      resource_type: resourceType,
+      ...(publicId && { public_id: publicId })
+    };
+
+    // Generate signature
+    const signature = cloudinary.utils.api_sign_request(
+      params,
+      cloudinarySettings.apiSecret
+    );
+
+    res.json({
+      success: true,
+      data: {
+        signature,
+        timestamp,
+        cloudName: cloudinarySettings.cloudName,
+        apiKey: cloudinarySettings.apiKey,
+        folder: uploadFolder,
+        resourceType
+      },
+      message: 'Upload signature generated'
+    });
+
+  } catch (error) {
+    console.error('Generate signature error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating upload signature',
+      error: error.message
+    });
+  }
+});
+
+/**
  * @route   POST /api/uploads/presigned-url
- * @desc    Generate presigned URL for direct upload
+ * @desc    Generate presigned URL for direct upload (legacy support)
  * @access  Private
  */
 router.post('/presigned-url', verifyJWT, validationRules.fileUpload(), handleValidationErrors, async (req, res) => {
   try {
-    const { filename, contentType, fileSize } = req.body;
+    const { filename, contentType, fileSize, folder } = req.body;
 
     if (!filename || !contentType) {
       return res.status(400).json({
         success: false,
         message: 'Filename and contentType are required'
+      });
+    }
+
+    // Get Cloudinary settings
+    const cloudinarySettings = await getCloudinarySettings();
+    
+    if (!cloudinarySettings.enabled) {
+      return res.status(503).json({
+        success: false,
+        message: 'Cloudinary uploads are currently disabled'
       });
     }
 
@@ -62,22 +178,34 @@ router.post('/presigned-url', verifyJWT, validationRules.fileUpload(), handleVal
 
     await uploadSession.save();
 
-    // For now, return a direct upload URL (Cloudinary implementation pending)
-    // TODO: Integrate with Cloudinary or GCS for actual presigned URLs
-    const uploadUrl = `${process.env.CLOUDINARY_UPLOAD_URL || 'https://api.cloudinary.com/v1_1/mixillo/upload'}`;
+    // Generate signed parameters
+    const uploadTimestamp = Math.round(Date.now() / 1000);
+    const uploadFolder = folder || cloudinarySettings.folder || 'mixillo/uploads';
+    
+    const params = {
+      timestamp: uploadTimestamp,
+      folder: uploadFolder
+    };
+
+    const signature = cloudinary.utils.api_sign_request(
+      params,
+      cloudinarySettings.apiSecret
+    );
 
     res.json({
       success: true,
       data: {
-        uploadUrl,
+        uploadUrl: `https://api.cloudinary.com/v1_1/${cloudinarySettings.cloudName}/auto/upload`,
+        signature,
+        timestamp: uploadTimestamp,
+        apiKey: cloudinarySettings.apiKey,
+        cloudName: cloudinarySettings.cloudName,
+        folder: uploadFolder,
         fileKey,
         sessionId: uploadSession._id,
-        expiresAt: uploadSession.expiresAt,
-        // Cloudinary params (if using Cloudinary)
-        uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET || 'mixillo_unsigned',
-        cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'mixillo'
+        expiresAt: uploadSession.expiresAt
       },
-      message: 'Presigned URL generated'
+      message: 'Signed upload URL generated'
     });
 
   } catch (error) {

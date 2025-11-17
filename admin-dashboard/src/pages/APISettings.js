@@ -45,7 +45,29 @@ const APISettings = () => {
     webrtc: { enabled: true, stunServers: '', turnServers: '', turnUsername: '', turnCredential: '' },
     
     // Cloud Storage
-    cloudinary: { enabled: true, cloudName: '', apiKey: '', apiSecret: '', uploadPreset: 'mixillo_uploads', folder: 'mixillo' },
+    cloudinary: { 
+      enabled: true, 
+      cloudName: '', 
+      apiKey: '', 
+      apiSecret: '', 
+      uploadPreset: 'mixillo_uploads', 
+      folder: 'mixillo',
+      signedUpload: true,
+      maxFileSize: {
+        video: 100,
+        image: 10,
+        audio: 50,
+        document: 20
+      },
+      allowedFormats: {
+        video: ['mp4', 'mov', 'avi', 'webm'],
+        image: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        audio: ['mp3', 'wav', 'ogg'],
+        document: ['pdf', 'doc', 'docx', 'txt']
+      },
+      accessMode: 'public',
+      signatureExpiry: 3600
+    },
     aws: { enabled: false, accessKeyId: '', secretAccessKey: '', region: 'us-east-1', bucket: '' },
     firebase: { enabled: false, apiKey: '', authDomain: '', projectId: '', storageBucket: '' },
     cloudflare: { enabled: false, accountId: '', apiToken: '', r2Bucket: '' },
@@ -419,20 +441,169 @@ const APISettings = () => {
                       label="Enable Cloudinary"
                     />
                   </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField fullWidth label="Cloud Name" value={settings.cloudinary.cloudName} onChange={(e) => updateSetting('cloudinary', 'cloudName', e.target.value)} placeholder="your-cloud-name" />
+                  
+                  {/* Basic Configuration */}
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="primary" sx={{ mt: 1, mb: 1 }}>
+                      Basic Configuration
+                    </Typography>
+                    <Divider />
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <TextField fullWidth label="API Key" value={settings.cloudinary.apiKey} onChange={(e) => updateSetting('cloudinary', 'apiKey', e.target.value)} />
+                    <TextField fullWidth label="Cloud Name" value={settings.cloudinary.cloudName} onChange={(e) => updateSetting('cloudinary', 'cloudName', e.target.value)} placeholder="your-cloud-name" required />
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <TextField fullWidth label="API Secret" type="password" value={settings.cloudinary.apiSecret} onChange={(e) => updateSetting('cloudinary', 'apiSecret', e.target.value)} />
+                    <TextField fullWidth label="API Key" value={settings.cloudinary.apiKey} onChange={(e) => updateSetting('cloudinary', 'apiKey', e.target.value)} required />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField fullWidth label="API Secret" type="password" value={settings.cloudinary.apiSecret} onChange={(e) => updateSetting('cloudinary', 'apiSecret', e.target.value)} required />
+                  </Grid>
+                  
+                  {/* Upload Security */}
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="primary" sx={{ mt: 2, mb: 1 }}>
+                      Upload Security
+                    </Typography>
+                    <Divider />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="Upload Preset" value={settings.cloudinary.uploadPreset} onChange={(e) => updateSetting('cloudinary', 'uploadPreset', e.target.value)} helperText="Default preset for unsigned uploads" />
+                    <FormControlLabel
+                      control={<Switch checked={settings.cloudinary.signedUpload} onChange={(e) => updateSetting('cloudinary', 'signedUpload', e.target.checked)} />}
+                      label="Enable Signed Uploads (Recommended)"
+                    />
+                    <Typography variant="caption" display="block" color="text.secondary">
+                      Signed uploads provide better security by requiring backend signature for each upload
+                    </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="Default Folder" value={settings.cloudinary.folder} onChange={(e) => updateSetting('cloudinary', 'folder', e.target.value)} helperText="Root folder for uploads" />
+                    <TextField 
+                      fullWidth 
+                      label="Signature Expiry (seconds)" 
+                      type="number"
+                      value={settings.cloudinary.signatureExpiry} 
+                      onChange={(e) => updateSetting('cloudinary', 'signatureExpiry', parseInt(e.target.value))}
+                      helperText="How long upload signatures remain valid"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth label="Upload Preset" value={settings.cloudinary.uploadPreset} onChange={(e) => updateSetting('cloudinary', 'uploadPreset', e.target.value)} helperText="For unsigned uploads (legacy)" disabled={settings.cloudinary.signedUpload} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth label="Default Folder" value={settings.cloudinary.folder} onChange={(e) => updateSetting('cloudinary', 'folder', e.target.value)} helperText="Root folder for all uploads" />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Access Mode</InputLabel>
+                      <Select 
+                        value={settings.cloudinary.accessMode} 
+                        onChange={(e) => updateSetting('cloudinary', 'accessMode', e.target.value)}
+                        label="Access Mode"
+                      >
+                        <MenuItem value="public">Public (URLs accessible to anyone)</MenuItem>
+                        <MenuItem value="authenticated">Authenticated (Requires signature)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  {/* File Size Limits */}
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="primary" sx={{ mt: 2, mb: 1 }}>
+                      File Size Limits (MB)
+                    </Typography>
+                    <Divider />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField 
+                      fullWidth 
+                      label="Video Max Size" 
+                      type="number"
+                      value={settings.cloudinary.maxFileSize.video} 
+                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...settings.cloudinary.maxFileSize, video: parseInt(e.target.value)})}
+                      InputProps={{ endAdornment: 'MB' }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField 
+                      fullWidth 
+                      label="Image Max Size" 
+                      type="number"
+                      value={settings.cloudinary.maxFileSize.image} 
+                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...settings.cloudinary.maxFileSize, image: parseInt(e.target.value)})}
+                      InputProps={{ endAdornment: 'MB' }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField 
+                      fullWidth 
+                      label="Audio Max Size" 
+                      type="number"
+                      value={settings.cloudinary.maxFileSize.audio} 
+                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...settings.cloudinary.maxFileSize, audio: parseInt(e.target.value)})}
+                      InputProps={{ endAdornment: 'MB' }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField 
+                      fullWidth 
+                      label="Document Max Size" 
+                      type="number"
+                      value={settings.cloudinary.maxFileSize.document} 
+                      onChange={(e) => updateSetting('cloudinary', 'maxFileSize', {...settings.cloudinary.maxFileSize, document: parseInt(e.target.value)})}
+                      InputProps={{ endAdornment: 'MB' }}
+                    />
+                  </Grid>
+                  
+                  {/* Allowed Formats */}
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="primary" sx={{ mt: 2, mb: 1 }}>
+                      Allowed File Formats
+                    </Typography>
+                    <Divider />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Video Formats" 
+                      value={settings.cloudinary.allowedFormats.video.join(', ')} 
+                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...settings.cloudinary.allowedFormats, video: e.target.value.split(',').map(f => f.trim())})}
+                      helperText="Comma-separated (e.g., mp4, mov, avi)"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Image Formats" 
+                      value={settings.cloudinary.allowedFormats.image.join(', ')} 
+                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...settings.cloudinary.allowedFormats, image: e.target.value.split(',').map(f => f.trim())})}
+                      helperText="Comma-separated (e.g., jpg, png, gif)"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Audio Formats" 
+                      value={settings.cloudinary.allowedFormats.audio.join(', ')} 
+                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...settings.cloudinary.allowedFormats, audio: e.target.value.split(',').map(f => f.trim())})}
+                      helperText="Comma-separated (e.g., mp3, wav)"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Document Formats" 
+                      value={settings.cloudinary.allowedFormats.document.join(', ')} 
+                      onChange={(e) => updateSetting('cloudinary', 'allowedFormats', {...settings.cloudinary.allowedFormats, document: e.target.value.split(',').map(f => f.trim())})}
+                      helperText="Comma-separated (e.g., pdf, doc)"
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      <Typography variant="body2">
+                        <strong>Signed Uploads:</strong> When enabled, all uploads require a signature from your backend, providing better security and control. 
+                        The upload preset is only used for unsigned uploads (legacy mode).
+                      </Typography>
+                    </Alert>
                   </Grid>
                 </Grid>
               </AccordionDetails>

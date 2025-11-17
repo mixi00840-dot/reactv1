@@ -136,12 +136,8 @@ const UniversalUploader = ({
     disabled: uploading
   });
 
-  // Upload files to Cloudinary
+  // Upload files to Cloudinary with signed upload
   const uploadToCloudinary = async (fileData) => {
-    const formData = new FormData();
-    formData.append('file', fileData.file);
-    formData.append('upload_preset', process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET || 'mixillo_unsigned');
-
     // Determine resource type
     let resourceType = 'auto';
     if (fileData.type.startsWith('video/')) resourceType = 'video';
@@ -149,8 +145,28 @@ const UniversalUploader = ({
     else if (fileData.type.startsWith('audio/')) resourceType = 'video'; // Cloudinary uses 'video' for audio
 
     try {
+      // Step 1: Get signature from backend
+      const signatureResponse = await api.post('/api/uploads/signature', {
+        folder: `mixillo/uploads/${fileData.type.split('/')[0]}s`, // e.g., mixillo/uploads/videos
+        resourceType: resourceType
+      });
+
+      if (!signatureResponse.data.success) {
+        throw new Error(signatureResponse.data.message || 'Failed to get upload signature');
+      }
+
+      const { signature, timestamp, cloudName, apiKey, folder } = signatureResponse.data.data;
+
+      // Step 2: Upload to Cloudinary with signature
+      const formData = new FormData();
+      formData.append('file', fileData.file);
+      formData.append('signature', signature);
+      formData.append('timestamp', timestamp);
+      formData.append('api_key', apiKey);
+      formData.append('folder', folder);
+
       const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'mixillo'}/${resourceType}/upload`,
+        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
         formData,
         {
           onUploadProgress: (progressEvent) => {
@@ -174,7 +190,7 @@ const UniversalUploader = ({
       };
     } catch (error) {
       console.error('Cloudinary upload error:', error);
-      throw new Error(error.response?.data?.error?.message || 'Upload failed');
+      throw new Error(error.response?.data?.error?.message || error.message || 'Upload failed');
     }
   };
 
