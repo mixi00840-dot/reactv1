@@ -101,11 +101,12 @@ const ProductUpload = () => {
   const loadStores = async () => {
     try {
       const response = await mongoAPI.get('/api/admin/stores');
-      if (response.success) {
-        setStores(response.data.stores || []);
-      }
+      console.log('Stores API response:', response);
+      // API returns { success, stores } directly (not nested in data)
+      setStores(response.stores || []);
     } catch (error) {
       console.error('Error loading stores:', error);
+      setStores([]);
     }
   };
 

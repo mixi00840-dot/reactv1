@@ -2266,10 +2266,6 @@ router.get('/transcode/queue', verifyJWT, requireAdmin, async (req, res) => {
   res.json({ success: true, data: { queue: [], pending: 0, processing: 0 } });
 });
 
-router.get('/transcode/stats', verifyJWT, requireAdmin, async (req, res) => {
-  res.json({ success: true, data: { total: 0, completed: 0, failed: 0 } });
-});
-
 /**
  * Customer Support
  */
