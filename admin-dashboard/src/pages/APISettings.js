@@ -194,16 +194,21 @@ const APISettings = () => {
     try {
       // Send settings for the specific section only
       const sectionSettings = settings[section];
-      const response = await api.put(`/settings/mongodb/api-keys/${section}`, { 
+      
+      // Map section names to match backend expectations
+      // "cloudinary" in frontend becomes "storage" category or individual service
+      const backendSection = section;
+      
+      const response = await api.put(`/api/settings/mongodb/api-keys/${backendSection}`, { 
         settings: sectionSettings 
       });
       
-      if (response.success) {
+      if (response.success || response.data?.success) {
         toast.success(`${section} settings saved successfully!`);
         setMessage(`${section} settings saved successfully!`);
         setTimeout(() => setMessage(''), 3000);
       } else {
-        throw new Error(response.message || 'Failed to save');
+        throw new Error(response.message || response.data?.message || 'Failed to save');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
