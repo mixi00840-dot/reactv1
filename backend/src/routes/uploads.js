@@ -97,11 +97,11 @@ router.post('/signature', verifyJWT, async (req, res) => {
     const timestamp = Math.round(Date.now() / 1000);
     const uploadFolder = folder || cloudinarySettings.folder || 'mixillo/uploads';
     
-    // Parameters to sign
+    // Parameters to sign - Cloudinary only signs specific params
+    // DO NOT include resource_type in signature, it's a URL parameter
     const params = {
       timestamp,
       folder: uploadFolder,
-      resource_type: resourceType,
       ...(publicId && { public_id: publicId })
     };
 
@@ -119,7 +119,7 @@ router.post('/signature', verifyJWT, async (req, res) => {
         cloudName: cloudinarySettings.cloudName,
         apiKey: cloudinarySettings.apiKey,
         folder: uploadFolder,
-        resourceType
+        resourceType // Return for URL construction, not signature
       },
       message: 'Upload signature generated'
     });
