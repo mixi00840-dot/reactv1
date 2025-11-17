@@ -17,6 +17,13 @@ const ContentSchema = new mongoose.Schema({
     required: true
   },
 
+  // Post Type - determines which tab/feed it appears in
+  postType: {
+    type: String,
+    enum: ['feed', 'post'],
+    default: 'feed'
+  },
+
   // Media Files
   videoUrl: String,
   thumbnailUrl: String,

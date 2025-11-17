@@ -118,12 +118,22 @@ const ContentUploadPage = () => {
     setSaving(true);
 
     try {
+      // Get user ID (handle both _id and id)
+      const userId = selectedUser._id || selectedUser.id;
+      
+      if (!userId) {
+        throw new Error('Selected user has no valid ID');
+      }
+
+      console.log('Creating content with userId:', userId);
+      console.log('Selected user object:', selectedUser);
+
       // Create content for each uploaded file
       const contentPromises = uploadedFiles.map(async (file) => {
         const contentData = {
-          userId: selectedUser._id,
-          type: postType, // 'feed' or 'post'
-          mediaType: contentType, // 'video' or 'image'
+          userId: userId,
+          type: contentType, // 'video' or 'image'
+          postType: postType, // 'feed' or 'post' - determines which tab
           mediaUrl: file.url,
           caption: caption,
           tags: tags,
@@ -141,11 +151,16 @@ const ContentUploadPage = () => {
             width: file.width,
             height: file.height,
             duration: file.duration,
-            resourceType: file.resourceType
+            resourceType: file.resourceType,
+            thumbnailUrl: file.resourceType === 'video' 
+              ? file.url.replace('/video/upload/', '/video/upload/so_0,w_400,h_225,c_fill,f_jpg/')
+              : file.url
           }
         };
 
+        console.log('Sending content data:', contentData);
         const response = await mongoAPI.post('/api/admin/content', contentData);
+        console.log('Content response:', response);
         return response.data;
       });
 
@@ -163,7 +178,17 @@ const ContentUploadPage = () => {
       
     } catch (error) {
       console.error('Error saving content:', error);
-      toast.error('Failed to save content: ' + (error.response?.data?.message || error.message));
+      console.error('Error response:', error.response);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      
+      const errorMessage = error.response?.data?.message 
+        || error.response?.data?.error 
+        || error.message 
+        || 'Unknown error occurred';
+      
+      toast.error('Failed to save content: ' + errorMessage);
     } finally {
       setSaving(false);
     }
