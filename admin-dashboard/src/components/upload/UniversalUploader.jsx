@@ -152,11 +152,21 @@ const UniversalUploader = ({
         resourceType: resourceType
       });
 
-      if (!signatureResponse.data.success) {
-        throw new Error(signatureResponse.data.message || 'Failed to get upload signature');
+      console.log('Signature response:', signatureResponse); // Debug log
+
+      // Handle both direct response and nested data structure
+      const responseData = signatureResponse.data || signatureResponse;
+      
+      if (!responseData.success) {
+        throw new Error(responseData.message || 'Failed to get upload signature');
       }
 
-      const { signature, timestamp, cloudName, apiKey, folder } = signatureResponse.data.data;
+      const { signature, timestamp, cloudName, apiKey, folder } = responseData.data;
+
+      if (!signature || !timestamp || !cloudName || !apiKey) {
+        console.error('Missing signature data:', responseData);
+        throw new Error('Incomplete signature data received from server');
+      }
 
       // Step 2: Upload to Cloudinary with signature
       const formData = new FormData();
