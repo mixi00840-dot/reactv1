@@ -38,7 +38,7 @@ import {
   Upload as UploadIcon,
   Download as DownloadIcon,
   Search as SearchIcon,
-  FormatTextdirection as RTLIcon
+  TextRotationNone as RTLIcon
 } from '@mui/icons-material';
 import mongoAPI from '../utils/apiMongoDB';
 import toast from 'react-hot-toast';

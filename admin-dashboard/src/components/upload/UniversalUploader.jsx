@@ -140,7 +140,7 @@ const UniversalUploader = ({
   const uploadToCloudinary = async (fileData) => {
     const formData = new FormData();
     formData.append('file', fileData.file);
-    formData.append('upload_preset', 'mixillo_uploads'); // Configure in Cloudinary
+    formData.append('upload_preset', process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET || 'mixillo_unsigned');
 
     // Determine resource type
     let resourceType = 'auto';

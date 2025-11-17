@@ -35,7 +35,7 @@ import {
   Delete as DeleteIcon,
   Search as SearchIcon,
   Visibility as ViewIcon,
-  CloudUpload as UploadIcon
+  Download as ExportIcon
 } from '@mui/icons-material';
 import mongoAPI from '../../utils/apiMongoDB';
 import toast from 'react-hot-toast';
