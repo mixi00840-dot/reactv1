@@ -364,7 +364,16 @@ router.delete('/zones/:id',
         query.storeId = store._id;
       }
 
-      const { ShippingZone } = require('../models/Shipping');
+      const ShippingModel = require('../models/Shipping');
+      const ShippingZone = ShippingModel.ShippingZone;
+      
+      if (!ShippingZone) {
+        return res.status(503).json({
+          success: false,
+          message: 'Shipping zones feature not configured'
+        });
+      }
+      
       const zone = await ShippingZone.findOneAndDelete(query);
       
       if (!zone) {
@@ -617,7 +626,13 @@ router.get('/admin/zones',
 
       // Get shipping zones - return empty if model doesn't exist
       try {
-        const { ShippingZone } = require('../models/Shipping');
+        const ShippingModel = require('../models/Shipping');
+        const ShippingZone = ShippingModel.ShippingZone;
+        
+        if (!ShippingZone) {
+          throw new Error('ShippingZone model not available');
+        }
+        
         const zones = await ShippingZone.find(query)
           .populate('storeId', 'name slug owner')
           .populate('shippingMethods.method', 'name type carrier')
@@ -736,7 +751,13 @@ router.get('/admin/methods',
 
       // Get methods - return empty if model doesn't exist
       try {
-        const { ShippingMethod } = require('../models/Shipping');
+        const ShippingModel = require('../models/Shipping');
+        const ShippingMethod = ShippingModel.ShippingMethod;
+        
+        if (!ShippingMethod) {
+          throw new Error('ShippingMethod model not available');
+        }
+        
         const methods = await ShippingMethod.find(query)
           .populate('storeId', 'name slug owner')
           .sort('-createdAt')
