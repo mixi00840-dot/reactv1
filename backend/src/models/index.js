@@ -93,6 +93,8 @@ const CustomerService = require('./CustomerService');
 const AdCampaign = require('./AdCampaign');
 const ExplorerSection = require('./ExplorerSection');
 const TrendingConfig = require('./TrendingConfig');
+const LiveChat = require('./LiveChat');
+const ShippingMethod = require('./ShippingMethod');
 
 // i18n (2)
 const Language = require('./Language');
@@ -193,6 +195,8 @@ module.exports = {
   AdCampaign,
   ExplorerSection,
   TrendingConfig,
+  LiveChat,
+  ShippingMethod,
   
   // i18n
   Language,

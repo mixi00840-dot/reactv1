@@ -51,7 +51,32 @@ const TranscodeJobSchema = new mongoose.Schema({
 TranscodeJobSchema.index({ status: 1, createdAt: 1 });
 TranscodeJobSchema.index({ contentId: 1 });
 
-const TranscodeJob = mongoose.model('TranscodeJob', TranscodeJobSchema);
+// Aggregate stats helper
+TranscodeJobSchema.statics.getStats = async function(hours = 24) {
+  const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+  const pipeline = [
+    { $match: { createdAt: { $gte: since } } },
+    { $group: {
+        _id: '$status',
+        count: { $sum: 1 },
+        avgProgress: { $avg: '$progress' }
+      }
+    }
+  ];
+  const raw = await this.aggregate(pipeline);
+  const stats = raw.reduce((acc, r) => {
+    acc[r._id] = { count: r.count, avgProgress: Math.round(r.avgProgress || 0) };
+    return acc;
+  }, {});
+  return {
+    queued: stats.queued || { count: 0, avgProgress: 0 },
+    processing: stats.processing || { count: 0, avgProgress: 0 },
+    completed: stats.completed || { count: 0, avgProgress: 100 },
+    failed: stats.failed || { count: 0, avgProgress: 0 },
+    windowHours: hours
+  };
+};
 
+const TranscodeJob = mongoose.model('TranscodeJob', TranscodeJobSchema);
 module.exports = TranscodeJob;
 
