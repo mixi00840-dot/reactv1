@@ -217,8 +217,9 @@ router.get('/admin/config', verifyJWT, requireAdmin, async (req, res) => {
     let config = await TrendingConfig.findOne().sort({ createdAt: -1 });
 
     if (!config) {
-      // Create default config
+      // Create default config with required category field
       config = new TrendingConfig({
+        category: 'default',
         weights: {
           watchTime: 0.35,
           likes: 0.20,
@@ -276,6 +277,7 @@ router.put('/admin/config', verifyJWT, requireAdmin, async (req, res) => {
     }
 
     const config = new TrendingConfig({
+      category: 'default',
       weights,
       thresholds,
       updatedBy: req.userId
