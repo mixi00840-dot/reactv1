@@ -152,8 +152,23 @@ const UniversalUploader = ({
         resourceType: resourceType
       });
 
-      console.log('Signature response:', signatureResponse); // Debug log
-      console.log('Signature response.data:', signatureResponse.data); // Debug log
+      // DETAILED DEBUGGING
+      console.log('=== SIGNATURE DEBUG START ===');
+      console.log('1. Full response:', signatureResponse);
+      console.log('2. response.data:', signatureResponse.data);
+      console.log('3. response.data type:', typeof signatureResponse.data);
+      console.log('4. response.data.success:', signatureResponse.data?.success);
+      console.log('5. response.data.data:', signatureResponse.data?.data);
+      
+      if (signatureResponse.data?.data) {
+        console.log('6. Signature fields:');
+        console.log('   - signature:', signatureResponse.data.data.signature);
+        console.log('   - timestamp:', signatureResponse.data.data.timestamp);
+        console.log('   - cloudName:', signatureResponse.data.data.cloudName);
+        console.log('   - apiKey:', signatureResponse.data.data.apiKey);
+        console.log('   - folder:', signatureResponse.data.data.folder);
+      }
+      console.log('=== SIGNATURE DEBUG END ===');
 
       // axios returns response.data, which contains our backend response
       const backendResponse = signatureResponse.data;
@@ -171,7 +186,7 @@ const UniversalUploader = ({
         throw new Error('Incomplete signature data received from server');
       }
 
-      console.log('Using signature:', { signature, timestamp, cloudName, apiKey, folder }); // Debug
+      console.log('✅ Successfully extracted signature data');
 
       // Step 2: Upload to Cloudinary with signature
       const formData = new FormData();
