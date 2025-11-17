@@ -53,22 +53,25 @@ function UserVideosTab({ userId }) {
   const fetchVideos = async () => {
     setLoading(true);
     try {
-      const response = await mongoAPI.get(`/api/content`, {
+      const response = await mongoAPI.get(`/api/admin/content`, {
         params: {
           userId,
-          type: 'video',
+          postType: 'feed',
           page,
           limit: 10,
           search: searchQuery
         }
       });
 
-      if (response.success && response.data) {
-        setVideos(response.data.content || response.data.videos || []);
-        setTotalPages(response.data.totalPages || 1);
+      console.log('Fetched videos response:', response);
+      
+      if (response.contents || response.data?.contents) {
+        const contentList = response.contents || response.data.contents || [];
+        setVideos(contentList);
+        const pagination = response.pagination || response.data?.pagination || {};
+        setTotalPages(pagination.pages || 1);
       } else {
         setVideos([]);
-        toast.error('No videos found');
       }
     } catch (error) {
       console.error('Error fetching videos:', error);
@@ -177,8 +180,8 @@ function UserVideosTab({ userId }) {
                       onClick={() => handlePlayVideo(video)}
                     >
                       <img
-                        src={video.thumbnail || 'https://via.placeholder.com/120x67?text=Video'}
-                        alt={video.title}
+                        src={video.thumbnailUrl || video.videoUrl || 'https://via.placeholder.com/120x67?text=Video'}
+                        alt={video.caption || 'Video'}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                       <Box
@@ -205,13 +208,13 @@ function UserVideosTab({ userId }) {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={500}>
-                      {video.title}
+                      {video.caption || 'Untitled'}
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
                     <Chip
-                      icon={<EyeIcon />}
-                      label={video.views?.toLocaleString() || 0}
+                      icon={<CommentIcon />}
+                      label={video.commentsCount?.toLocaleString() || 0}
                       size="small"
                       variant="outlined"
                     />

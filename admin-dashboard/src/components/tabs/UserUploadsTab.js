@@ -61,7 +61,7 @@ function UserUploadsTab({ userId }) {
   const fetchUploads = async () => {
     setLoading(true);
     try {
-      const response = await mongoAPI.get(`/api/uploads/mongodb`, {
+      const response = await mongoAPI.get(`/api/admin/content`, {
         params: {
           userId,
           type: filterType !== 'all' ? filterType : undefined,
@@ -70,9 +70,11 @@ function UserUploadsTab({ userId }) {
         }
       });
 
-      if (response.success) {
-        setUploads(response.data.uploads || []);
-        setTotalPages(response.data.totalPages || 1);
+      if (response.contents || response.data?.contents) {
+        const contentList = response.contents || response.data.contents || [];
+        setUploads(contentList);
+        const pagination = response.pagination || response.data?.pagination || {};
+        setTotalPages(pagination.pages || 1);
       } else {
         setUploads([]);
       }
@@ -87,15 +89,25 @@ function UserUploadsTab({ userId }) {
 
   const fetchStorageStats = async () => {
     try {
-      const response = await mongoAPI.get(`/api/users/mongodb/${userId}/storage`);
-      if (response.success) {
-        setStorageStats(response.data);
+      // Calculate storage from content count
+      const response = await mongoAPI.get(`/api/admin/users/${userId}`);
+      if (response.data || response.user) {
+        const userData = response.data || response.user;
+        const contentCount = userData.stats?.contentCount || 0;
+        // Estimate: 10MB average per content item
+        const usedBytes = contentCount * 10 * 1024 * 1024;
+        const totalBytes = 5 * 1024 * 1024 * 1024; // 5GB
+        setStorageStats({ 
+          used: usedBytes, 
+          total: totalBytes, 
+          percentage: (usedBytes / totalBytes) * 100 
+        });
       } else {
-        setStorageStats({ used: 0, total: 0, percentage: 0 });
+        setStorageStats({ used: 0, total: 5 * 1024 * 1024 * 1024, percentage: 0 });
       }
     } catch (error) {
       console.error('Error fetching storage stats:', error);
-      setStorageStats({ used: 0, total: 0, percentage: 0 });
+      setStorageStats({ used: 0, total: 5 * 1024 * 1024 * 1024, percentage: 0 });
     }
   };
 
@@ -183,7 +195,7 @@ function UserUploadsTab({ userId }) {
     if (!window.confirm('Are you sure you want to delete this file?')) return;
 
     try {
-      await mongoAPI.delete(`/api/uploads/mongodb/${uploadId}`);
+      await mongoAPI.delete(`/api/admin/content/${uploadId}`);
       setUploads(uploads.filter(u => u._id !== uploadId));
       toast.success('File deleted successfully');
       fetchStorageStats(); // Refresh storage stats
@@ -195,7 +207,7 @@ function UserUploadsTab({ userId }) {
 
   const filteredUploads = uploads.filter(upload => {
     const matchesType = filterType === 'all' || upload.type === filterType;
-    const matchesSearch = upload.fileName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (upload.caption || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesType && matchesSearch;
   });
 
@@ -329,10 +341,10 @@ function UserUploadsTab({ userId }) {
                         justifyContent: 'center'
                       }}
                     >
-                      {upload.thumbnail ? (
+                      {upload.thumbnailUrl ? (
                         <img
-                          src={upload.thumbnail}
-                          alt={upload.fileName}
+                          src={upload.thumbnailUrl}
+                          alt={upload.caption || 'Upload'}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
@@ -344,7 +356,7 @@ function UserUploadsTab({ userId }) {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={500} noWrap sx={{ maxWidth: 300 }}>
-                      {upload.fileName}
+                      {upload.caption || 'Untitled'}
                     </Typography>
                   </TableCell>
                   <TableCell>

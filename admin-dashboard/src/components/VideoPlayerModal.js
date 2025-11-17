@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactPlayer from 'react-player';
 import {
   Dialog,
   DialogTitle,
@@ -15,8 +14,12 @@ import { Close as CloseIcon } from '@mui/icons-material';
 function VideoPlayerModal({ open, onClose, video }) {
   if (!video) return null;
 
-  // Use videoUrl from API or fallback to mock video
-  const videoSource = video.videoUrl || video.url || 'https://www.w3schools.com/html/mov_bbb.mp4';
+  // Use videoUrl from Content model
+  const videoSource = video.videoUrl || video.url || video.mediaUrl;
+  const videoTitle = video.caption || video.title || 'Video Player';
+
+  console.log('VideoPlayerModal video object:', video);
+  console.log('VideoPlayerModal videoSource:', videoSource);
 
   return (
     <Dialog
@@ -29,7 +32,7 @@ function VideoPlayerModal({ open, onClose, video }) {
       }}
     >
       <DialogTitle sx={{ bgcolor: 'black', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">{video.title || 'Video Player'}</Typography>
+        <Typography variant="h6">{videoTitle}</Typography>
         <IconButton onClick={onClose} sx={{ color: 'white' }}>
           <CloseIcon />
         </IconButton>
@@ -37,23 +40,17 @@ function VideoPlayerModal({ open, onClose, video }) {
       
       <DialogContent sx={{ bgcolor: 'black', p: 0 }}>
         <Box sx={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
-          <ReactPlayer
-            url={videoSource}
+          <video
+            src={videoSource}
             controls
-            playing
-            width="100%"
-            height="100%"
+            autoPlay
             style={{
               position: 'absolute',
               top: 0,
-              left: 0
-            }}
-            config={{
-              file: {
-                attributes: {
-                  controlsList: 'nodownload'
-                }
-              }
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain'
             }}
           />
         </Box>
@@ -62,10 +59,10 @@ function VideoPlayerModal({ open, onClose, video }) {
       <DialogActions sx={{ bgcolor: 'black', color: 'white', justifyContent: 'space-between', px: 3, py: 2 }}>
         <Box>
           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-            Views: {video.views?.toLocaleString() || 0} • Likes: {video.likes?.toLocaleString() || 0} • Comments: {video.comments || 0}
+            Views: {video.viewsCount?.toLocaleString() || 0} • Likes: {video.likesCount?.toLocaleString() || 0} • Comments: {video.commentsCount || 0}
           </Typography>
           <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-            Duration: {video.duration} • Uploaded: {video.uploadDate}
+            Duration: {video.duration}s • Uploaded: {new Date(video.createdAt).toLocaleDateString()}
           </Typography>
         </Box>
         <Button onClick={onClose} variant="outlined" sx={{ color: 'white', borderColor: 'white' }}>
@@ -77,4 +74,5 @@ function VideoPlayerModal({ open, onClose, video }) {
 }
 
 export default VideoPlayerModal;
+
 

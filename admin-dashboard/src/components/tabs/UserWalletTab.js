@@ -65,7 +65,7 @@ function UserWalletTab({ userId }) {
     setLoading(true);
     try {
       // Fetch wallet balance
-      const walletResponse = await mongoAPI.get(`/api/wallets/mongodb/${userId}`);
+      const walletResponse = await mongoAPI.get(`/api/wallets/${userId}`);
       if (walletResponse.success) {
         setWallet(walletResponse.data.wallet || walletResponse.data);
       }
@@ -119,13 +119,13 @@ function UserWalletTab({ userId }) {
 
     try {
       if (fundsAction === 'add') {
-        await mongoAPI.post(`/api/wallets/mongodb/${userId}/add-funds`, {
+        await mongoAPI.post(`/api/wallets/${userId}/add-funds`, {
           amount,
           description: fundsNote || 'Manual fund addition by admin'
         });
         toast.success(`$${amount.toFixed(2)} added successfully`);
       } else {
-        await mongoAPI.post(`/api/wallets/mongodb/${userId}/deduct-funds`, {
+        await mongoAPI.post(`/api/wallets/${userId}/deduct-funds`, {
           amount,
           description: fundsNote || 'Manual fund deduction by admin'
         });

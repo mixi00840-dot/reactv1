@@ -56,22 +56,25 @@ function UserPostsTab({ userId }) {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const response = await mongoAPI.get(`/api/content`, {
+      const response = await mongoAPI.get(`/api/admin/content`, {
         params: {
           userId,
-          type: 'post',
+          postType: 'post',
           page,
           limit: 10,
           search: searchQuery
         }
       });
 
-      if (response.success && response.data) {
-        setPosts(response.data.content || response.data.posts || []);
-        setTotalPages(response.data.totalPages || 1);
+      console.log('Fetched posts response:', response);
+      
+      if (response.contents || response.data?.contents) {
+        const contentList = response.contents || response.data.contents || [];
+        setPosts(contentList);
+        const pagination = response.pagination || response.data?.pagination || {};
+        setTotalPages(pagination.pages || 1);
       } else {
         setPosts([]);
-        toast.error('No posts found');
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -96,7 +99,7 @@ function UserPostsTab({ userId }) {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      await mongoAPI.delete(`/api/content/${postId}`);
+      await mongoAPI.delete(`/api/admin/content/${postId}`);
       setPosts(posts.filter(p => p._id !== postId));
       toast.success('Post deleted successfully');
     } catch (error) {
@@ -205,10 +208,10 @@ function UserPostsTab({ userId }) {
                       }}
                       onClick={() => handleViewPost(post)}
                     >
-                      {post.thumbnail ? (
+                      {post.thumbnailUrl ? (
                         <img
-                          src={post.thumbnail}
-                          alt={post.title}
+                          src={post.thumbnailUrl || post.videoUrl}
+                          alt={post.caption || 'Post'}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
@@ -233,18 +236,18 @@ function UserPostsTab({ userId }) {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={500} noWrap sx={{ maxWidth: 300 }}>
-                      {post.title || post.content?.substring(0, 50) + '...'}
+                      {post.caption || 'Untitled'}
                     </Typography>
-                    {post.content && (
+                    {post.caption && (
                       <Typography variant="caption" color="textSecondary" noWrap sx={{ maxWidth: 300, display: 'block' }}>
-                        {post.content.substring(0, 60)}...
+                        {post.caption.substring(0, 60)}...
                       </Typography>
                     )}
                   </TableCell>
                   <TableCell align="center">
                     <Chip
-                      icon={<EyeIcon />}
-                      label={post.views?.toLocaleString() || 0}
+                      icon={<CommentIcon />}
+                      label={post.commentsCount?.toLocaleString() || 0}
                       size="small"
                       variant="outlined"
                     />
@@ -252,7 +255,7 @@ function UserPostsTab({ userId }) {
                   <TableCell align="center">
                     <Chip
                       icon={<LikeIcon />}
-                      label={post.likes?.toLocaleString() || 0}
+                      label={post.likesCount?.toLocaleString() || 0}
                       size="small"
                       color="error"
                       variant="outlined"
@@ -261,7 +264,7 @@ function UserPostsTab({ userId }) {
                   <TableCell align="center">
                     <Chip
                       icon={<CommentIcon />}
-                      label={post.comments || 0}
+                      label={post.commentsCount || 0}
                       size="small"
                       color="primary"
                       variant="outlined"
