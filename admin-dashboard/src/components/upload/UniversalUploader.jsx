@@ -24,6 +24,7 @@ import {
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import api from '../../utils/apiMongoDB'; // Add API import for signed uploads
 
 /**
  * Universal File Uploader Component
