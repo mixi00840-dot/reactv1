@@ -153,20 +153,26 @@ const UniversalUploader = ({
       });
 
       console.log('Signature response:', signatureResponse); // Debug log
+      console.log('Signature response.data:', signatureResponse.data); // Debug log
 
-      // Handle both direct response and nested data structure
-      const responseData = signatureResponse.data || signatureResponse;
+      // apiMongoDB returns response directly, not nested in .data
+      // Check if response has success field directly or in data
+      const responseData = signatureResponse.success ? signatureResponse : signatureResponse.data;
       
-      if (!responseData.success) {
-        throw new Error(responseData.message || 'Failed to get upload signature');
+      if (!responseData || !responseData.success) {
+        throw new Error(responseData?.message || 'Failed to get upload signature');
       }
 
-      const { signature, timestamp, cloudName, apiKey, folder } = responseData.data;
+      // Extract signature data - could be in responseData.data or directly in responseData
+      const signatureData = responseData.data || responseData;
+      const { signature, timestamp, cloudName, apiKey, folder } = signatureData;
 
       if (!signature || !timestamp || !cloudName || !apiKey) {
-        console.error('Missing signature data:', responseData);
+        console.error('Missing signature data:', { responseData, signatureData });
         throw new Error('Incomplete signature data received from server');
       }
+
+      console.log('Using signature:', { signature, timestamp, cloudName, apiKey, folder }); // Debug
 
       // Step 2: Upload to Cloudinary with signature
       const formData = new FormData();
