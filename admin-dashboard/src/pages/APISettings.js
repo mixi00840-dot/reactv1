@@ -718,8 +718,8 @@ const APISettings = () => {
               </AccordionDetails>
             </Accordion>
 
-            <Button variant="contained" startIcon={<SaveIcon />} onClick={() => handleSave('storage')} sx={{ mt: 2 }} disabled={saving}>
-              Save Storage Settings
+            <Button variant="contained" startIcon={<SaveIcon />} onClick={() => handleSave('cloudinary')} sx={{ mt: 2 }} disabled={saving}>
+              Save Cloudinary Settings
             </Button>
           </Box>
         )}
