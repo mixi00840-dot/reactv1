@@ -95,6 +95,7 @@ const ExplorerSection = require('./ExplorerSection');
 const TrendingConfig = require('./TrendingConfig');
 const LiveChat = require('./LiveChat');
 const ShippingMethod = require('./ShippingMethod');
+const ShippingZone = require('./ShippingZone');
 
 // i18n (2)
 const Language = require('./Language');
@@ -197,6 +198,7 @@ module.exports = {
   TrendingConfig,
   LiveChat,
   ShippingMethod,
+  ShippingZone,
   
   // i18n
   Language,
