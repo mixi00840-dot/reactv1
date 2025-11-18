@@ -113,8 +113,8 @@ function Shipping() {
     try {
       setLoading(true);
       const [methodsRes, zonesRes] = await Promise.all([
-        api.get('/api/shipping/methods'),
-        api.get('/api/shipping/zones')
+        api.get('/api/admin/shipping/methods'),
+        api.get('/api/admin/shipping/zones')
       ]);
 
       if (methodsRes.data.success) {
@@ -137,7 +137,7 @@ function Shipping() {
 
   const fetchAnalytics = async () => {
     try {
-  const response = await api.get('/api/shipping/analytics');
+  const response = await api.get('/api/admin/shipping/analytics');
       if (response.data.success) {
         setAnalytics(response.data.data);
       }

@@ -61,7 +61,7 @@ const TrendingControls = () => {
   const fetchConfig = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/api/trending/admin/config');
+      const response = await api.get('/api/admin/trending/admin/config');
       const configData = response?.data?.data?.config || response?.data?.config || response?.config;
       
       // Ensure thresholds exist with defaults
@@ -93,7 +93,7 @@ const TrendingControls = () => {
 
   const fetchHistory = async () => {
     try {
-      const response = await api.get('/api/trending/admin/config/history', {
+      const response = await api.get('/api/admin/trending/admin/config/history', {
         params: { limit: 10 }
       });
       setHistory(response?.data?.data?.history || []);

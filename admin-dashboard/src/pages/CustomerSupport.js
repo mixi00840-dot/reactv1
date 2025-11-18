@@ -110,9 +110,9 @@ function CustomerSupport() {
   const fetchSupportData = async () => {
     try {
       setLoading(true);
-      const [ticketsRes, faqsRes] = await Promise.all([
-        api.get('/api/support/tickets'),
-        api.get('/api/support/faq')
+      const [ticketsRes, faqRes] = await Promise.all([
+        api.get('/api/admin/support/tickets'),
+        api.get('/api/admin/support/faq')
       ]);
 
       if (ticketsRes.data.success) {
@@ -135,7 +135,7 @@ function CustomerSupport() {
 
   const fetchAnalytics = async () => {
     try {
-  const response = await api.get('/api/support/analytics');
+  const response = await api.get('/api/admin/support/analytics');
       if (response.data.success) {
         setAnalytics(response.data.data || {});
       }
