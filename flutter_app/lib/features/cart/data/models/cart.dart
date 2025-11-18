@@ -7,6 +7,7 @@ class Cart {
   final double subtotal;
   final double tax;
   final double shipping;
+  final double discount;
   final double total;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -18,6 +19,7 @@ class Cart {
     required this.subtotal,
     required this.tax,
     required this.shipping,
+    this.discount = 0.0,
     required this.total,
     this.createdAt,
     this.updatedAt,
@@ -35,6 +37,7 @@ class Cart {
       subtotal: (json['subtotal'] ?? 0).toDouble(),
       tax: (json['tax'] ?? 0).toDouble(),
       shipping: (json['shipping'] ?? 0).toDouble(),
+      discount: (json['discount'] ?? 0).toDouble(),
       total: (json['total'] ?? 0).toDouble(),
       createdAt:
           json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
@@ -51,6 +54,7 @@ class Cart {
       'subtotal': subtotal,
       'tax': tax,
       'shipping': shipping,
+      'discount': discount,
       'total': total,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
@@ -68,6 +72,7 @@ class Cart {
     double? subtotal,
     double? tax,
     double? shipping,
+    double? discount,
     double? total,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -79,6 +84,7 @@ class Cart {
       subtotal: subtotal ?? this.subtotal,
       tax: tax ?? this.tax,
       shipping: shipping ?? this.shipping,
+      discount: discount ?? this.discount,
       total: total ?? this.total,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

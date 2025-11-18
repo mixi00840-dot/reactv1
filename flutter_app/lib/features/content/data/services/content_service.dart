@@ -122,4 +122,92 @@ class ContentService {
       return false;
     }
   }
+
+  /// Get interactions (likes/comments)
+  Future<Map<String, dynamic>?> getInteractions(String contentId) async {
+    try {
+      final response = await _apiService.get('/content/$contentId/interactions');
+
+      if (response['success'] == true) {
+        return response;
+      }
+
+      return null;
+    } catch (e) {
+      print('Error fetching interactions: $e');
+      return null;
+    }
+  }
+
+  /// Add comment (alias for postComment)
+  Future<Comment?> addComment(String contentId, String text) async {
+    return postComment(contentId, text);
+  }
+
+  /// Delete comment
+  Future<bool> deleteComment(String contentId, String commentId) async {
+    try {
+      final response = await _apiService.delete('/content/$contentId/comments/$commentId');
+
+      return response['success'] == true;
+    } catch (e) {
+      print('Error deleting comment: $e');
+      return false;
+    }
+  }
+
+  /// Get scheduled posts
+  Future<List<Map<String, dynamic>>> getScheduledPosts() async {
+    try {
+      final response = await _apiService.get('/content/scheduled');
+
+      if (response['success'] == true && response['posts'] != null) {
+        return List<Map<String, dynamic>>.from(response['posts']);
+      }
+
+      return [];
+    } catch (e) {
+      print('Error fetching scheduled posts: $e');
+      return [];
+    }
+  }
+
+  /// Schedule post
+  Future<Map<String, dynamic>?> schedulePost({
+    required String contentData,
+    required DateTime scheduledFor,
+    String? caption,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        '/content/schedule',
+        data: {
+          'contentData': contentData,
+          'scheduledFor': scheduledFor.toIso8601String(),
+          if (caption != null) 'caption': caption,
+        },
+      );
+
+      if (response['success'] == true) {
+        return response;
+      }
+
+      return null;
+    } catch (e) {
+      print('Error scheduling post: $e');
+      return null;
+    }
+  }
+
+  /// Delete scheduled post
+  Future<bool> deleteScheduledPost(String postId) async {
+    try {
+      final response = await _apiService.delete('/content/scheduled/$postId');
+
+      return response['success'] == true;
+    } catch (e) {
+      print('Error deleting scheduled post: $e');
+      return false;
+    }
+  }
 }

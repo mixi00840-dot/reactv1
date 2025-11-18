@@ -62,7 +62,7 @@ class ContentFeedNotifier extends StateNotifier<AsyncValue<List<Content>>> {
 
 // Single content provider
 final singleContentProvider =
-    FutureProvider.family<Content, String>((ref, contentId) async {
+    FutureProvider.family<Content?, String>((ref, contentId) async {
   final service = ref.watch(contentServiceProvider);
   return await service.getContent(contentId);
 });
@@ -90,24 +90,31 @@ class ContentInteractionsNotifier
     state = const AsyncValue.loading();
     try {
       final interactions = await _service.getInteractions(_contentId);
-      state = AsyncValue.data(interactions);
+      if (interactions != null) {
+        state = AsyncValue.data(ContentInteractions.fromMap(interactions));
+      } else {
+        state = AsyncValue.error('Failed to load interactions', StackTrace.current);
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
   }
 
   Future<void> toggleLike() async {
-    state.whenData((current) async {
-      try {
-        final newState = await _service.toggleLike(_contentId);
-        state = AsyncValue.data(current.copyWith(
-          isLiked: newState['isLiked'],
-          likesCount: newState['likesCount'],
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    try {
+      final response = await _service.toggleLike(_contentId);
+      if (response != null && response['success'] == true) {
+        state = AsyncValue.data(currentState.copyWith(
+          isLiked: response['isLiked'] ?? !currentState.isLiked,
+          likesCount: response['likesCount'] ?? currentState.likesCount,
         ));
-      } catch (e, stack) {
-        state = AsyncValue.error(e, stack);
       }
-    });
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
   }
 
   Future<void> recordView() async {
@@ -140,6 +147,17 @@ class ContentInteractions {
     required this.sharesCount,
     required this.viewsCount,
   });
+
+  factory ContentInteractions.fromMap(Map<String, dynamic> map) {
+    return ContentInteractions(
+      isLiked: map['isLiked'] ?? false,
+      isSaved: map['isSaved'] ?? false,
+      likesCount: map['likesCount'] ?? map['likes'] ?? 0,
+      commentsCount: map['commentsCount'] ?? map['comments'] ?? 0,
+      sharesCount: map['sharesCount'] ?? map['shares'] ?? 0,
+      viewsCount: map['viewsCount'] ?? map['views'] ?? 0,
+    );
+  }
 
   ContentInteractions copyWith({
     bool? isLiked,

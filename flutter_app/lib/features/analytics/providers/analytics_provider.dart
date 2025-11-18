@@ -28,7 +28,11 @@ class AnalyticsNotifier extends StateNotifier<AsyncValue<Analytics>> {
 
     try {
       final analytics = await _service.getAnalytics(period: period);
-      state = AsyncValue.data(analytics);
+      if (analytics != null) {
+        state = AsyncValue.data(analytics);
+      } else {
+        state = AsyncValue.error('Analytics data not available', StackTrace.current);
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -41,9 +45,24 @@ class AnalyticsNotifier extends StateNotifier<AsyncValue<Analytics>> {
 
 // Video analytics provider
 final videoAnalyticsProvider =
-    FutureProvider.family<VideoAnalytics, String>((ref, contentId) async {
+    FutureProvider.family<VideoAnalytics?, String>((ref, contentId) async {
   final service = ref.watch(analyticsServiceProvider);
-  return await service.getVideoAnalytics(contentId);
+  final result = await service.getVideoAnalytics(contentId);
+  // Convert Analytics to VideoAnalytics or return null
+  if (result == null) return null;
+  return VideoAnalytics(
+    views: result.views,
+    uniqueViews: result.views, // Use same as views if not available
+    likes: result.likes,
+    comments: result.comments,
+    shares: result.shares,
+    averageWatchTime: 0.0,
+    completionRate: 0.0,
+    viewsByCountry: result.viewsByDate,
+    viewsByAge: {},
+    viewsByGender: {},
+    hourlyViews: [],
+  );
 });
 
 class VideoAnalytics {

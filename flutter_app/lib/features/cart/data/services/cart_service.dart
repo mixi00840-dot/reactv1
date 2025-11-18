@@ -85,6 +85,46 @@ class CartService {
     }
   }
 
+  /// Update item quantity (alias for updateItem)
+  Future<Cart?> updateQuantity({required String itemId, required int quantity}) async {
+    return updateItem(itemId, quantity);
+  }
+
+  /// Apply coupon code
+  Future<Cart?> applyCoupon(String couponCode) async {
+    try {
+      final response = await _apiService.post(
+        '/cart/apply-coupon',
+        data: {'code': couponCode},
+      );
+
+      if (response['success'] == true && response['cart'] != null) {
+        return Cart.fromJson(response['cart']);
+      }
+
+      return null;
+    } catch (e) {
+      print('Error applying coupon: $e');
+      return null;
+    }
+  }
+
+  /// Remove coupon
+  Future<Cart?> removeCoupon() async {
+    try {
+      final response = await _apiService.delete('/cart/remove-coupon');
+
+      if (response['success'] == true && response['cart'] != null) {
+        return Cart.fromJson(response['cart']);
+      }
+
+      return null;
+    } catch (e) {
+      print('Error removing coupon: $e');
+      return null;
+    }
+  }
+
   /// Clear cart
   Future<bool> clearCart() async {
     try {

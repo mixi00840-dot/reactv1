@@ -26,7 +26,21 @@ class CartNotifier extends StateNotifier<AsyncValue<Cart>> {
     state = const AsyncValue.loading();
     try {
       final cart = await _service.getCart();
-      state = AsyncValue.data(cart);
+      if (cart != null) {
+        state = AsyncValue.data(cart);
+      } else {
+        // Return empty cart
+        state = AsyncValue.data(Cart(
+          id: '',
+          userId: '',
+          items: [],
+          subtotal: 0,
+          tax: 0,
+          shipping: 0,
+          discount: 0,
+          total: 0,
+        ));
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -35,7 +49,7 @@ class CartNotifier extends StateNotifier<AsyncValue<Cart>> {
   Future<void> addItem(String productId, int quantity,
       {String? variantId}) async {
     try {
-      await _service.addItem(productId, quantity, variantId: variantId);
+      await _service.addItem(productId: productId, quantity: quantity, variantId: variantId);
       await loadCart();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
@@ -44,7 +58,7 @@ class CartNotifier extends StateNotifier<AsyncValue<Cart>> {
 
   Future<void> updateQuantity(String itemId, int quantity) async {
     try {
-      await _service.updateQuantity(itemId, quantity);
+      await _service.updateQuantity(itemId: itemId, quantity: quantity);
       await loadCart();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);

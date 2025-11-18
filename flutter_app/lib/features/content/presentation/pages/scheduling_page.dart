@@ -154,7 +154,7 @@ class _SchedulingPageState extends ConsumerState<SchedulingPage>
 
     if (_error != null && _scheduledContent.isEmpty) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadScheduledContent,
         ),

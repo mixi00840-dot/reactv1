@@ -12,6 +12,10 @@ enum ScheduleStatus {
       orElse: () => ScheduleStatus.scheduled,
     );
   }
+
+  String toUpperCase() {
+    return name.toUpperCase();
+  }
 }
 
 enum ScheduleType {
@@ -156,4 +160,11 @@ class ScheduledContentModel {
         return 'Live Stream';
     }
   }
+
+  // Additional getters for UI compatibility
+  String? get thumbnailUrl => mediaUrl;
+  String get type => contentType.name;
+  DateTime get scheduledTime => scheduledFor;
+  String? get timezone => metadata?['timezone'];
+  String? get errorMessage => failureReason;
 }
