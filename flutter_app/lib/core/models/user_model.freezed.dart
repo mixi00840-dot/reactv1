@@ -14,7 +14,6 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$User {
-  @JsonKey(name: '_id')
   String get id;
   String get username;
   String get email;
@@ -27,8 +26,8 @@ mixin _$User {
   String? get gender;
   String? get location;
   String? get website;
-  String get role; // 'user', 'seller', 'admin'
-  String get status; // 'active', 'suspended', 'banned'
+  String get role;
+  String get status;
   bool get verified;
   bool get featured;
   int get followersCount;
@@ -145,7 +144,7 @@ abstract mixin class $UserCopyWith<$Res> {
       _$UserCopyWithImpl;
   @useResult
   $Res call(
-      {@JsonKey(name: '_id') String id,
+      {String id,
       String username,
       String email,
       String? fullName,
@@ -415,7 +414,7 @@ extension UserPatterns on User {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(
-            @JsonKey(name: '_id') String id,
+            String id,
             String username,
             String email,
             String? fullName,
@@ -495,7 +494,7 @@ extension UserPatterns on User {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(
-            @JsonKey(name: '_id') String id,
+            String id,
             String username,
             String email,
             String? fullName,
@@ -573,7 +572,7 @@ extension UserPatterns on User {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(
-            @JsonKey(name: '_id') String id,
+            String id,
             String username,
             String email,
             String? fullName,
@@ -641,7 +640,7 @@ extension UserPatterns on User {
 @JsonSerializable()
 class _User implements User {
   const _User(
-      {@JsonKey(name: '_id') required this.id,
+      {required this.id,
       required this.username,
       required this.email,
       this.fullName,
@@ -673,7 +672,6 @@ class _User implements User {
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   @override
-  @JsonKey(name: '_id')
   final String id;
   @override
   final String username;
@@ -700,11 +698,9 @@ class _User implements User {
   @override
   @JsonKey()
   final String role;
-// 'user', 'seller', 'admin'
   @override
   @JsonKey()
   final String status;
-// 'active', 'suspended', 'banned'
   @override
   @JsonKey()
   final bool verified;
@@ -870,7 +866,7 @@ abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: '_id') String id,
+      {String id,
       String username,
       String email,
       String? fullName,

@@ -44,8 +44,8 @@ class SocketConnectionNotifier extends StateNotifier<SocketConnectionState> {
       state = SocketConnectionState.disconnected;
     });
 
-    _socket.onConnecting((_) {
-      state = SocketConnectionState.connecting;
+    _socket.onConnectError((error) {
+      state = SocketConnectionState.error;
     });
 
     _socket.onError((error) {

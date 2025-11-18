@@ -20,6 +20,8 @@ export '../../features/live/providers/live_provider.dart';
 export '../../features/analytics/providers/analytics_provider.dart';
 
 // Provider observer for debugging
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class ProviderLogger extends ProviderObserver {
   @override
   void didUpdateProvider(
