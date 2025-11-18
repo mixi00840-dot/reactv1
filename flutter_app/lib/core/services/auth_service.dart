@@ -184,6 +184,79 @@ class AuthService {
     }
   }
 
+  // Register
+  Future<Map<String, dynamic>> register(
+      String username, String email, String password) async {
+    try {
+      final apiService = ApiService();
+      final response = await apiService.post('/auth/mongodb/register', data: {
+        'username': username,
+        'email': email,
+        'password': password,
+      });
+
+      if (response['success'] == true) {
+        final token = response['data']['token'];
+        final refreshToken = response['data']['refreshToken'];
+        final userId = response['data']['user']['_id'];
+
+        await saveToken(token);
+        if (refreshToken != null) {
+          await saveRefreshToken(refreshToken);
+        }
+        await saveUserId(userId);
+
+        return {'success': true, 'user': response['data']['user']};
+      }
+      return {'success': false, 'message': response['message']};
+    } catch (e) {
+      debugPrint('Register error: $e');
+      return {
+        'success': false,
+        'message': 'Registration failed. Please try again.'
+      };
+    }
+  }
+
+  // Get current user
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) return null;
+
+      final apiService = ApiService();
+      final response = await apiService.get('/users/$userId');
+
+      if (response['success'] == true) {
+        return response['data'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Get current user error: $e');
+      return null;
+    }
+  }
+
+  // Update profile
+  Future<Map<String, dynamic>?> updateProfile(
+      Map<String, dynamic> data) async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) return null;
+
+      final apiService = ApiService();
+      final response = await apiService.put('/users/$userId', data: data);
+
+      if (response['success'] == true) {
+        return response['data'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Update profile error: $e');
+      return null;
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();

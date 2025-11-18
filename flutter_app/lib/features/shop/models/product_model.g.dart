@@ -6,8 +6,7 @@ part of 'product_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ProductImpl _$$ProductImplFromJson(Map<String, dynamic> json) =>
-    _$ProductImpl(
+_Product _$ProductFromJson(Map<String, dynamic> json) => _Product(
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
@@ -43,8 +42,7 @@ _$ProductImpl _$$ProductImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['createdAt'] as String),
     );
 
-Map<String, dynamic> _$$ProductImplToJson(_$ProductImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$ProductToJson(_Product instance) => <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
       'description': instance.description,
@@ -67,8 +65,7 @@ Map<String, dynamic> _$$ProductImplToJson(_$ProductImpl instance) =>
       'createdAt': instance.createdAt?.toIso8601String(),
     };
 
-_$CartItemImpl _$$CartItemImplFromJson(Map<String, dynamic> json) =>
-    _$CartItemImpl(
+_CartItem _$CartItemFromJson(Map<String, dynamic> json) => _CartItem(
       id: json['id'] as String,
       product: Product.fromJson(json['product'] as Map<String, dynamic>),
       quantity: (json['quantity'] as num).toInt(),
@@ -77,8 +74,7 @@ _$CartItemImpl _$$CartItemImplFromJson(Map<String, dynamic> json) =>
       subtotal: (json['subtotal'] as num).toDouble(),
     );
 
-Map<String, dynamic> _$$CartItemImplToJson(_$CartItemImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$CartItemToJson(_CartItem instance) => <String, dynamic>{
       'id': instance.id,
       'product': instance.product,
       'quantity': instance.quantity,
@@ -87,8 +83,7 @@ Map<String, dynamic> _$$CartItemImplToJson(_$CartItemImpl instance) =>
       'subtotal': instance.subtotal,
     };
 
-_$AddressImpl _$$AddressImplFromJson(Map<String, dynamic> json) =>
-    _$AddressImpl(
+_Address _$AddressFromJson(Map<String, dynamic> json) => _Address(
       id: json['id'] as String,
       name: json['name'] as String,
       addressLine1: json['addressLine1'] as String,
@@ -100,8 +95,7 @@ _$AddressImpl _$$AddressImplFromJson(Map<String, dynamic> json) =>
       isDefault: json['isDefault'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$$AddressImplToJson(_$AddressImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$AddressToJson(_Address instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'addressLine1': instance.addressLine1,
@@ -113,8 +107,8 @@ Map<String, dynamic> _$$AddressImplToJson(_$AddressImpl instance) =>
       'isDefault': instance.isDefault,
     };
 
-_$PaymentMethodImpl _$$PaymentMethodImplFromJson(Map<String, dynamic> json) =>
-    _$PaymentMethodImpl(
+_PaymentMethod _$PaymentMethodFromJson(Map<String, dynamic> json) =>
+    _PaymentMethod(
       id: json['id'] as String,
       type: json['type'] as String,
       name: json['name'] as String,
@@ -123,7 +117,7 @@ _$PaymentMethodImpl _$$PaymentMethodImplFromJson(Map<String, dynamic> json) =>
       isDefault: json['isDefault'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$$PaymentMethodImplToJson(_$PaymentMethodImpl instance) =>
+Map<String, dynamic> _$PaymentMethodToJson(_PaymentMethod instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
@@ -133,7 +127,7 @@ Map<String, dynamic> _$$PaymentMethodImplToJson(_$PaymentMethodImpl instance) =>
       'isDefault': instance.isDefault,
     };
 
-_$OrderImpl _$$OrderImplFromJson(Map<String, dynamic> json) => _$OrderImpl(
+_Order _$OrderFromJson(Map<String, dynamic> json) => _Order(
       id: json['id'] as String,
       orderNumber: json['orderNumber'] as String,
       date: DateTime.parse(json['date'] as String),
@@ -155,8 +149,7 @@ _$OrderImpl _$$OrderImplFromJson(Map<String, dynamic> json) => _$OrderImpl(
           : DateTime.parse(json['estimatedDelivery'] as String),
     );
 
-Map<String, dynamic> _$$OrderImplToJson(_$OrderImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$OrderToJson(_Order instance) => <String, dynamic>{
       'id': instance.id,
       'orderNumber': instance.orderNumber,
       'date': instance.date.toIso8601String(),
@@ -172,8 +165,7 @@ Map<String, dynamic> _$$OrderImplToJson(_$OrderImpl instance) =>
       'estimatedDelivery': instance.estimatedDelivery?.toIso8601String(),
     };
 
-_$OrderItemImpl _$$OrderItemImplFromJson(Map<String, dynamic> json) =>
-    _$OrderItemImpl(
+_OrderItem _$OrderItemFromJson(Map<String, dynamic> json) => _OrderItem(
       id: json['id'] as String,
       productId: json['productId'] as String,
       title: json['title'] as String,
@@ -184,7 +176,7 @@ _$OrderItemImpl _$$OrderItemImplFromJson(Map<String, dynamic> json) =>
       selectedColor: json['selectedColor'] as String?,
     );
 
-Map<String, dynamic> _$$OrderItemImplToJson(_$OrderItemImpl instance) =>
+Map<String, dynamic> _$OrderItemToJson(_OrderItem instance) =>
     <String, dynamic>{
       'id': instance.id,
       'productId': instance.productId,
@@ -196,7 +188,7 @@ Map<String, dynamic> _$$OrderItemImplToJson(_$OrderItemImpl instance) =>
       'selectedColor': instance.selectedColor,
     };
 
-_$ReviewImpl _$$ReviewImplFromJson(Map<String, dynamic> json) => _$ReviewImpl(
+_Review _$ReviewFromJson(Map<String, dynamic> json) => _Review(
       id: json['id'] as String,
       userId: json['userId'] as String,
       userName: json['userName'] as String,
@@ -208,8 +200,7 @@ _$ReviewImpl _$$ReviewImplFromJson(Map<String, dynamic> json) => _$ReviewImpl(
       helpfulCount: (json['helpfulCount'] as num?)?.toInt() ?? 0,
     );
 
-Map<String, dynamic> _$$ReviewImplToJson(_$ReviewImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$ReviewToJson(_Review instance) => <String, dynamic>{
       'id': instance.id,
       'userId': instance.userId,
       'userName': instance.userName,

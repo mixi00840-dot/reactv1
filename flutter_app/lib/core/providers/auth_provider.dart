@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../features/auth/data/models/user.dart';
-import '../../features/auth/data/services/auth_service.dart';
+import '../models/user_model.dart';
+import '../services/auth_service.dart';
 
 // Auth service provider
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -24,30 +24,51 @@ class CurrentUserNotifier extends StateNotifier<AsyncValue<User?>> {
   Future<void> _loadCurrentUser() async {
     state = const AsyncValue.loading();
     try {
-      final user = await _authService.getCurrentUser();
-      state = AsyncValue.data(user);
+      final userData = await _authService.getCurrentUser();
+      if (userData != null) {
+        final user = User.fromJson(userData);
+        state = AsyncValue.data(user);
+      } else {
+        state = const AsyncValue.data(null);
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
   }
 
-  Future<void> login(String email, String password) async {
+  Future<bool> login(String email, String password) async {
     state = const AsyncValue.loading();
     try {
-      final user = await _authService.login(email, password);
-      state = AsyncValue.data(user);
+      final response = await _authService.login(email, password);
+      if (response['success'] == true) {
+        final user = User.fromJson(response['user']);
+        state = AsyncValue.data(user);
+        return true;
+      } else {
+        state = AsyncValue.error(response['message'] ?? 'Login failed', StackTrace.current);
+        return false;
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      return false;
     }
   }
 
-  Future<void> register(String username, String email, String password) async {
+  Future<bool> register(String username, String email, String password) async {
     state = const AsyncValue.loading();
     try {
-      final user = await _authService.register(username, email, password);
-      state = AsyncValue.data(user);
+      final response = await _authService.register(username, email, password);
+      if (response['success'] == true) {
+        final user = User.fromJson(response['user']);
+        state = AsyncValue.data(user);
+        return true;
+      } else {
+        state = AsyncValue.error(response['message'] ?? 'Registration failed', StackTrace.current);
+        return false;
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      return false;
     }
   }
 
@@ -62,8 +83,11 @@ class CurrentUserNotifier extends StateNotifier<AsyncValue<User?>> {
 
   Future<void> updateProfile(Map<String, dynamic> data) async {
     try {
-      final updatedUser = await _authService.updateProfile(data);
-      state = AsyncValue.data(updatedUser);
+      final userData = await _authService.updateProfile(data);
+      if (userData != null) {
+        final user = User.fromJson(userData);
+        state = AsyncValue.data(user);
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
