@@ -1,6 +1,7 @@
 import '../../../../core/services/api_service.dart';
 import '../models/content.dart';
 import '../models/comment.dart';
+import '../../../../core/models/scheduled_content_model.dart';
 
 class ContentService {
   final ApiService _apiService = ApiService();
@@ -156,13 +157,15 @@ class ContentService {
     }
   }
 
-  /// Get scheduled posts
-  Future<List<Map<String, dynamic>>> getScheduledPosts() async {
+  /// Get scheduled posts (mapped to ScheduledContentModel)
+  Future<List<ScheduledContentModel>> getScheduledPosts() async {
     try {
       final response = await _apiService.get('/content/scheduled');
 
       if (response['success'] == true && response['posts'] != null) {
-        return List<Map<String, dynamic>>.from(response['posts']);
+        return (response['posts'] as List)
+            .map((json) => ScheduledContentModel.fromJson(json))
+            .toList();
       }
 
       return [];
@@ -172,8 +175,8 @@ class ContentService {
     }
   }
 
-  /// Schedule post
-  Future<Map<String, dynamic>?> schedulePost({
+  /// Schedule post - returns ScheduledContentModel on success
+  Future<ScheduledContentModel?> schedulePost({
     required String contentData,
     required DateTime scheduledFor,
     String? caption,
@@ -188,8 +191,8 @@ class ContentService {
         },
       );
 
-      if (response['success'] == true) {
-        return response;
+      if (response['success'] == true && response['post'] != null) {
+        return ScheduledContentModel.fromJson(response['post']);
       }
 
       return null;

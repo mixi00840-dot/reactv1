@@ -6,9 +6,10 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/models/feed_post_model.dart';
 import '../../providers/feed_provider.dart';
 import '../widgets/feed_post_card.dart';
+import '../../../stories/data/models/story_model.dart';
 import '../../../stories/presentation/widgets/story_list_widget.dart';
 import '../../../stories/presentation/pages/story_viewer_page.dart';
-import '../../../stories/data/mock_stories_data.dart';
+import '../../data/mock_posts_data.dart';
 import '../../../camera_editor/presentation/pages/tiktok_camera_page_new.dart';
 
 /// Instagram-style posts feed with proper stories positioning
@@ -103,13 +104,17 @@ class _PostsFeedPageNewState extends ConsumerState<PostsFeedPageNew> {
                   child: SizedBox(
                     height: 96, // Fixed height for stories
                     child: StoryListWidget(
-                      stories: MockStoriesData.getStories(),
+                      stories: MockStoriesData.getStories()
+                          .map((json) => Story.fromJson(json))
+                          .toList(),
                       onStoryTap: (story, index) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => StoryViewerPage(
-                              stories: MockStoriesData.getStories(),
+                              stories: MockStoriesData.getStories()
+                                  .map((json) => Story.fromJson(json))
+                                  .toList(),
                               initialStoryIndex: index,
                             ),
                           ),

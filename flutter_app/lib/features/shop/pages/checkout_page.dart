@@ -5,7 +5,7 @@ import '../constants/shop_constants.dart';
 import '../widgets/checkout/address_selector.dart';
 import '../widgets/checkout/payment_method_selector.dart';
 import '../widgets/cart/cart_summary.dart';
-import '../models/product_model.dart';
+import '../models/product_model_simple.dart';
 import '../providers/order_provider.dart';
 import '../providers/cart_state_provider.dart';
 

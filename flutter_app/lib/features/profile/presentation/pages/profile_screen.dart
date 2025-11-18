@@ -67,7 +67,7 @@ class ProfileScreen extends ConsumerWidget {
 
                       // Name & username
                       Text(
-                        user.name ?? user.username,
+                        user.fullName ?? user.username,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,

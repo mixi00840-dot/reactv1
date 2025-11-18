@@ -128,6 +128,7 @@ class TransactionItem extends StatelessWidget {
         return Icons.remove_circle;
       case TransactionType.transfer:
         return Icons.swap_horiz;
+      case TransactionType.gift:
       case TransactionType.giftSent:
       case TransactionType.giftReceived:
         return Icons.card_giftcard;
@@ -158,6 +159,8 @@ class TransactionItem extends StatelessWidget {
         return 'Withdrawal';
       case TransactionType.transfer:
         return 'Transfer';
+      case TransactionType.gift:
+        return 'Gift';
       case TransactionType.giftSent:
         return 'Gift Sent';
       case TransactionType.giftReceived:

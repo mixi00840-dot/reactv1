@@ -202,7 +202,7 @@ class _WalletTransactionsPageState extends ConsumerState<WalletTransactionsPage>
 
     if (_error != null && _transactions.isEmpty) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadTransactions,
         ),

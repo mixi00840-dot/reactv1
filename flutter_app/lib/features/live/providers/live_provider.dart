@@ -71,7 +71,7 @@ class SingleLiveStreamNotifier extends StateNotifier<AsyncValue<LiveStream>> {
 
   Future<void> sendGift(String giftId, int quantity) async {
     try {
-      await _service.sendGift(_streamId, giftId, quantity);
+      await _service.sendGift(_streamId, giftId, quantity: quantity);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -110,9 +110,15 @@ class ScheduledLiveStreamsNotifier
 
   Future<void> scheduleStream(LiveStream stream) async {
     try {
-      final scheduledStream = await _service.scheduleStream(stream);
+      final scheduledStream = await _service.scheduleStream(
+        title: stream.title,
+        description: stream.description,
+        scheduledAt: stream.scheduledAt ?? DateTime.now().add(const Duration(hours: 1)),
+      );
       state.whenData((streams) {
-        state = AsyncValue.data([...streams, scheduledStream]);
+        if (scheduledStream != null) {
+          state = AsyncValue.data([...streams, scheduledStream]);
+        }
       });
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);

@@ -353,22 +353,25 @@ class _ReportPageState extends ConsumerState<ReportPage> {
         case 'content':
           await _reportService.reportContent(
             contentId: widget.targetId,
+            type: 'violation',
             reason: _selectedReason!,
-            details: _detailsController.text.trim(),
+            description: _detailsController.text.trim(),
           );
           break;
         case 'user':
           await _reportService.reportUser(
             userId: widget.targetId,
+            type: 'violation',
             reason: _selectedReason!,
-            details: _detailsController.text.trim(),
+            description: _detailsController.text.trim(),
           );
           break;
         case 'comment':
           await _reportService.reportComment(
             commentId: widget.targetId,
+            type: 'violation',
             reason: _selectedReason!,
-            details: _detailsController.text.trim(),
+            description: _detailsController.text.trim(),
           );
           break;
       }

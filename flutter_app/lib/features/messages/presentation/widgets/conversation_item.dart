@@ -137,7 +137,7 @@ class ConversationItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      conversation.lastMessage ?? 'No messages yet',
+                      conversation.lastMessage?.content ?? 'No messages yet',
                       style: TextStyle(
                         fontSize: 14,
                         color: conversation.unreadCount > 0

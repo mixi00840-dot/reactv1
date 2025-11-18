@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../data/models/withdrawal_model.dart';
-import '../../data/services/wallet_service.dart';
+// import '../../data/models/withdrawal_model.dart';
+import '../../services/wallet_service.dart';
 
 class WithdrawalPage extends StatefulWidget {
   const WithdrawalPage({super.key});
@@ -78,11 +78,13 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
     try {
       final amount = double.parse(_amountController.text);
 
-      await _walletService.withdrawal({
-        'amount': amount,
-        'method': _withdrawalMethod,
-        'fee': _processingFee,
-      });
+      await _walletService.withdraw(
+        amount: amount,
+        method: _withdrawalMethod,
+        accountDetails: {
+          'fee': _processingFee,
+        },
+      );
 
       if (!mounted) return;
 

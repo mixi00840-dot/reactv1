@@ -133,6 +133,10 @@ class LiveShoppingSessionModel {
   bool get isEnded => status == LiveShoppingStatus.ended;
   bool get hasProducts => featuredProducts.isNotEmpty;
 
+  // Convenience getters for backward compatibility
+  String get streamUrl => 'https://stream.mixillo.com/live/$liveStreamId';
+  String get title => 'Live Shopping Session ${id.substring(0, 8)}';
+
   double get conversionRate {
     if (viewerCount == 0) return 0;
     return (totalOrders / viewerCount) * 100;

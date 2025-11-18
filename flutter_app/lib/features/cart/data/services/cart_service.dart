@@ -87,7 +87,7 @@ class CartService {
 
   /// Update item quantity (alias for updateItem)
   Future<Cart?> updateQuantity({required String itemId, required int quantity}) async {
-    return updateItem(itemId, quantity);
+    return await updateItem(itemId: itemId, quantity: quantity);
   }
 
   /// Apply coupon code

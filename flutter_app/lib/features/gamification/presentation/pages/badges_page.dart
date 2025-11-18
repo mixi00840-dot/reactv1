@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/models/models.dart';
+import '../../../../core/models/supporter_badge_model.dart';
 import '../../../../core/services/badge_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading_indicator.dart';
-import '../../../../core/widgets/error_widget.dart';
+import '../../../../core/widgets/error_widget.dart' as app_error;
 import '../widgets/badge_item.dart';
+import '../../data/models/badge_model.dart';
 
 /// Badges achievement page
 class BadgesPage extends ConsumerStatefulWidget {
@@ -18,8 +19,8 @@ class BadgesPage extends ConsumerStatefulWidget {
 class _BadgesPageState extends ConsumerState<BadgesPage>
     with SingleTickerProviderStateMixin {
   final BadgeService _badgeService = BadgeService();
-  List<BadgeModel> _allBadges = [];
-  List<BadgeModel> _myBadges = [];
+  List<SupporterBadgeModel> _allBadges = [];
+  List<SupporterBadgeModel> _myBadges = [];
   bool _isLoading = true;
   String? _error;
 
@@ -93,7 +94,7 @@ class _BadgesPageState extends ConsumerState<BadgesPage>
 
     if (_error != null) {
       return Center(
-        child: AppErrorWidget(
+        child: app_error.ErrorDisplay(
           message: _error!,
           onRetry: _loadBadges,
         ),
@@ -214,7 +215,7 @@ class _BadgesPageState extends ConsumerState<BadgesPage>
     );
   }
 
-  void _viewBadgeDetails(BadgeModel badge, bool isEarned) {
+  void _viewBadgeDetails(SupporterBadgeModel badge, bool isEarned) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -247,7 +248,7 @@ class _BadgesPageState extends ConsumerState<BadgesPage>
                     height: 120,
                     decoration: BoxDecoration(
                       color: isEarned
-                          ? _getBadgeColor(badge.tier).withOpacity(0.2)
+                          ? _getBadgeColor(badge.rarity).withOpacity(0.2)
                           : Colors.grey.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
@@ -256,7 +257,7 @@ class _BadgesPageState extends ConsumerState<BadgesPage>
                         Icons.military_tech,
                         size: 80,
                         color:
-                            isEarned ? _getBadgeColor(badge.tier) : Colors.grey,
+                            isEarned ? _getBadgeColor(badge.rarity) : Colors.grey,
                       ),
                     ),
                   ),
@@ -277,15 +278,15 @@ class _BadgesPageState extends ConsumerState<BadgesPage>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
-                      color: _getBadgeColor(badge.tier).withOpacity(0.1),
+                      color: _getBadgeColor(badge.rarity).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      badge.tier.name.toUpperCase(),
+                      badge.rarity.name.toUpperCase(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: _getBadgeColor(badge.tier),
+                        color: _getBadgeColor(badge.rarity),
                       ),
                     ),
                   ),
@@ -354,18 +355,19 @@ class _BadgesPageState extends ConsumerState<BadgesPage>
     );
   }
 
-  Color _getBadgeColor(BadgeTier tier) {
-    switch (tier) {
-      case BadgeTier.bronze:
-        return const Color(0xFFCD7F32);
-      case BadgeTier.silver:
-        return const Color(0xFFC0C0C0);
-      case BadgeTier.gold:
-        return const Color(0xFFFFD700);
-      case BadgeTier.platinum:
-        return const Color(0xFFE5E4E2);
-      case BadgeTier.diamond:
-        return const Color(0xFFB9F2FF);
+  Color _getBadgeColor(BadgeRarity rarity) {
+    switch (rarity) {
+      case BadgeRarity.common:
+        return Colors.blueGrey;
+      case BadgeRarity.uncommon:
+        return Colors.teal;
+      case BadgeRarity.rare:
+        return Colors.deepPurple;
+      case BadgeRarity.epic:
+        return Colors.purpleAccent;
+      case BadgeRarity.legendary:
+        return Colors.amber;
     }
+    return Colors.blueGrey; // Fallback
   }
 }

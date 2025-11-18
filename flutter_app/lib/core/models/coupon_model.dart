@@ -50,6 +50,9 @@ class CouponModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  // Compatibility getter for expiresAt (same as endDate)
+  DateTime? get expiresAt => endDate;
+
   CouponModel({
     required this.id,
     required this.code,
@@ -163,6 +166,22 @@ class CouponModel {
         return 'BOGO';
     }
   }
+
+  // Getter for terms and conditions
+  String? get terms {
+    // Check metadata for terms first, fallback to description
+    if (metadata != null && metadata!['terms'] != null) {
+      return metadata!['terms'];
+    }
+    // Return description as fallback terms
+    return description.isNotEmpty ? description : null;
+  }
+
+  // Additional getters for backward compatibility
+  double? get maxDiscount => maxDiscountAmount;
+  double get discountPercentage => discountValue;
+  double get minPurchase => minPurchaseAmount ?? 0.0;
+  String get title => name;
 
   double calculateDiscount(double amount) {
     if (!isActive) return 0;

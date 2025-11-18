@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import '../../../core/theme/app_colors.dart';
 import '../constants/shop_constants.dart';
-import '../models/product_model.dart';
+import '../models/product_model_simple.dart';
 import '../providers/product_provider.dart';
 import '../widgets/product_card.dart';
 

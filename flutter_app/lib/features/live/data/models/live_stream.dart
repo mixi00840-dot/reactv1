@@ -85,4 +85,42 @@ class LiveStream {
   bool get isLive => status == 'live';
   bool get isScheduled => status == 'pending';
   bool get isEnded => status == 'ended';
+
+  LiveStream copyWith({
+    String? id,
+    String? hostId,
+    String? hostUsername,
+    String? hostAvatar,
+    String? title,
+    String? description,
+    String? thumbnailUrl,
+    String? streamUrl,
+    String? status,
+    int? viewerCount,
+    int? likeCount,
+    int? giftCount,
+    DateTime? scheduledAt,
+    DateTime? startedAt,
+    DateTime? endedAt,
+    DateTime? createdAt,
+  }) {
+    return LiveStream(
+      id: id ?? this.id,
+      hostId: hostId ?? this.hostId,
+      hostUsername: hostUsername ?? this.hostUsername,
+      hostAvatar: hostAvatar ?? this.hostAvatar,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      streamUrl: streamUrl ?? this.streamUrl,
+      status: status ?? this.status,
+      viewerCount: viewerCount ?? this.viewerCount,
+      likeCount: likeCount ?? this.likeCount,
+      giftCount: giftCount ?? this.giftCount,
+      scheduledAt: scheduledAt ?? this.scheduledAt,
+      startedAt: startedAt ?? this.startedAt,
+      endedAt: endedAt ?? this.endedAt,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

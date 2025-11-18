@@ -7,7 +7,7 @@ import '../widgets/error_widgets.dart';
 import '../widgets/banners/banner_m_with_image.dart';
 import '../widgets/banners/banner_s_with_image.dart';
 import '../widgets/banners/banner_m_with_counter.dart';
-import '../models/product_model.dart';
+import '../models/product_model_simple.dart';
 import '../providers/product_provider.dart';
 import '../providers/cart_state_provider.dart';
 

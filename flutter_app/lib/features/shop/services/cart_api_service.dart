@@ -1,11 +1,11 @@
-import '../models/product_model.dart';
-import 'api_service.dart';
+import '../models/product_model_simple.dart';
+import '../../../core/services/api_service.dart';
 
 /// Service for cart-related API calls
 class CartApiService {
-  final ApiService _apiService;
+  final ApiService _apiService = ApiService();
 
-  CartApiService(this._apiService);
+  CartApiService();
 
   /// Get user's cart
   Future<List<CartItem>> getCart() async {

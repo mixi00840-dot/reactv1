@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/models.dart';
+import '../../../shop/models/product_model_simple.dart';
 import '../../services/live_shopping_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading_indicator.dart';
@@ -23,7 +24,7 @@ class LiveShoppingPage extends ConsumerStatefulWidget {
 class _LiveShoppingPageState extends ConsumerState<LiveShoppingPage> {
   final LiveShoppingService _liveShoppingService = LiveShoppingService();
   LiveShoppingSessionModel? _session;
-  List<ProductModel> _featuredProducts = [];
+  List<Product> _featuredProducts = [];
   bool _isLoading = true;
   String? _error;
   bool _showProducts = true;
@@ -83,10 +84,11 @@ class _LiveShoppingPageState extends ConsumerState<LiveShoppingPage> {
 
     if (_error != null) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadSession,
-          textColor: Colors.white,
+          // Using default styling; surrounding Scaffold is dark.
+          icon: Icons.error_outline,
         ),
       );
     }
@@ -473,7 +475,7 @@ class _LiveShoppingPageState extends ConsumerState<LiveShoppingPage> {
     );
   }
 
-  void _showProductDetails(ProductModel product) {
+  void _showProductDetails(Product product) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

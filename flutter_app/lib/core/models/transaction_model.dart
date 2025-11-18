@@ -12,7 +12,12 @@ enum TransactionType {
   penalty,
   reversal,
   adjustment,
-  coinPurchase;
+  coinPurchase,
+  subscription,
+  payout,
+  fee,
+  giftSent,
+  giftReceived;
 
   static TransactionType fromString(String value) {
     return TransactionType.values.firstWhere(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../constants/shop_constants.dart';
-import '../models/product_model.dart';
+import '../models/product_model_simple.dart';
 import '../providers/order_provider.dart';
 
 /// Orders history page with list of past orders and status tracking

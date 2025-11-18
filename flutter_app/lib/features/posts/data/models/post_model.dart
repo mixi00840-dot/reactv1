@@ -29,6 +29,24 @@ class Post {
     this.isLiked = false,
     this.isBookmarked = false,
   });
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
+      id: json['id'] ?? '',
+      userId: json['userId'] ?? '',
+      username: json['username'] ?? '',
+      userAvatar: json['userAvatar'] ?? '',
+      imageUrls: List<String>.from(json['imageUrls'] ?? []),
+      caption: json['caption'] ?? '',
+      hashtags: List<String>.from(json['hashtags'] ?? []),
+      likes: json['likes'] ?? 0,
+      comments: json['comments'] ?? 0,
+      shares: json['shares'] ?? 0,
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      isLiked: json['isLiked'] ?? false,
+      isBookmarked: json['isBookmarked'] ?? false,
+    );
+  }
 }
 
 /// Comment model
@@ -52,4 +70,17 @@ class Comment {
     required this.createdAt,
     this.isLiked = false,
   });
+
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+      id: json['id'] ?? '',
+      userId: json['userId'] ?? '',
+      username: json['username'] ?? '',
+      userAvatar: json['userAvatar'] ?? '',
+      text: json['text'] ?? '',
+      likes: json['likes'] ?? 0,
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      isLiked: json['isLiked'] ?? false,
+    );
+  }
 }

@@ -201,7 +201,7 @@ class CouponItem extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Expires ${timeago.format(coupon.expiresAt)}',
+                          'Expires ${timeago.format(coupon.expiresAt ?? DateTime.now())}',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,

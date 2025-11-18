@@ -108,3 +108,32 @@ final List<Map<String, dynamic>> mockStories = [
     'createdAt': '2024-01-15T11:00:00Z',
   },
 ];
+
+/// Mock data provider class for posts
+class MockPostsData {
+  static List<Map<String, dynamic>> getPosts() => mockPosts;
+  
+  static List<Map<String, dynamic>> getComments(String postId) => [
+    {
+      'id': 'comment1',
+      'userId': 'user1',
+      'username': 'fashionista_maya',
+      'userAvatar': 'https://i.pravatar.cc/150?img=1',
+      'text': 'Love this outfit! 😍',
+      'createdAt': '2024-01-15T10:35:00Z',
+    },
+    {
+      'id': 'comment2',
+      'userId': 'user2',
+      'username': 'tech_guru_sam',
+      'userAvatar': 'https://i.pravatar.cc/150?img=2',
+      'text': 'Great style! Where did you get that jacket?',
+      'createdAt': '2024-01-15T10:40:00Z',
+    },
+  ];
+}
+
+/// Mock data provider class for stories
+class MockStoriesData {
+  static List<Map<String, dynamic>> getStories() => mockStories;
+}

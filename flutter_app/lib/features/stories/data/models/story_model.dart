@@ -45,6 +45,22 @@ class Story {
       viewsCount: viewsCount ?? this.viewsCount,
     );
   }
+
+  factory Story.fromJson(Map<String, dynamic> json) {
+    return Story(
+      id: json['id'] ?? '',
+      userId: json['userId'] ?? '',
+      username: json['username'] ?? '',
+      userAvatar: json['userAvatar'] ?? '',
+      items: json['items'] != null
+          ? (json['items'] as List).map((item) => StoryItem.fromJson(item)).toList()
+          : [],
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      isViewed: json['isViewed'] ?? false,
+      isMe: json['isMe'] ?? false,
+      viewsCount: json['viewsCount'] ?? 0,
+    );
+  }
 }
 
 /// Individual story item (image or video)
@@ -66,6 +82,21 @@ class StoryItem {
     required this.createdAt,
     this.isViewed = false,
   });
+
+  factory StoryItem.fromJson(Map<String, dynamic> json) {
+    return StoryItem(
+      id: json['id'] ?? '',
+      type: StoryType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => StoryType.image,
+      ),
+      url: json['url'] ?? '',
+      thumbnail: json['thumbnail'],
+      duration: Duration(seconds: json['duration'] ?? 5),
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      isViewed: json['isViewed'] ?? false,
+    );
+  }
 }
 
 enum StoryType {

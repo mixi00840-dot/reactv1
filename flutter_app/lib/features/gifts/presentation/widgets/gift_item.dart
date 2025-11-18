@@ -30,12 +30,12 @@ class GiftItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Gift image
-            if (gift.imageUrl != null)
+            if (gift.imageUrl.isNotEmpty)
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Image.network(
-                    gift.imageUrl!,
+                    gift.imageUrl,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => Icon(
                       Icons.card_giftcard,

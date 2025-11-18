@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/content.dart';
 import '../data/models/comment.dart';
 import '../data/services/content_service.dart';
+import '../../../core/models/scheduled_content_model.dart';
 
 // Content service provider
 final contentServiceProvider = Provider<ContentService>((ref) {
@@ -105,11 +106,14 @@ class ContentInteractionsNotifier
     if (currentState == null) return;
 
     try {
-      final response = await _service.toggleLike(_contentId);
-      if (response != null && response['success'] == true) {
+      final success = await _service.toggleLike(_contentId);
+      if (success) {
+        // Optimistically toggle like; keep counts simple (no backend count response available)
         state = AsyncValue.data(currentState.copyWith(
-          isLiked: response['isLiked'] ?? !currentState.isLiked,
-          likesCount: response['likesCount'] ?? currentState.likesCount,
+          isLiked: !currentState.isLiked,
+          likesCount: currentState.isLiked
+              ? (currentState.likesCount - 1).clamp(0, 1 << 31)
+              : currentState.likesCount + 1,
         ));
       }
     } catch (e, stack) {
@@ -118,13 +122,14 @@ class ContentInteractionsNotifier
   }
 
   Future<void> recordView() async {
+    final currentState = state.value;
+    if (currentState == null) return;
+
     try {
       await _service.recordView(_contentId);
-      state.whenData((current) {
-        state = AsyncValue.data(current.copyWith(
-          viewsCount: current.viewsCount + 1,
-        ));
-      });
+      state = AsyncValue.data(currentState.copyWith(
+        viewsCount: currentState.viewsCount + 1,
+      ));
     } catch (e) {
       // Silently fail for views
     }
@@ -209,9 +214,11 @@ class ContentCommentsNotifier extends StateNotifier<AsyncValue<List<Comment>>> {
   Future<void> addComment(String text) async {
     try {
       final comment = await _service.addComment(_contentId, text);
-      state.whenData((comments) {
-        state = AsyncValue.data([comment, ...comments]);
-      });
+      if (comment != null) {
+        state.whenData((comments) {
+          state = AsyncValue.data([comment, ...comments]);
+        });
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -219,7 +226,7 @@ class ContentCommentsNotifier extends StateNotifier<AsyncValue<List<Comment>>> {
 
   Future<void> deleteComment(String commentId) async {
     try {
-      await _service.deleteComment(commentId);
+      await _service.deleteComment(_contentId, commentId);
       state.whenData((comments) {
         final updatedList = comments.where((c) => c.id != commentId).toList();
         state = AsyncValue.data(updatedList);
@@ -235,14 +242,14 @@ class ContentCommentsNotifier extends StateNotifier<AsyncValue<List<Comment>>> {
 }
 
 // Scheduled posts provider
-final scheduledPostsProvider =
-    StateNotifierProvider<ScheduledPostsNotifier, AsyncValue<List<Content>>>(
-        (ref) {
+final scheduledPostsProvider = StateNotifierProvider<ScheduledPostsNotifier,
+  AsyncValue<List<ScheduledContentModel>>>((ref) {
   final service = ref.watch(contentServiceProvider);
   return ScheduledPostsNotifier(service);
 });
 
-class ScheduledPostsNotifier extends StateNotifier<AsyncValue<List<Content>>> {
+class ScheduledPostsNotifier
+  extends StateNotifier<AsyncValue<List<ScheduledContentModel>>> {
   final ContentService _service;
 
   ScheduledPostsNotifier(this._service) : super(const AsyncValue.loading()) {
@@ -261,10 +268,16 @@ class ScheduledPostsNotifier extends StateNotifier<AsyncValue<List<Content>>> {
 
   Future<void> schedulePost(Content content, DateTime scheduledTime) async {
     try {
-      final scheduledPost = await _service.schedulePost(content, scheduledTime);
-      state.whenData((posts) {
-        state = AsyncValue.data([...posts, scheduledPost]);
-      });
+      final result = await _service.schedulePost(
+        contentData: content.videoUrl,
+        scheduledFor: scheduledTime,
+        caption: content.caption,
+      );
+      
+      if (result != null) {
+        final currentPosts = state.value ?? [];
+        state = AsyncValue.data([...currentPosts, result]);
+      }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }

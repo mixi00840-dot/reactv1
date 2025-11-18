@@ -4,7 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../constants/shop_constants.dart';
 import '../widgets/cart/cart_item_card.dart';
 import '../widgets/cart/cart_summary.dart';
-import '../models/product_model.dart';
+import '../models/product_model_simple.dart';
 import '../providers/cart_state_provider.dart';
 
 /// Shopping cart page with items list, summary, and checkout button

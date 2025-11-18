@@ -83,7 +83,7 @@ class _ShippingTrackingPageState extends ConsumerState<ShippingTrackingPage> {
 
     if (_error != null) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadShipping,
         ),
@@ -151,7 +151,7 @@ class _ShippingTrackingPageState extends ConsumerState<ShippingTrackingPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                shipping.trackingNumber,
+                shipping.trackingNumber ?? 'N/A',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -495,6 +495,8 @@ class _ShippingTrackingPageState extends ConsumerState<ShippingTrackingPage> {
         return Icons.error;
       case ShippingStatus.returned:
         return Icons.assignment_return;
+      case ShippingStatus.cancelled:
+        return Icons.cancel;
     }
   }
 
@@ -511,6 +513,7 @@ class _ShippingTrackingPageState extends ConsumerState<ShippingTrackingPage> {
         return Colors.green;
       case ShippingStatus.failed:
       case ShippingStatus.returned:
+      case ShippingStatus.cancelled:
         return Colors.red;
     }
   }
@@ -533,6 +536,8 @@ class _ShippingTrackingPageState extends ConsumerState<ShippingTrackingPage> {
         return 'Delivery Failed';
       case ShippingStatus.returned:
         return 'Returned';
+      case ShippingStatus.cancelled:
+        return 'Cancelled';
     }
   }
 
@@ -619,8 +624,9 @@ class _ShippingTrackingPageState extends ConsumerState<ShippingTrackingPage> {
     if (submitted == true && controller.text.trim().isNotEmpty) {
       try {
         await _shippingService.reportIssue(
-          widget.orderId,
-          controller.text.trim(),
+          shippingId: widget.orderId,
+          issueType: 'general',
+          description: controller.text.trim(),
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

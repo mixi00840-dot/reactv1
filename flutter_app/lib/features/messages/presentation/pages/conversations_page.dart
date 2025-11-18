@@ -186,7 +186,7 @@ class _ConversationsPageState extends ConsumerState<ConversationsPage> {
 
     if (_error != null && _conversations.isEmpty) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadConversations,
         ),

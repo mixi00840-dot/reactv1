@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../core/models/models.dart';
+import '../../../../core/models/supporter_badge_model.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// Single badge item widget
 class BadgeItem extends StatelessWidget {
-  final BadgeModel badge;
+  final SupporterBadgeModel badge;
   final bool isEarned;
   final VoidCallback onTap;
 
@@ -17,6 +17,7 @@ class BadgeItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = _getBadgeColor(badge.rarity);
     return Card(
       elevation: isEarned ? 4 : 1,
       child: InkWell(
@@ -29,8 +30,8 @@ class BadgeItem extends StatelessWidget {
             gradient: isEarned
                 ? LinearGradient(
                     colors: [
-                      _getBadgeColor(badge.tier).withOpacity(0.2),
-                      _getBadgeColor(badge.tier).withOpacity(0.05),
+                      color.withOpacity(0.2),
+                      color.withOpacity(0.05),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -45,9 +46,7 @@ class BadgeItem extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: isEarned
-                      ? _getBadgeColor(badge.tier).withOpacity(0.2)
-                      : Colors.grey.withOpacity(0.2),
+                  color: isEarned ? color.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Stack(
@@ -56,8 +55,7 @@ class BadgeItem extends StatelessWidget {
                       child: Icon(
                         Icons.military_tech,
                         size: 50,
-                        color:
-                            isEarned ? _getBadgeColor(badge.tier) : Colors.grey,
+                        color: isEarned ? color : Colors.grey,
                       ),
                     ),
                     if (isEarned)
@@ -66,7 +64,7 @@ class BadgeItem extends StatelessWidget {
                         right: 0,
                         child: Container(
                           padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Colors.green,
                             shape: BoxShape.circle,
                           ),
@@ -87,30 +85,26 @@ class BadgeItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isEarned
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary,
+                  color: isEarned ? AppColors.textPrimary : AppColors.textSecondary,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
-              // Badge tier
+              // Badge rarity
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isEarned
-                      ? _getBadgeColor(badge.tier).withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
+                  color: isEarned ? color.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  badge.tier.name.toUpperCase(),
+                  badge.rarity.name.toUpperCase(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: isEarned ? _getBadgeColor(badge.tier) : Colors.grey,
+                    color: isEarned ? color : Colors.grey,
                   ),
                 ),
               ),
@@ -121,18 +115,19 @@ class BadgeItem extends StatelessWidget {
     );
   }
 
-  Color _getBadgeColor(BadgeTier tier) {
-    switch (tier) {
-      case BadgeTier.bronze:
-        return const Color(0xFFCD7F32);
-      case BadgeTier.silver:
-        return const Color(0xFFC0C0C0);
-      case BadgeTier.gold:
-        return const Color(0xFFFFD700);
-      case BadgeTier.platinum:
-        return const Color(0xFFE5E4E2);
-      case BadgeTier.diamond:
-        return const Color(0xFFB9F2FF);
+  Color _getBadgeColor(BadgeRarity rarity) {
+    switch (rarity) {
+      case BadgeRarity.common:
+        return Colors.blueGrey;
+      case BadgeRarity.uncommon:
+        return Colors.teal;
+      case BadgeRarity.rare:
+        return Colors.deepPurple;
+      case BadgeRarity.epic:
+        return Colors.purpleAccent;
+      case BadgeRarity.legendary:
+        return Colors.amber;
     }
+    return Colors.blueGrey; // Fallback
   }
 }

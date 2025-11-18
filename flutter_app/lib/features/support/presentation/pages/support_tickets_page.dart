@@ -124,7 +124,7 @@ class _SupportTicketsPageState extends ConsumerState<SupportTicketsPage>
 
     if (_error != null) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadTickets,
         ),

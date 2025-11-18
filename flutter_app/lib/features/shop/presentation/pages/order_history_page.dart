@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../data/models/order_model.dart';
+import '../../../orders/data/models/order.dart' as order_model; // Correct Order model path
+import '../../models/product_model_simple.dart'; // for OrderStatus enum
 import '../../data/services/order_service.dart';
 
 class OrderHistoryPage extends StatefulWidget {
@@ -14,12 +15,12 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
   final OrderService _orderService = OrderService();
   late TabController _tabController;
 
-  List<OrderModel> _allOrders = [];
-  List<OrderModel> _pendingOrders = [];
-  List<OrderModel> _processingOrders = [];
-  List<OrderModel> _shippedOrders = [];
-  List<OrderModel> _deliveredOrders = [];
-  List<OrderModel> _cancelledOrders = [];
+  List<order_model.Order> _allOrders = [];
+  List<order_model.Order> _pendingOrders = [];
+  List<order_model.Order> _processingOrders = [];
+  List<order_model.Order> _shippedOrders = [];
+  List<order_model.Order> _deliveredOrders = [];
+  List<order_model.Order> _cancelledOrders = [];
 
   bool _isLoading = true;
   String? _error;
@@ -48,15 +49,15 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
       setState(() {
         _allOrders = orders;
         _pendingOrders =
-            orders.where((o) => o.status == OrderStatus.pending).toList();
+            orders.where((o) => o.status == 'pending').toList();
         _processingOrders =
-            orders.where((o) => o.status == OrderStatus.processing).toList();
+            orders.where((o) => o.status == 'processing').toList();
         _shippedOrders =
-            orders.where((o) => o.status == OrderStatus.shipped).toList();
+            orders.where((o) => o.status == 'shipped').toList();
         _deliveredOrders =
-            orders.where((o) => o.status == OrderStatus.delivered).toList();
+            orders.where((o) => o.status == 'delivered').toList();
         _cancelledOrders =
-            orders.where((o) => o.status == OrderStatus.cancelled).toList();
+            orders.where((o) => o.status == 'cancelled').toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -169,7 +170,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
     );
   }
 
-  Widget _buildOrderList(List<OrderModel> orders) {
+  Widget _buildOrderList(List<order_model.Order> orders) {
     if (orders.isEmpty) {
       return Center(
         child: Column(
@@ -330,7 +331,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                   ),
                   Row(
                     children: [
-                      if (order.status == OrderStatus.pending)
+                      if (order.status == 'pending')
                         OutlinedButton(
                           onPressed: () => _showCancelConfirmation(order.id),
                           style: OutlinedButton.styleFrom(
@@ -339,7 +340,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                           ),
                           child: const Text('Cancel'),
                         ),
-                      if (order.status == OrderStatus.delivered) ...[
+                      if (order.status == 'delivered') ...[
                         OutlinedButton(
                           onPressed: () {
                             // Navigate to review page
@@ -354,8 +355,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                           child: const Text('Buy Again'),
                         ),
                       ],
-                      if (order.status == OrderStatus.shipped ||
-                          order.status == OrderStatus.processing)
+                      if (order.status == 'shipped' ||
+                          order.status == 'processing')
                         ElevatedButton(
                           onPressed: () {
                             // Track order
@@ -377,34 +378,38 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
     );
   }
 
-  Widget _buildStatusBadge(OrderStatus status) {
+  Widget _buildStatusBadge(String status) {
     Color color;
     String label;
 
     switch (status) {
-      case OrderStatus.pending:
+      case 'pending':
         color = Colors.orange;
         label = 'Pending';
         break;
-      case OrderStatus.processing:
+      case 'processing':
         color = Colors.blue;
         label = 'Processing';
         break;
-      case OrderStatus.shipped:
+      case 'shipped':
         color = Colors.purple;
         label = 'Shipped';
         break;
-      case OrderStatus.delivered:
+      case 'delivered':
         color = Colors.green;
         label = 'Delivered';
         break;
-      case OrderStatus.cancelled:
+      case 'cancelled':
         color = Colors.red;
         label = 'Cancelled';
         break;
-      case OrderStatus.refunded:
+      case 'refunded':
         color = Colors.grey;
         label = 'Refunded';
+        break;
+      default:
+        color = Colors.grey;
+        label = 'Unknown';
         break;
     }
 

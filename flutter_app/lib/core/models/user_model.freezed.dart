@@ -638,7 +638,7 @@ extension UserPatterns on User {
 
 /// @nodoc
 @JsonSerializable()
-class _User implements User {
+class _User extends User {
   const _User(
       {required this.id,
       required this.username,
@@ -668,7 +668,8 @@ class _User implements User {
       this.updatedAt})
       : _settings = settings,
         _preferences = preferences,
-        _interests = interests;
+        _interests = interests,
+        super._();
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   @override

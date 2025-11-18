@@ -1,5 +1,5 @@
-import '../../core/services/api_service.dart';
-import '../../core/models/models.dart';
+import '../../../core/services/api_service.dart';
+import '../../../core/models/models.dart';
 
 /// Wallet Service - Digital wallet operations
 /// Integrates with backend /api/wallets endpoints

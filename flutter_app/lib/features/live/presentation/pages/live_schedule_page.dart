@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/live_stream_model.dart';
-import '../../data/services/live_stream_service.dart';
+import '../../data/services/live_service.dart';
 
 class LiveSchedulePage extends StatefulWidget {
   const LiveSchedulePage({super.key});
@@ -10,7 +10,7 @@ class LiveSchedulePage extends StatefulWidget {
 }
 
 class _LiveSchedulePageState extends State<LiveSchedulePage> {
-  final LiveStreamService _liveStreamService = LiveStreamService();
+  final LiveService _liveService = LiveService();
   final _formKey = GlobalKey<FormState>();
 
   final _titleController = TextEditingController();
@@ -90,12 +90,11 @@ class _LiveSchedulePageState extends State<LiveSchedulePage> {
         throw Exception('Please select a future date and time');
       }
 
-      await _liveStreamService.scheduleLiveStream({
-        'title': _titleController.text,
-        'description': _descriptionController.text,
-        'scheduledTime': scheduledDateTime.toIso8601String(),
-        'category': _category,
-      });
+      await _liveService.scheduleStream(
+        title: _titleController.text,
+        description: _descriptionController.text,
+        scheduledAt: scheduledDateTime,
+      );
 
       if (!mounted) return;
 

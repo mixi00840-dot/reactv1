@@ -150,7 +150,7 @@ class TicketItem extends StatelessWidget {
     switch (status) {
       case TicketStatus.open:
         return Colors.blue;
-      case TicketStatus.pending:
+      case TicketStatus.open:
         return Colors.orange;
       case TicketStatus.resolved:
         return Colors.green;

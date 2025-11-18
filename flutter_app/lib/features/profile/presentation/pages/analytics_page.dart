@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import '../../data/models/analytics_model.dart';
-import '../../data/services/analytics_service.dart';
+// import 'package:fl_chart/fl_chart.dart'; // Package not installed
+// import '../../data/models/analytics_model.dart';
+// import '../../data/services/analytics_service.dart';
 
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage({super.key});
@@ -278,48 +278,46 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   }
 
   Widget _buildViewsChart() {
-    // Using fl_chart package (add to pubspec.yaml: fl_chart: ^0.65.0)
+    // TODO: Add fl_chart package to pubspec.yaml and implement chart
+    // For now, show a placeholder with analytics data
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: SizedBox(
           height: 200,
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(show: false),
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: true, reservedSize: 40),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: true),
-                ),
-                rightTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Views Chart',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              borderData: FlBorderData(show: false),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: _analytics!.viewsData
-                      .asMap()
-                      .entries
-                      .map((e) => FlSpot(e.key.toDouble(), e.value.toDouble()))
-                      .toList(),
-                  isCurved: true,
-                  color: Colors.blue,
-                  barWidth: 3,
-                  dotData: FlDotData(show: false),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Colors.blue.withOpacity(0.1),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.bar_chart, size: 48, color: Colors.grey),
+                        SizedBox(height: 8),
+                        Text(
+                          'Chart will be available once\nfl_chart package is added',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

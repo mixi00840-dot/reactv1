@@ -47,7 +47,7 @@ class MessageBubble extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Reply-to message
-                    if (message.replyTo != null) ...[
+                    if (message.replyToId != null) ...[
                       Container(
                         padding: const EdgeInsets.all(8),
                         margin: const EdgeInsets.only(bottom: 8),

@@ -104,6 +104,9 @@ class Product {
   bool get onSale => salePrice != null && salePrice! < price;
   double get discountPercentage =>
       onSale ? ((price - salePrice!) / price * 100) : 0;
+  
+  // Convenience getter for backward compatibility
+  String? get imageUrl => images.isNotEmpty ? images.first : null;
 }
 
 class ProductVariant {

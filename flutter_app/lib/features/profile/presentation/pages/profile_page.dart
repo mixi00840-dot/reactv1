@@ -8,6 +8,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/widgets/glass_widgets.dart';
 import '../../data/models/user_profile_model.dart';
+import '../../data/mock_profile_data.dart';
 import '../pages/wallet_page.dart';
 import '../pages/settings_page.dart';
 import '../../../profile/providers/profile_provider_riverpod.dart';
@@ -94,7 +95,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
               pinned: true,
               backgroundColor: AppColors.background,
               flexibleSpace: FlexibleSpaceBar(
-                background: isFirstLoad 
+                background: profileState.isLoading 
                   ? const Center(
                       child: CircularProgressIndicator(color: AppColors.primary),
                     )
@@ -114,7 +115,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
             ),
           ];
         },
-        body: isFirstLoad
+        body: profileState.isLoading
           ? const SizedBox.shrink()
           : Column(
               children: [

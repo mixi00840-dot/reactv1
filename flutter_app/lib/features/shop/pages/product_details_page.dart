@@ -9,7 +9,7 @@ import '../widgets/product_details/product_quantity_selector.dart';
 import '../widgets/product_details/product_description.dart';
 import '../widgets/reviews/reviews_section.dart';
 import '../widgets/product_card.dart';
-import '../models/product_model.dart';
+import '../models/product_model_simple.dart';
 import '../providers/product_provider.dart';
 import '../providers/cart_state_provider.dart';
 

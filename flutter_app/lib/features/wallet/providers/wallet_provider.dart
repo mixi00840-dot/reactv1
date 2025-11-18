@@ -34,7 +34,7 @@ class WalletNotifier extends StateNotifier<AsyncValue<Wallet>> {
 
   Future<void> topUp(double amount, String paymentMethod) async {
     try {
-      await _service.topUp(amount, paymentMethod);
+      await _service.topUp(amount: amount, paymentMethodId: paymentMethod);
       await loadWallet();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
@@ -43,7 +43,7 @@ class WalletNotifier extends StateNotifier<AsyncValue<Wallet>> {
 
   Future<void> transfer(String recipientId, double amount) async {
     try {
-      await _service.transfer(recipientId, amount);
+      await _service.transfer(toUserId: recipientId, amount: amount);
       await loadWallet();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);

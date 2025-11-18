@@ -1,19 +1,40 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart';
-import 'api_service.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
+  late Dio _dio;
+  bool _isInitialized = false;
+  bool _isRefreshing = false;
+
+  // Storage keys
   static const String _tokenKey = 'auth_token';
   static const String _refreshTokenKey = 'refresh_token';
   static const String _userIdKey = 'user_id';
   static const String _tokenExpiryKey = 'token_expiry';
 
-  // ✅ NEW: Track refresh attempts to prevent infinite loops
-  bool _isRefreshing = false;
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    final baseUrl = dotenv.env['API_BASE_URL'] ?? 'https://mixillo-backend-52242135857.europe-west1.run.app/api';
+    
+    _dio = Dio(BaseOptions(
+      baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    ));
+
+    _isInitialized = true;
+  }
 
   // Get stored token
   Future<String?> getToken() async {
@@ -21,32 +42,11 @@ class AuthService {
     return prefs.getString(_tokenKey);
   }
 
-  // ✅ NEW: Get token with automatic refresh if expired
-  Future<String?> getValidToken() async {
-    final token = await getToken();
-    if (token == null) return null;
-
-    // Check if token is expired
-    final isExpired = await isTokenExpired();
-    if (isExpired && !_isRefreshing) {
-      debugPrint('Token expired, attempting refresh...');
-      final refreshed = await refreshToken();
-      if (refreshed) {
-        return await getToken();
-      } else {
-        debugPrint('Token refresh failed, user needs to re-login');
-        return null;
-      }
-    }
-
-    return token;
-  }
-
-  // ✅ NEW: Check if token is expired
+  // Check if token is expired
   Future<bool> isTokenExpired() async {
     final prefs = await SharedPreferences.getInstance();
     final expiryTimestamp = prefs.getInt(_tokenExpiryKey);
-
+    
     if (expiryTimestamp == null) {
       // If no expiry stored, assume token might be expired
       return true;
@@ -65,7 +65,7 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
 
-    // ✅ NEW: Store token expiry (default 24 hours if not provided)
+    // Store token expiry (default 24 hours if not provided)
     final expiry = expiresAt ?? DateTime.now().add(const Duration(hours: 24));
     await prefs.setInt(_tokenExpiryKey, expiry.millisecondsSinceEpoch);
   }
@@ -94,61 +94,54 @@ class AuthService {
     await prefs.setString(_userIdKey, userId);
   }
 
-  // Check if user is authenticated
-  Future<bool> isAuthenticated() async {
+  // Check if user is logged in
+  Future<bool> isLoggedIn() async {
     final token = await getToken();
-    if (token == null || token.isEmpty) return false;
-
-    // ✅ NEW: Also check if token is still valid
+    if (token == null) return false;
+    
     final isExpired = await isTokenExpired();
     return !isExpired;
   }
 
-  // Refresh token
+  // Refresh access token
   Future<bool> refreshToken() async {
-    // ✅ NEW: Prevent multiple simultaneous refresh attempts
     if (_isRefreshing) {
-      debugPrint('Token refresh already in progress, waiting...');
-      await Future.delayed(const Duration(seconds: 2));
-      return await isAuthenticated();
+      // Wait for ongoing refresh to complete
+      await Future.delayed(const Duration(milliseconds: 100));
+      return await isLoggedIn();
     }
 
     _isRefreshing = true;
+
     try {
       final refreshToken = await getRefreshToken();
       if (refreshToken == null) {
-        debugPrint('No refresh token available');
+        await clearAuthData();
         return false;
       }
 
-      final apiService = ApiService();
-      final response = await apiService.post('/auth/mongodb/refresh', data: {
+      final response = await _dio.post('/auth/refresh', data: {
         'refreshToken': refreshToken,
       });
 
-      if (response['success'] == true) {
-        final newToken = response['data']['token'];
-        final newRefreshToken = response['data']['refreshToken'];
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final newAccessToken = data['accessToken'] ?? data['token'];
+        final newRefreshToken = data['refreshToken'];
 
-        // ✅ IMPROVED: Parse token expiry if provided by backend
-        DateTime? expiresAt;
-        if (response['data']['expiresAt'] != null) {
-          expiresAt = DateTime.parse(response['data']['expiresAt']);
+        if (newAccessToken != null) {
+          await saveToken(newAccessToken);
+          if (newRefreshToken != null) {
+            await saveRefreshToken(newRefreshToken);
+          }
+          return true;
         }
-
-        await saveToken(newToken, expiresAt: expiresAt);
-        if (newRefreshToken != null) {
-          await saveRefreshToken(newRefreshToken);
-        }
-
-        debugPrint('✅ Token refreshed successfully');
-        return true;
       }
 
-      debugPrint('❌ Token refresh failed: ${response['message']}');
+      await clearAuthData();
       return false;
     } catch (e) {
-      debugPrint('❌ Error refreshing token: $e');
+      await clearAuthData();
       return false;
     } finally {
       _isRefreshing = false;
@@ -158,62 +151,86 @@ class AuthService {
   // Login
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      final apiService = ApiService();
-      final response = await apiService.post('/auth/mongodb/login', data: {
+      final response = await _dio.post('/auth/login', data: {
         'email': email,
         'password': password,
       });
 
-      if (response['success'] == true) {
-        final token = response['data']['token'];
-        final refreshToken = response['data']['refreshToken'];
-        final userId = response['data']['user']['_id'];
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final token = data['accessToken'] ?? data['token'];
+        final refreshToken = data['refreshToken'];
+        final user = data['user'];
 
-        await saveToken(token);
-        if (refreshToken != null) {
-          await saveRefreshToken(refreshToken);
+        if (token != null && user != null) {
+          await saveToken(token);
+          if (refreshToken != null) {
+            await saveRefreshToken(refreshToken);
+          }
+          if (user['_id'] != null || user['id'] != null) {
+            await saveUserId(user['_id'] ?? user['id']);
+          }
+
+          return {
+            'success': true,
+            'user': user,
+            'token': token,
+          };
         }
-        await saveUserId(userId);
-
-        return {'success': true, 'user': response['data']['user']};
       }
-      return {'success': false, 'message': response['message']};
+
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'Login failed',
+      };
     } catch (e) {
-      debugPrint('Login error: $e');
-      return {'success': false, 'message': 'Login failed. Please try again.'};
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
     }
   }
 
   // Register
-  Future<Map<String, dynamic>> register(
-      String username, String email, String password) async {
+  Future<Map<String, dynamic>> register(String username, String email, String password) async {
     try {
-      final apiService = ApiService();
-      final response = await apiService.post('/auth/mongodb/register', data: {
+      final response = await _dio.post('/auth/register', data: {
         'username': username,
         'email': email,
         'password': password,
       });
 
-      if (response['success'] == true) {
-        final token = response['data']['token'];
-        final refreshToken = response['data']['refreshToken'];
-        final userId = response['data']['user']['_id'];
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = response.data;
+        final token = data['accessToken'] ?? data['token'];
+        final refreshToken = data['refreshToken'];
+        final user = data['user'];
 
-        await saveToken(token);
-        if (refreshToken != null) {
-          await saveRefreshToken(refreshToken);
+        if (token != null && user != null) {
+          await saveToken(token);
+          if (refreshToken != null) {
+            await saveRefreshToken(refreshToken);
+          }
+          if (user['_id'] != null || user['id'] != null) {
+            await saveUserId(user['_id'] ?? user['id']);
+          }
+
+          return {
+            'success': true,
+            'user': user,
+            'token': token,
+          };
         }
-        await saveUserId(userId);
-
-        return {'success': true, 'user': response['data']['user']};
       }
-      return {'success': false, 'message': response['message']};
-    } catch (e) {
-      debugPrint('Register error: $e');
+
       return {
         'success': false,
-        'message': 'Registration failed. Please try again.'
+        'message': response.data['message'] ?? 'Registration failed',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': e.toString(),
       };
     }
   }
@@ -221,52 +238,73 @@ class AuthService {
   // Get current user
   Future<Map<String, dynamic>?> getCurrentUser() async {
     try {
-      final userId = await getUserId();
-      if (userId == null) return null;
+      final token = await getToken();
+      if (token == null) return null;
 
-      final apiService = ApiService();
-      final response = await apiService.get('/users/$userId');
+      final response = await _dio.get('/users/me', 
+        options: Options(headers: {'Authorization': 'Bearer $token'})
+      );
 
-      if (response['success'] == true) {
-        return response['data'];
+      if (response.statusCode == 200) {
+        return response.data['user'] ?? response.data['data'];
       }
       return null;
     } catch (e) {
-      debugPrint('Get current user error: $e');
       return null;
     }
   }
 
   // Update profile
-  Future<Map<String, dynamic>?> updateProfile(
-      Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
     try {
-      final userId = await getUserId();
-      if (userId == null) return null;
-
-      final apiService = ApiService();
-      final response = await apiService.put('/users/$userId', data: data);
-
-      if (response['success'] == true) {
-        return response['data'];
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
       }
-      return null;
+
+      final response = await _dio.put('/users/me', 
+        data: data,
+        options: Options(headers: {'Authorization': 'Bearer $token'})
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'user': response.data['user'] ?? response.data['data'],
+        };
+      }
+
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'Update failed',
+      };
     } catch (e) {
-      debugPrint('Update profile error: $e');
-      return null;
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
     }
   }
 
   // Logout
   Future<void> logout() async {
+    await clearAuthData();
+  }
+
+  // Clear all authentication data
+  Future<void> clearAuthData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_refreshTokenKey);
     await prefs.remove(_userIdKey);
+    await prefs.remove(_tokenExpiryKey);
   }
 
-  // Clear all auth data
-  Future<void> clearAuthData() async {
-    await logout();
+  // Get authorization header
+  Future<Map<String, String>?> getAuthHeaders() async {
+    final token = await getToken();
+    if (token == null) return null;
+    
+    return {'Authorization': 'Bearer $token'};
   }
 }

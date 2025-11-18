@@ -40,6 +40,9 @@ class NotificationModel {
   final bool clicked;
   final String? fromUserId;
   final String? contentId;
+  final String? actorId;
+  final String? body;
+  final String? liveStreamId;
   final DateTime createdAt;
 
   NotificationModel({
@@ -55,6 +58,9 @@ class NotificationModel {
     this.clicked = false,
     this.fromUserId,
     this.contentId,
+    this.actorId,
+    this.body,
+    this.liveStreamId,
     required this.createdAt,
   });
 
@@ -72,6 +78,9 @@ class NotificationModel {
       clicked: json['clicked'] ?? false,
       fromUserId: json['fromUser'],
       contentId: json['content'],
+      actorId: json['actorId'],
+      body: json['body'],
+      liveStreamId: json['liveStreamId'],
       createdAt: DateTime.parse(json['createdAt']),
     );
   }
@@ -90,9 +99,15 @@ class NotificationModel {
       'clicked': clicked,
       if (fromUserId != null) 'fromUser': fromUserId,
       if (contentId != null) 'content': contentId,
+      if (actorId != null) 'actorId': actorId,
+      if (body != null) 'body': body,
+      if (liveStreamId != null) 'liveStreamId': liveStreamId,
       'createdAt': createdAt.toIso8601String(),
     };
   }
+
+  // Getter for backwards compatibility
+  bool get isRead => read;
 
   IconData get icon {
     switch (type) {
@@ -170,6 +185,7 @@ class NotificationModel {
     String? actionUrl,
     String? imageUrl,
     bool? read,
+    bool? isRead,
     bool? clicked,
     String? fromUserId,
     String? contentId,
@@ -184,7 +200,7 @@ class NotificationModel {
       data: data ?? this.data,
       actionUrl: actionUrl ?? this.actionUrl,
       imageUrl: imageUrl ?? this.imageUrl,
-      read: read ?? this.read,
+      read: isRead ?? read ?? this.read,
       clicked: clicked ?? this.clicked,
       fromUserId: fromUserId ?? this.fromUserId,
       contentId: contentId ?? this.contentId,

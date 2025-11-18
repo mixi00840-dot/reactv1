@@ -6,7 +6,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading_indicator.dart';
 import '../../../../core/widgets/error_widget.dart';
 import '../widgets/gift_item.dart';
-import '../widgets/gift_category_tabs.dart';
 
 /// Gift shop page - browse and send virtual gifts
 class GiftShopPage extends ConsumerStatefulWidget {
@@ -137,7 +136,7 @@ class _GiftShopPageState extends ConsumerState<GiftShopPage>
 
     if (_error != null) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadGifts,
         ),
@@ -328,9 +327,9 @@ class _GiftDetailsSheetState extends State<_GiftDetailsSheet> {
             ),
             const SizedBox(height: 24),
             // Gift image/animation
-            if (widget.gift.imageUrl != null)
+            if (widget.gift.imageUrl.isNotEmpty)
               Image.network(
-                widget.gift.imageUrl!,
+                widget.gift.imageUrl,
                 width: 120,
                 height: 120,
                 fit: BoxFit.contain,
@@ -364,11 +363,11 @@ class _GiftDetailsSheetState extends State<_GiftDetailsSheet> {
             ),
             const SizedBox(height: 16),
             // Description
-            if (widget.gift.description != null)
+            if (widget.gift.description.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  widget.gift.description!,
+                  widget.gift.description,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,

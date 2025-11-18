@@ -99,11 +99,8 @@ class LiveService {
   }
 
   /// Send gift during stream
-  Future<bool> sendGift({
-    required String streamId,
-    required String giftId,
-    int quantity = 1,
-  }) async {
+  Future<bool> sendGift(String streamId, String giftId,
+      {int quantity = 1}) async {
     try {
       final response = await _apiService.post(
         '/live/$streamId/gift',
@@ -117,6 +114,78 @@ class LiveService {
     } catch (e) {
       print('Error sending gift: $e');
       return false;
+    }
+  }
+
+  /// Get scheduled streams
+  Future<List<LiveStream>> getScheduledStreams() async {
+    try {
+      final response = await _apiService.get('/live/scheduled');
+
+      if (response['success'] == true && response['streams'] != null) {
+        return (response['streams'] as List)
+            .map((json) => LiveStream.fromJson(json))
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      print('Error fetching scheduled streams: $e');
+      return [];
+    }
+  }
+
+  /// Schedule stream
+  Future<LiveStream?> scheduleStream({
+    required String title,
+    String? description,
+    required DateTime scheduledAt,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        '/live/schedule',
+        data: {
+          'title': title,
+          if (description != null) 'description': description,
+          'scheduledAt': scheduledAt.toIso8601String(),
+        },
+      );
+
+      if (response['success'] == true && response['stream'] != null) {
+        return LiveStream.fromJson(response['stream']);
+      }
+
+      return null;
+    } catch (e) {
+      print('Error scheduling stream: $e');
+      return null;
+    }
+  }
+
+  /// Delete scheduled stream
+  Future<bool> deleteScheduledStream(String streamId) async {
+    try {
+      final response = await _apiService.delete('/live/scheduled/$streamId');
+      return response['success'] == true;
+    } catch (e) {
+      print('Error deleting scheduled stream: $e');
+      return false;
+    }
+  }
+
+  /// Get stream token for joining
+  Future<String?> getStreamToken(String streamId) async {
+    try {
+      final response = await _apiService.post('/live/$streamId/join');
+
+      if (response['success'] == true && response['token'] != null) {
+        return response['token'];
+      }
+
+      return null;
+    } catch (e) {
+      print('Error getting stream token: $e');
+      return null;
     }
   }
 }

@@ -97,6 +97,20 @@ class MessageService {
   }
 
   /// Start new conversation
+
+    /// Delete conversation
+    Future<bool> deleteConversation(String conversationId) async {
+      try {
+        final response = await _apiService.delete('/messages/conversations/$conversationId');
+
+        return response['success'] == true;
+      } catch (e) {
+        print('Error deleting conversation: $e');
+        return false;
+      }
+    }
+
+    /// Start new conversation
   Future<Conversation?> startConversation(String userId) async {
     try {
       final response = await _apiService.post(

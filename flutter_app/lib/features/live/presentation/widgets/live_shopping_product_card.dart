@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../core/models/models.dart';
+import '../../../shop/models/product_model_simple.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// Live shopping product card widget
 class LiveShoppingProductCard extends StatelessWidget {
-  final ProductModel product;
+  final Product product;
   final VoidCallback onTap;
 
   const LiveShoppingProductCard({
@@ -29,7 +29,7 @@ class LiveShoppingProductCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: Image.network(
-                  product.imageUrl,
+                  product.images.isNotEmpty ? product.images.first : 'https://picsum.photos/200/200',
                   height: 100,
                   width: double.infinity,
                   fit: BoxFit.cover,

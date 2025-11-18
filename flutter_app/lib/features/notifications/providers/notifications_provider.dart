@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/models/notification.dart';
+import '../../../core/models/notification_model.dart';
 import '../data/services/notification_service.dart';
 
 // Notification service provider

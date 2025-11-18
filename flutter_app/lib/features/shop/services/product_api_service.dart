@@ -1,23 +1,31 @@
-import '../models/product_model.dart';
-import 'api_service.dart';
+import '../models/product_model_simple.dart';
+import '../../../core/services/api_service.dart';
 
 /// Service for product-related API calls
 class ProductApiService {
-  final ApiService _apiService;
+  final ApiService _apiService = ApiService();
 
-  ProductApiService(this._apiService);
+  ProductApiService();
 
   /// Get featured products
   Future<List<Product>> getFeaturedProducts({int limit = 10}) async {
     try {
-      final response = await _apiService.dio.get(
+      print('🔍 Fetching featured products with limit: $limit');
+      final response = await _apiService.get(
         '/products/featured',
         queryParameters: {'limit': limit},
       );
 
-      final List<dynamic> data = response.data['data'] ?? [];
-      return data.map((json) => Product.fromJson(json)).toList();
+      print('✅ Featured products response: ${response.runtimeType}');
+      print('   Response keys: ${response.keys}');
+      final List<dynamic> data = response['products'] ?? response['data'] ?? [];
+      print('   Products count: ${data.length}');
+      
+      final products = data.map((json) => Product.fromJson(json)).toList();
+      print('✅ Successfully parsed ${products.length} featured products');
+      return products;
     } catch (e) {
+      print('❌ Error fetching featured products: $e');
       throw _apiService.handleError(e);
     }
   }
@@ -29,15 +37,16 @@ class ProductApiService {
     int limit = 20,
   }) async {
     try {
-      final response = await _apiService.dio.get(
-        '/products/category/$category',
+      final response = await _apiService.get(
+        '/products',
         queryParameters: {
+          'category': category,
           'page': page,
           'limit': limit,
         },
       );
 
-      final List<dynamic> data = response.data['data'] ?? [];
+      final List<dynamic> data = response['products'] ?? [];
       return data.map((json) => Product.fromJson(json)).toList();
     } catch (e) {
       throw _apiService.handleError(e);
@@ -47,8 +56,9 @@ class ProductApiService {
   /// Get product by ID
   Future<Product> getProductById(String id) async {
     try {
-      final response = await _apiService.dio.get('/products/$id');
-      return Product.fromJson(response.data['data']);
+      final response = await _apiService.get('/products/$id');
+      final productData = response['product'] ?? response['data'];
+      return Product.fromJson(productData);
     } catch (e) {
       throw _apiService.handleError(e);
     }
@@ -66,7 +76,7 @@ class ProductApiService {
     String? sortBy,
   }) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _apiService.get(
         '/products/search',
         queryParameters: {
           'q': query,
@@ -80,7 +90,7 @@ class ProductApiService {
         },
       );
 
-      final List<dynamic> data = response.data['data'] ?? [];
+      final List<dynamic> data = response['products'] ?? [];
       return data.map((json) => Product.fromJson(json)).toList();
     } catch (e) {
       throw _apiService.handleError(e);
@@ -93,12 +103,12 @@ class ProductApiService {
     int limit = 10,
   }) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _apiService.get(
         '/products/$productId/related',
         queryParameters: {'limit': limit},
       );
 
-      final List<dynamic> data = response.data['data'] ?? [];
+      final List<dynamic> data = response['products'] ?? [];
       return data.map((json) => Product.fromJson(json)).toList();
     } catch (e) {
       throw _apiService.handleError(e);
@@ -112,7 +122,7 @@ class ProductApiService {
     int limit = 10,
   }) async {
     try {
-      final response = await _apiService.dio.get(
+      final response = await _apiService.get(
         '/products/$productId/reviews',
         queryParameters: {
           'page': page,
@@ -120,7 +130,7 @@ class ProductApiService {
         },
       );
 
-      final List<dynamic> data = response.data['data'] ?? [];
+      final List<dynamic> data = response['reviews'] ?? [];
       return data.map((json) => Review.fromJson(json)).toList();
     } catch (e) {
       throw _apiService.handleError(e);
@@ -130,8 +140,39 @@ class ProductApiService {
   /// Get categories
   Future<List<Map<String, dynamic>>> getCategories() async {
     try {
-      final response = await _apiService.dio.get('/products/categories');
-      return List<Map<String, dynamic>>.from(response.data['data'] ?? []);
+      final response = await _apiService.get('/products/categories');
+      return List<Map<String, dynamic>>.from(response['categories'] ?? []);
+    } catch (e) {
+      throw _apiService.handleError(e);
+    }
+  }
+
+  /// Get user wishlist
+  Future<List<Product>> getWishlist() async {
+    try {
+      final response = await _apiService.get('/users/wishlist');
+      final List<dynamic> data = response['products'] ?? [];
+      return data.map((json) => Product.fromJson(json)).toList();
+    } catch (e) {
+      throw _apiService.handleError(e);
+    }
+  }
+
+  /// Add product to wishlist
+  Future<bool> addToWishlist(String productId) async {
+    try {
+      await _apiService.post('/users/wishlist', data: {'productId': productId});
+      return true;
+    } catch (e) {
+      throw _apiService.handleError(e);
+    }
+  }
+
+  /// Remove product from wishlist
+  Future<bool> removeFromWishlist(String productId) async {
+    try {
+      await _apiService.delete('/users/wishlist/$productId');
+      return true;
     } catch (e) {
       throw _apiService.handleError(e);
     }

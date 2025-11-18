@@ -34,7 +34,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
       final products = await _service.getProducts(
         page: 1,
         category: category,
-        searchQuery: searchQuery,
+        search: searchQuery,
       );
       _currentPage = 1;
       _hasMore = products.isNotEmpty;
@@ -52,7 +52,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
         final newProducts = await _service.getProducts(
           page: _currentPage + 1,
           category: _currentCategory,
-          searchQuery: _currentSearchQuery,
+          search: _currentSearchQuery,
         );
 
         if (newProducts.isEmpty) {

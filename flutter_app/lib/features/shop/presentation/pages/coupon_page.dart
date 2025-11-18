@@ -151,7 +151,7 @@ class _CouponPageState extends ConsumerState<CouponPage>
 
     if (_error != null && _coupons.isEmpty) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadCoupons,
         ),
@@ -299,13 +299,16 @@ class _CouponPageState extends ConsumerState<CouponPage>
     if (code.trim().isEmpty) return;
 
     try {
-      final isValid = await _couponService.validateCoupon(code);
+      final result = await _couponService.validateCoupon(
+        code: code,
+        cartTotal: 0.0, // Default cart total for validation
+      );
       if (!mounted) return;
 
-      if (isValid) {
+      if (result['valid'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Coupon is valid!'),
+          SnackBar(
+            content: Text(result['message'] ?? 'Coupon is valid!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -461,7 +464,7 @@ class _CouponPageState extends ConsumerState<CouponPage>
                   _buildDetailRow('Min Purchase', '\$${coupon.minPurchase.toStringAsFixed(2)}'),
                   if (coupon.maxDiscount != null)
                     _buildDetailRow('Max Discount', '\$${coupon.maxDiscount!.toStringAsFixed(2)}'),
-                  _buildDetailRow('Valid Until', timeago.format(coupon.expiresAt)),
+                  _buildDetailRow('Valid Until', timeago.format(coupon.expiresAt ?? DateTime.now())),
                   _buildDetailRow('Usage Limit', '${coupon.usageCount}/${coupon.usageLimit}'),
                   const SizedBox(height: 24),
                   if (coupon.terms != null) ...[

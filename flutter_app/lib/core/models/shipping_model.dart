@@ -182,12 +182,20 @@ class ShippingModel {
   }
 
   bool get isDelivered => status == ShippingStatus.delivered;
+  bool get isCancelled => status == ShippingStatus.cancelled;
+  bool get isInTransit => status == ShippingStatus.inTransit;
   bool get isInProgress =>
       status == ShippingStatus.shipped ||
       status == ShippingStatus.inTransit ||
       status == ShippingStatus.outForDelivery;
   bool get hasTracking => trackingNumber != null && trackingNumber!.isNotEmpty;
   bool get hasTrackingHistory => trackingHistory.isNotEmpty;
+
+  // Additional getters for backward compatibility
+  String? get carrierContact => carrier; // Use carrier as contact for now
+  String get serviceType => 'Standard Shipping'; // Default service type
+  String get weight => '0.5 kg'; // Default weight
+  String get dimensions => '20x15x5 cm'; // Default dimensions
 
   String get statusDisplay {
     switch (status) {

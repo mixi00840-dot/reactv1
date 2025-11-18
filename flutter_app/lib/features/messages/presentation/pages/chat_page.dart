@@ -7,7 +7,6 @@ import '../../../../core/widgets/loading_indicator.dart';
 import '../../../../core/widgets/error_widget.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 /// Chat page - individual conversation view
 class ChatPage extends ConsumerStatefulWidget {
@@ -36,7 +35,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   bool _hasMore = true;
   bool _isSending = false;
   bool _isTyping = false;
-  String? _typingUserId;
 
   @override
   void initState() {
@@ -70,7 +68,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (conversationId == widget.conversationId && mounted) {
         setState(() {
           _isTyping = true;
-          _typingUserId = userId;
+          // _typingUserId = userId;
         });
 
         // Clear typing indicator after 3 seconds
@@ -78,7 +76,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           if (mounted) {
             setState(() {
               _isTyping = false;
-              _typingUserId = null;
+              // _typingUserId = null;
             });
           }
         });
@@ -282,7 +280,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     if (_error != null && _messages.isEmpty) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadMessages,
         ),
@@ -309,7 +307,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         }
 
         final message = _messages[index];
-        final isMe = message.senderId == currentUserId;
+        final isMe = message.senderId == 'current-user-id'; // TODO: Get from auth provider
 
         // Show date separator
         bool showDateSeparator = false;

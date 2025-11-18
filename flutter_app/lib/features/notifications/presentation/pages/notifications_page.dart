@@ -74,7 +74,6 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
       final notifications = await _notificationService.getNotifications(
         page: _currentPage,
         limit: 20,
-        type: _selectedFilter,
       );
 
       setState(() {
@@ -167,7 +166,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
 
     if (_error != null && _notifications.isEmpty) {
       return Center(
-        child: AppErrorWidget(
+        child: ErrorDisplay(
           message: _error!,
           onRetry: _loadNotifications,
         ),

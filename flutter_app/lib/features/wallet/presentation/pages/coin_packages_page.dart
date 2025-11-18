@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/coin_model.dart';
+import '../../data/models/coin_package_model.dart';
 import '../../data/services/coin_service.dart';
 
 class CoinPackagesPage extends StatefulWidget {

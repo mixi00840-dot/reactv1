@@ -77,7 +77,7 @@ class ScheduledContentItem extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            content.status.toUpperCase(),
+                            content.status.name.toUpperCase(),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -150,7 +150,7 @@ class ScheduledContentItem extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        if (content.status == 'pending') ...[
+                        if (content.status == ScheduleStatus.scheduled) ...[
                           TextButton.icon(
                             onPressed: onEdit,
                             icon: const Icon(Icons.edit, size: 16),
@@ -173,7 +173,7 @@ class ScheduledContentItem extends StatelessWidget {
                             ),
                           ),
                         ],
-                        if (content.status == 'failed' && onRetry != null)
+                        if (content.status == ScheduleStatus.failed && onRetry != null)
                           TextButton.icon(
                             onPressed: onRetry,
                             icon: const Icon(Icons.replay, size: 16),
@@ -212,18 +212,16 @@ class ScheduledContentItem extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
+  Color _getStatusColor(ScheduleStatus status) {
+    switch (status) {
+      case ScheduleStatus.scheduled:
         return Colors.orange;
-      case 'posted':
+      case ScheduleStatus.published:
         return Colors.green;
-      case 'failed':
+      case ScheduleStatus.failed:
         return Colors.red;
-      case 'cancelled':
+      case ScheduleStatus.cancelled:
         return Colors.grey;
-      default:
-        return Colors.blue;
     }
   }
 

@@ -26,6 +26,7 @@ class ConversationModel {
   final bool archived;
   final bool muted;
   final Map<String, dynamic>? metadata;
+  final DateTime? lastMessageAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -41,6 +42,7 @@ class ConversationModel {
     this.archived = false,
     this.muted = false,
     this.metadata,
+    this.lastMessageAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -64,6 +66,7 @@ class ConversationModel {
       archived: json['archived'] ?? false,
       muted: json['muted'] ?? false,
       metadata: json['metadata'],
+      lastMessageAt: json['lastMessageAt'] != null ? DateTime.parse(json['lastMessageAt']) : null,
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
     );

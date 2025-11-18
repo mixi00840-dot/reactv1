@@ -85,8 +85,8 @@ class ConversationMessagesNotifier
       {String? mediaUrl, String? mediaType}) async {
     try {
       final message = await _service.sendMessage(
-        _conversationId,
-        content,
+        conversationId: _conversationId,
+        text: content,
         mediaUrl: mediaUrl,
         mediaType: mediaType,
       );

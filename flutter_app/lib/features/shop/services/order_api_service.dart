@@ -1,11 +1,11 @@
-import '../models/product_model.dart';
-import 'api_service.dart';
+import '../models/product_model_simple.dart';
+import '../../../core/services/api_service.dart';
 
 /// Service for order-related API calls
 class OrderApiService {
-  final ApiService _apiService;
+  final ApiService _apiService = ApiService();
 
-  OrderApiService(this._apiService);
+  OrderApiService();
 
   /// Create new order
   Future<Order> createOrder({

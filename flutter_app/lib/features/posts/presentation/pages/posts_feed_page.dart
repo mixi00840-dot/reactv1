@@ -3,9 +3,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/models/post_model.dart';
-import '../../data/mock_posts_data.dart';
+import '../../data/mock_posts_data.dart'; // Contains both MockPostsData and MockStoriesData
 import '../widgets/post_card.dart';
-import '../../../stories/data/mock_stories_data.dart';
+import '../../../stories/data/models/story_model.dart';
 import '../../../stories/presentation/widgets/story_list_widget.dart';
 import '../../../stories/presentation/pages/story_viewer_page.dart';
 
@@ -31,7 +31,9 @@ class _PostsFeedPageState extends State<PostsFeedPage> {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
     setState(() {
-      _posts = MockPostsData.getPosts();
+      _posts = MockPostsData.getPosts()
+          .map((json) => Post.fromJson(json))
+          .toList();
       _isLoading = false;
     });
   }
@@ -39,7 +41,9 @@ class _PostsFeedPageState extends State<PostsFeedPage> {
   Future<void> _refreshPosts() async {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {
-      _posts = MockPostsData.getPosts();
+      _posts = MockPostsData.getPosts()
+          .map((json) => Post.fromJson(json))
+          .toList();
     });
   }
 
@@ -118,9 +122,9 @@ class _PostsFeedPageState extends State<PostsFeedPage> {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 itemCount: post.comments,
                 itemBuilder: (context, index) {
-                  final comments = MockPostsData.getComments(post.id);
-                  if (index >= comments.length) return const SizedBox.shrink();
-                  final comment = comments[index];
+                  final commentsData = MockPostsData.getComments(post.id);
+                  if (index >= commentsData.length) return const SizedBox.shrink();
+                  final comment = Comment.fromJson(commentsData[index]);
                   
                   return Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -325,13 +329,17 @@ class _PostsFeedPageState extends State<PostsFeedPage> {
                 bottom: AppSpacing.sm,
               ),
               child: StoryListWidget(
-                stories: MockStoriesData.getStories(),
+                stories: MockStoriesData.getStories()
+                    .map((json) => Story.fromJson(json))
+                    .toList(),
                 onStoryTap: (story, index) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => StoryViewerPage(
-                        stories: MockStoriesData.getStories(),
+                        stories: MockStoriesData.getStories()
+                            .map((json) => Story.fromJson(json))
+                            .toList(),
                         initialStoryIndex: index,
                       ),
                     ),

@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/content_provider.dart';
 import '../../../../core/routing/app_routes.dart';
 import 'package:go_router/go_router.dart';
+import '../../../posts/providers/feed_provider.dart';
+import '../../../shop/providers/cart_state_provider.dart';
+import '../../../notifications/providers/notifications_provider.dart';
+import '../../../../test_products_widget.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -29,13 +33,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(contentFeedProvider.notifier).loadMore();
+                ref.read(feedProvider.notifier).loadMore();();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final contentState = ref.watch(contentFeedProvider);
+    final contentState = ref.watch(feedProvider);
     final cartItemCount = ref.watch(cartItemCountProvider);
     final unreadNotifications = ref.watch(unreadNotificationsCountProvider);
 
@@ -111,30 +115,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
             ],
           ),
+          // Test Shop Products Button
+          IconButton(
+            icon: const Icon(Icons.store, color: Colors.green),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TestProductsWidget(),
+                ),
+              );
+            },
+          ),
         ],
       ),
-      body: contentState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.read(contentFeedProvider.notifier).refresh();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-        data: (contents) {
-          if (contents.isEmpty) {
+      body: Consumer(
+        builder: (context, ref, child) {
+          final feedState = ref.watch(feedProvider);
+          
+          if (feedState.isLoading && feedState.posts.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (feedState.error != null && feedState.posts.isEmpty) {
             return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text('Error: ${feedState.error}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref.read(feedProvider.notifier).loadFeed(refresh: true);
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+          
+          final contents = feedState.posts;
+          if (contents.isEmpty) {
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -142,12 +167,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 16),
                   const Text('No videos yet'),
                   const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      // Navigate to create
-                    },
-                    child: const Text('Create your first video'),
-                  ),
+                  const Text('Create your first video'),
                 ],
               ),
             );
@@ -155,11 +175,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              await ref.read(contentFeedProvider.notifier).refresh();
+              await ref.read(feedProvider.notifier).loadFeed(refresh: true);
             },
             child: ListView.builder(
               controller: _scrollController,
-              itemCount: contents.length + 1,
+              itemCount: contents.length + (feedState.isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == contents.length) {
                   return const Padding(
@@ -168,8 +188,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   );
                 }
 
-                final content = contents[index];
-                return _buildContentCard(content);
+                final post = contents[index];
+                return _buildContentCard(post);
               },
             ),
           );

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:state_notifier/state_notifier.dart';
-import '../models/product_model.dart';
+import '../models/product_model_simple.dart';
 import '../services/api_service.dart';
 import '../services/product_api_service.dart';
 
@@ -8,7 +8,7 @@ import '../services/product_api_service.dart';
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
 
 final productApiServiceProvider = Provider<ProductApiService>(
-  (ref) => ProductApiService(ref.watch(apiServiceProvider)),
+  (ref) => ProductApiService(),
 );
 
 // Product Providers

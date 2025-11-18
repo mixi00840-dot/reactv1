@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../data/models/address_model.dart';
-import '../../data/services/address_service.dart';
+import '../../models/product_model_simple.dart'; // for Address class
+import '../../services/address_service.dart';
 
 class AddressManagementPage extends StatefulWidget {
   const AddressManagementPage({super.key});
@@ -11,7 +11,7 @@ class AddressManagementPage extends StatefulWidget {
 
 class _AddressManagementPageState extends State<AddressManagementPage> {
   final AddressService _addressService = AddressService();
-  List<AddressModel> _addresses = [];
+  List<Address> _addresses = [];
   bool _isLoading = true;
   String? _error;
 
@@ -115,7 +115,7 @@ class _AddressManagementPageState extends State<AddressManagementPage> {
     );
   }
 
-  void _addOrEditAddress([AddressModel? address]) async {
+  void _addOrEditAddress([Address? address]) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => _AddressFormDialog(address: address),
@@ -195,7 +195,7 @@ class _AddressManagementPageState extends State<AddressManagementPage> {
     );
   }
 
-  Widget _buildAddressCard(AddressModel address) {
+  Widget _buildAddressCard(Address address) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -207,7 +207,7 @@ class _AddressManagementPageState extends State<AddressManagementPage> {
               children: [
                 Expanded(
                   child: Text(
-                    address.label,
+                    address.name,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -264,8 +264,8 @@ class _AddressManagementPageState extends State<AddressManagementPage> {
                   child: Text(
                     '${address.addressLine1}\n'
                     '${address.addressLine2 != null ? '${address.addressLine2}\n' : ''}'
-                    '${address.city}, ${address.state} ${address.postalCode}\n'
-                    '${address.country}',
+                    '${address.city}, ${address.state} ${address.zipCode}\n'
+                    'USA',  // Default country since Address model doesn't have it
                     style: TextStyle(color: Colors.grey.shade700),
                   ),
                 ),
@@ -301,7 +301,7 @@ class _AddressManagementPageState extends State<AddressManagementPage> {
 }
 
 class _AddressFormDialog extends StatefulWidget {
-  final AddressModel? address;
+  final Address? address;
 
   const _AddressFormDialog({this.address});
 
@@ -329,11 +329,11 @@ class _AddressFormDialogState extends State<_AddressFormDialog> {
   @override
   void initState() {
     super.initState();
-    _labelController = TextEditingController(text: widget.address?.label ?? '');
+    _labelController = TextEditingController(text: widget.address?.name ?? '');
     _fullNameController =
-        TextEditingController(text: widget.address?.fullName ?? '');
+        TextEditingController(text: widget.address?.name ?? '');
     _phoneController =
-        TextEditingController(text: widget.address?.phoneNumber ?? '');
+        TextEditingController(text: widget.address?.phone ?? '');
     _addressLine1Controller =
         TextEditingController(text: widget.address?.addressLine1 ?? '');
     _addressLine2Controller =
@@ -341,7 +341,7 @@ class _AddressFormDialogState extends State<_AddressFormDialog> {
     _cityController = TextEditingController(text: widget.address?.city ?? '');
     _stateController = TextEditingController(text: widget.address?.state ?? '');
     _postalCodeController =
-        TextEditingController(text: widget.address?.postalCode ?? '');
+        TextEditingController(text: widget.address?.zipCode ?? '');
     _countryController =
         TextEditingController(text: widget.address?.country ?? '');
     _isDefault = widget.address?.isDefault ?? false;

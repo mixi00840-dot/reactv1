@@ -58,10 +58,10 @@ final videoAnalyticsProvider =
     shares: result.shares,
     averageWatchTime: 0.0,
     completionRate: 0.0,
-    viewsByCountry: result.viewsByDate,
-    viewsByAge: {},
-    viewsByGender: {},
-    hourlyViews: [],
+    viewsByCountry: result.viewsByDate ?? {},
+    viewsByAge: const {},
+    viewsByGender: const {},
+    hourlyViews: const [],
   );
 });
 
@@ -114,7 +114,23 @@ class EarningsAnalyticsNotifier
     _currentPeriod = period;
 
     try {
-      final earnings = await _service.getEarningsAnalytics(period: period);
+      final earningsMap = await _service.getEarningsAnalytics();
+      if (earningsMap == null) {
+        state = AsyncValue.error('Earnings data not available', StackTrace.current);
+        return;
+      }
+      final earnings = EarningsAnalytics(
+        totalEarnings: (earningsMap['totalEarnings'] ?? earningsMap['total'] ?? 0).toDouble(),
+        videoEarnings: (earningsMap['videoEarnings'] ?? earningsMap['video'] ?? 0).toDouble(),
+        liveEarnings: (earningsMap['liveEarnings'] ?? earningsMap['live'] ?? 0).toDouble(),
+        giftEarnings: (earningsMap['giftEarnings'] ?? earningsMap['gifts'] ?? 0).toDouble(),
+        affiliateEarnings: (earningsMap['affiliateEarnings'] ?? earningsMap['affiliate'] ?? 0).toDouble(),
+        dailyEarnings: List<Map<String, dynamic>>.from(earningsMap['dailyEarnings'] ?? earningsMap['daily'] ?? const []),
+        earningsBySource: Map<String, double>.from(
+          (earningsMap['earningsBySource'] ?? earningsMap['sources'] ?? {})
+              .map((key, value) => MapEntry(key.toString(), (value ?? 0).toDouble())),
+        ),
+      );
       state = AsyncValue.data(earnings);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
@@ -151,12 +167,13 @@ final followerGrowthProvider =
     FutureProvider.family<List<Map<String, dynamic>>, String>(
         (ref, period) async {
   final service = ref.watch(analyticsServiceProvider);
-  return await service.getFollowerGrowth(period: period);
+  // Service currently does not take a period parameter; keep provider family for potential future filtering.
+  return await service.getFollowerGrowth();
 });
 
 // Content performance comparison
 final contentPerformanceProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final service = ref.watch(analyticsServiceProvider);
-  return await service.getTopPerformingContent(limit: 10);
+  return await service.getTopPerformingContent();
 });
